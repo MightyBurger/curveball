@@ -1,4 +1,7 @@
 const TEX_DEFAULT: &str = "mtrl/invisible";
+use crate::map::MapElement;
+use core::fmt;
+use std::fmt::{Display, Formatter};
 
 #[derive(Debug, Default, Clone, Copy, PartialOrd, PartialEq)]
 pub struct Point {
@@ -27,11 +30,42 @@ impl From<(f64, f64, f64)> for Point {
     }
 }
 
+impl MapElement for Point {
+    fn bake(self) -> impl Display {
+        struct PointDisp(Point);
+        impl Display for PointDisp {
+            fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+                write!(f, "{:.6} {:.6} {:.6}", self.0.x, self.0.y, self.0.z)
+            }
+        }
+        PointDisp(self)
+    }
+}
+
 // Not Copy to keep adding a texture in the realm of possibilities
 #[derive(Debug, Default, Clone, PartialOrd, PartialEq)]
 pub struct Face {
-    points: [Point; 3],
-    texture: String,
+    pub points: [Point; 3],
+    pub texture: String,
+}
+
+impl MapElement for Face {
+    fn bake(self) -> impl Display {
+        struct FaceDisp(Face);
+        impl Display for FaceDisp {
+            fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+                write!(
+                    f,
+                    "( {} ) ( {} ) ( {} ) {} 0 0 0 0.5 0.5 0",
+                    self.0.points[0].bake(),
+                    self.0.points[1].bake(),
+                    self.0.points[2].bake(),
+                    self.0.texture
+                )
+            }
+        }
+        FaceDisp(self)
+    }
 }
 
 use chull::ConvexHullWrapper;
@@ -39,7 +73,7 @@ use chull::ConvexHullWrapper;
 #[derive(Debug, Clone)]
 pub struct Lump {
     points: Vec<Point>,
-    faces: Vec<([usize; 3], String)>, // the array contains the indices into the vertices vec
+    faces: Vec<([usize; 3], String)>, // the [usize; 3] contains indices into the points vector
 }
 
 impl Lump {
@@ -108,6 +142,23 @@ impl From<ConvexHullWrapper<f64>> for Lump {
         // Test every face against every other face, and delete when two faces match.
 
         Self { points, faces }
+    }
+}
+
+impl MapElement for Lump {
+    fn bake(self) -> impl Display {
+        struct LumpDisp(Lump);
+        impl Display for LumpDisp {
+            fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+                writeln!(f, "{{",)?;
+                for face in self.0.to_faces() {
+                    writeln!(f, "{}", face.bake())?;
+                }
+                writeln!(f, "}}")?;
+                Ok(())
+            }
+        }
+        LumpDisp(self)
     }
 }
 
@@ -201,5 +252,67 @@ mod tests {
         assert!(extracted_points
             .iter()
             .any(|point| almost_equals(point, &Point::from([1.0, 0.0, 0.0]))));
+    }
+
+    #[test]
+    fn bake_point() {
+        let testpoint = Point {
+            x: 10.0,
+            y: 20.0,
+            z: 30.0,
+        };
+        assert_eq!(
+            format!("{}", testpoint.bake()),
+            "10.000000 20.000000 30.000000"
+        );
+    }
+
+    #[test]
+    fn bake_face() {
+        let testpoint1 = Point {
+            x: 1.0,
+            y: 2.0,
+            z: 3.0,
+        };
+
+        let testpoint2 = Point {
+            x: 10.0,
+            y: 20.0,
+            z: 30.0,
+        };
+
+        let testpoint3 = Point {
+            x: 100.0,
+            y: 200.0,
+            z: 300.0,
+        };
+
+        let face = Face {
+            points: [testpoint1, testpoint2, testpoint3],
+            texture: String::from("mtrl/invisible"),
+        };
+
+        assert_eq!(format!("{}", face.bake()), "( 1.000000 2.000000 3.000000 ) ( 10.000000 20.000000 30.000000 ) ( 100.000000 200.000000 300.000000 ) mtrl/invisible 0 0 0 0.5 0.5 0");
+    }
+    #[test]
+    fn bake_lump() {
+        let points = vec![
+            Point::from([0.0, 0.0, 0.0]),
+            Point::from([0.0, 0.0, 1.0]),
+            Point::from([0.0, 1.0, 0.0]),
+            Point::from([1.0, 0.0, 0.0]),
+            Point::from([0.3, 0.3, 0.3]),
+        ];
+
+        let lump = Lump::try_from_points(&points, Some(1000)).unwrap();
+
+        let should_eq_str = r"{
+( 0.000000 1.000000 0.000000 ) ( 0.000000 0.000000 0.000000 ) ( 0.000000 0.000000 1.000000 ) mtrl/invisible 0 0 0 0.5 0.5 0
+( 1.000000 0.000000 0.000000 ) ( 0.000000 1.000000 0.000000 ) ( 0.000000 0.000000 1.000000 ) mtrl/invisible 0 0 0 0.5 0.5 0
+( 0.000000 0.000000 0.000000 ) ( 1.000000 0.000000 0.000000 ) ( 0.000000 0.000000 1.000000 ) mtrl/invisible 0 0 0 0.5 0.5 0
+( 1.000000 0.000000 0.000000 ) ( 0.000000 0.000000 0.000000 ) ( 0.000000 1.000000 0.000000 ) mtrl/invisible 0 0 0 0.5 0.5 0
+}
+";
+        assert_eq!(format!("{}", lump.bake()), should_eq_str);
     }
 }
