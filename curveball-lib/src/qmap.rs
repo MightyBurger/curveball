@@ -45,10 +45,9 @@ impl QMap {
         }
     }
 
-    pub fn with_metadata(self, new_metadata: String) -> Self {
-        let mut metadata = self.metadata;
-        metadata.push(new_metadata);
-        Self { metadata, ..self }
+    pub fn with_metadata(mut self, metadata: String) -> Self {
+        self.metadata.push(metadata);
+        self
     }
 
     pub fn with_tb_neverball_metadata(self) -> Self {
