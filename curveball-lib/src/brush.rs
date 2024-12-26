@@ -3,12 +3,46 @@ use core::fmt;
 use glam::DVec3;
 use std::fmt::{Display, Formatter};
 
-// Not Copy to keep adding a texture in the realm of possibilities
+#[derive(Debug, Default, Clone, Copy, PartialEq)]
+pub struct SideGeom(pub [DVec3; 3]);
+impl SideGeom {
+    pub fn normal(self) -> DVec3 {
+        let Self([p0, p1, p2]) = self;
+        ((p0 - p1).cross(p2 - p1)).normalize()
+    }
+    pub fn dist(self) -> f64 {
+        let Self([_p0, p1, _p2]) = self;
+        self.normal().dot(p1)
+    }
+    pub fn equivalent(self, other: SideGeom) -> bool {
+        if self.normal().dot(other.normal()) < 1.0 {
+            return false;
+        }
+        if self.dist() != other.dist() {
+            return false;
+        }
+        true
+    }
+}
+
 // TODO: Add texture offset, scale, rotation
+#[derive(Debug, Clone, PartialEq)]
+pub struct SideMtrl {
+    pub texture: String,
+}
+
+impl Default for SideMtrl {
+    fn default() -> Self {
+        Self {
+            texture: String::from(TEX_DEFAULT),
+        }
+    }
+}
+
 #[derive(Debug, Default, Clone, PartialEq)]
 pub struct Side {
-    pub vertices: [DVec3; 3],
-    pub texture: String,
+    pub geom: SideGeom,
+    pub mtrl: SideMtrl,
 }
 
 impl Side {
@@ -19,17 +53,14 @@ impl Side {
                 write!(
                     f,
                     "( {:.6} {:.6} {:.6} ) ( {:.6} {:.6} {:.6} ) ( {:.6} {:.6} {:.6} ) {} 0 0 0 0.5 0.5 0",
-                    self.0.vertices[0][0], self.0.vertices[0][1], self.0.vertices[0][2],
-                    self.0.vertices[1][0], self.0.vertices[1][1], self.0.vertices[1][2],
-                    self.0.vertices[2][0], self.0.vertices[2][1], self.0.vertices[2][2],
-                    self.0.texture
+                    self.0.geom.0[0][0], self.0.geom.0[0][1], self.0.geom.0[0][2],
+                    self.0.geom.0[1][0], self.0.geom.0[1][1], self.0.geom.0[1][2],
+                    self.0.geom.0[2][0], self.0.geom.0[2][1], self.0.geom.0[2][2],
+                    self.0.mtrl.texture
                 )
             }
         }
         SideDisplay(self)
-    }
-    pub fn normal(&self) -> DVec3 {
-        todo!()
     }
 }
 
@@ -37,7 +68,7 @@ use chull::ConvexHullWrapper;
 #[derive(Debug, Clone)]
 pub struct Brush {
     vertices: Vec<DVec3>,
-    sides: Vec<([usize; 3], String)>, // the [usize; 3] contains indices into the vertices vector
+    sides: Vec<([usize; 3], SideMtrl)>, // the [usize; 3] contains indices into the vertices vector
 }
 
 impl Brush {
@@ -47,7 +78,7 @@ impl Brush {
     ) -> Result<Self, chull::convex::ErrorKind> {
         let vertices: Vec<Vec<f64>> = vertices
             .into_iter()
-            .map(|point| vec![point.x, point.y, point.z])
+            .map(|vertex| vec![vertex.x, vertex.y, vertex.z])
             .collect();
 
         let hull = ConvexHullWrapper::try_new(&vertices, max_iter)?;
@@ -55,19 +86,32 @@ impl Brush {
         Ok(hull.into())
     }
 
-    pub fn side_point_indices(&self) -> (&Vec<DVec3>, &Vec<([usize; 3], String)>) {
+    pub fn side_vertex_indices(&self) -> (&Vec<DVec3>, &Vec<([usize; 3], SideMtrl)>) {
         (&self.vertices, &self.sides)
     }
 
     pub fn to_sides_iter(&self) -> impl Iterator<Item = Side> + use<'_> {
-        self.sides.iter().map(|([idx0, idx1, idx2], tex)| Side {
-            vertices: [
+        self.sides.iter().map(|([idx0, idx1, idx2], mtrl)| Side {
+            geom: SideGeom([
                 self.vertices[*idx0],
                 self.vertices[*idx1],
                 self.vertices[*idx2],
-            ],
-            texture: tex.clone(),
+            ]),
+            mtrl: mtrl.clone(),
         })
+    }
+
+    pub fn into_sides_iter(self) -> impl Iterator<Item = Side> {
+        self.sides
+            .into_iter()
+            .map(move |([idx0, idx1, idx2], mtrl)| Side {
+                geom: SideGeom([
+                    self.vertices[idx0],
+                    self.vertices[idx1],
+                    self.vertices[idx2],
+                ]),
+                mtrl,
+            })
     }
 
     pub fn vertices(&self) -> &Vec<DVec3> {
@@ -76,15 +120,6 @@ impl Brush {
     pub fn vertices_iter(&self) -> impl Iterator<Item = &DVec3> + use<'_> {
         self.vertices.iter()
     }
-}
-
-fn sides_duplicate(side1: [DVec3; 3], side2: [DVec3; 3]) -> bool {
-    let normal1 = (side1[1] - side1[0]).cross(side1[2] - side1[0]);
-    let normal2 = (side2[1] - side2[0]).cross(side2[2] - side2[0]);
-    if normal1.dot(normal2) == 1.0 {
-        return true;
-    }
-    false
 }
 
 impl From<ConvexHullWrapper<f64>> for Brush {
@@ -124,9 +159,9 @@ impl From<ConvexHullWrapper<f64>> for Brush {
                 .fold(Vec::new(), |sides, (i1, i2, i3)| {
                     let mut unique = true;
                     for (s1, s2, s3) in sides.iter() {
-                        let side1 = [vertices[*i1], vertices[*i2], vertices[*i3]];
-                        let side2 = [vertices[*s1], vertices[*s2], vertices[*s3]];
-                        if sides_duplicate(side1, side2) {
+                        let side1 = SideGeom([vertices[*i1], vertices[*i2], vertices[*i3]]);
+                        let side2 = SideGeom([vertices[*s1], vertices[*s2], vertices[*s3]]);
+                        if SideGeom::equivalent(side1, side2) {
                             unique = false;
                         }
                     }
@@ -141,7 +176,7 @@ impl From<ConvexHullWrapper<f64>> for Brush {
 
         let sides = side_indices2
             .into_iter()
-            .map(|(i1, i2, i3)| ([i1, i2, i3], String::from(TEX_DEFAULT)))
+            .map(|(i1, i2, i3)| ([i1, i2, i3], SideMtrl::default()))
             .collect();
 
         Self { vertices, sides }
@@ -197,28 +232,28 @@ mod tests {
         assert_eq!(extracted_sides.len(), 6);
         assert!(extracted_vertices
             .iter()
-            .any(|point| almost_equals(point, &DVec3::from([0.0, 0.0, 0.0]))));
+            .any(|vertex| almost_equals(vertex, &DVec3::from([0.0, 0.0, 0.0]))));
         assert!(extracted_vertices
             .iter()
-            .any(|point| almost_equals(point, &DVec3::from([0.0, 0.0, 1.0]))));
+            .any(|vertex| almost_equals(vertex, &DVec3::from([0.0, 0.0, 1.0]))));
         assert!(extracted_vertices
             .iter()
-            .any(|point| almost_equals(point, &DVec3::from([0.0, 1.0, 0.0]))));
+            .any(|vertex| almost_equals(vertex, &DVec3::from([0.0, 1.0, 0.0]))));
         assert!(extracted_vertices
             .iter()
-            .any(|point| almost_equals(point, &DVec3::from([0.0, 1.0, 1.0]))));
+            .any(|vertex| almost_equals(vertex, &DVec3::from([0.0, 1.0, 1.0]))));
         assert!(extracted_vertices
             .iter()
-            .any(|point| almost_equals(point, &DVec3::from([1.0, 0.0, 0.0]))));
+            .any(|vertex| almost_equals(vertex, &DVec3::from([1.0, 0.0, 0.0]))));
         assert!(extracted_vertices
             .iter()
-            .any(|point| almost_equals(point, &DVec3::from([1.0, 0.0, 1.0]))));
+            .any(|vertex| almost_equals(vertex, &DVec3::from([1.0, 0.0, 1.0]))));
         assert!(extracted_vertices
             .iter()
-            .any(|point| almost_equals(point, &DVec3::from([1.0, 1.0, 0.0]))));
+            .any(|vertex| almost_equals(vertex, &DVec3::from([1.0, 1.0, 0.0]))));
         assert!(extracted_vertices
             .iter()
-            .any(|point| almost_equals(point, &DVec3::from([1.0, 1.0, 1.0]))));
+            .any(|vertex| almost_equals(vertex, &DVec3::from([1.0, 1.0, 1.0]))));
     }
 
     #[test]
@@ -241,41 +276,41 @@ mod tests {
 
         assert!(extracted_vertices
             .iter()
-            .any(|point| almost_equals(point, &DVec3::from([0.0, 0.0, 0.0]))));
+            .any(|vertex| almost_equals(vertex, &DVec3::from([0.0, 0.0, 0.0]))));
         assert!(extracted_vertices
             .iter()
-            .any(|point| almost_equals(point, &DVec3::from([0.0, 0.0, 1.0]))));
+            .any(|vertex| almost_equals(vertex, &DVec3::from([0.0, 0.0, 1.0]))));
         assert!(extracted_vertices
             .iter()
-            .any(|point| almost_equals(point, &DVec3::from([0.0, 1.0, 0.0]))));
+            .any(|vertex| almost_equals(vertex, &DVec3::from([0.0, 1.0, 0.0]))));
         assert!(extracted_vertices
             .iter()
-            .any(|point| almost_equals(point, &DVec3::from([1.0, 0.0, 0.0]))));
+            .any(|vertex| almost_equals(vertex, &DVec3::from([1.0, 0.0, 0.0]))));
     }
 
     #[test]
     fn bake_side() {
-        let testpoint1 = DVec3 {
+        let testvertex1 = DVec3 {
             x: 1.0,
             y: 2.0,
             z: 3.0,
         };
 
-        let testpoint2 = DVec3 {
+        let testvertex2 = DVec3 {
             x: 10.0,
             y: 20.0,
             z: 30.0,
         };
 
-        let testpoint3 = DVec3 {
+        let testvertex3 = DVec3 {
             x: 100.0,
             y: 200.0,
             z: 300.0,
         };
 
         let side = Side {
-            vertices: [testpoint1, testpoint2, testpoint3],
-            texture: String::from("mtrl/invisible"),
+            geom: SideGeom([testvertex1, testvertex2, testvertex3]),
+            mtrl: SideMtrl::default(),
         };
 
         assert_eq!(format!("{}", side.bake()), "( 1.000000 2.000000 3.000000 ) ( 10.000000 20.000000 30.000000 ) ( 100.000000 200.000000 300.000000 ) mtrl/invisible 0 0 0 0.5 0.5 0");
