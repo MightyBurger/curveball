@@ -1,5 +1,4 @@
 const TEX_DEFAULT: &str = "mtrl/invisible";
-use crate::map::MapElement;
 use core::fmt;
 use std::fmt::{Display, Formatter};
 
@@ -30,15 +29,15 @@ impl From<(f64, f64, f64)> for Point {
     }
 }
 
-impl MapElement for Point {
-    fn bake(self) -> impl Display {
+impl Point {
+    pub(crate) fn bake(&self) -> impl Display {
         struct PointDisp(Point);
         impl Display for PointDisp {
             fn fmt(&self, f: &mut Formatter) -> fmt::Result {
                 write!(f, "{:.6} {:.6} {:.6}", self.0.x, self.0.y, self.0.z)
             }
         }
-        PointDisp(self)
+        PointDisp(*self)
     }
 }
 
@@ -49,10 +48,10 @@ pub struct Face {
     pub texture: String,
 }
 
-impl MapElement for Face {
-    fn bake(self) -> impl Display {
-        struct FaceDisp(Face);
-        impl Display for FaceDisp {
+impl Face {
+    pub(crate) fn bake(&self) -> impl Display + use<'_> {
+        struct FaceDisplay<'a>(&'a Face);
+        impl Display for FaceDisplay<'_> {
             fn fmt(&self, f: &mut Formatter) -> fmt::Result {
                 write!(
                     f,
@@ -64,19 +63,18 @@ impl MapElement for Face {
                 )
             }
         }
-        FaceDisp(self)
+        FaceDisplay(self)
     }
 }
 
 use chull::ConvexHullWrapper;
-
 #[derive(Debug, Clone)]
-pub struct Lump {
+pub struct Brush {
     points: Vec<Point>,
     faces: Vec<([usize; 3], String)>, // the [usize; 3] contains indices into the points vector
 }
 
-impl Lump {
+impl Brush {
     pub fn try_from_points<'a>(
         points: impl IntoIterator<Item = &'a Point>,
         max_iter: Option<usize>,
@@ -91,19 +89,30 @@ impl Lump {
         Ok(hull.into())
     }
 
-    pub fn to_faces(&self) -> impl Iterator<Item = Face> + use<'_> {
+    pub fn face_point_indices(&self) -> (&Vec<Point>, &Vec<([usize; 3], String)>) {
+        (&self.points, &self.faces)
+    }
+
+    pub fn to_faces_iter(&self) -> impl Iterator<Item = Face> + use<'_> {
         self.faces.iter().map(|([idx0, idx1, idx2], tex)| Face {
             points: [self.points[*idx0], self.points[*idx1], self.points[*idx2]],
             texture: tex.clone(),
         })
     }
 
-    pub fn points(&self) -> impl Iterator<Item = &Point> + use<'_> {
+    pub fn points(&self) -> &Vec<Point> {
+        &self.points
+    }
+    pub fn points_iter(&self) -> impl Iterator<Item = &Point> + use<'_> {
         self.points.iter()
     }
 }
 
-impl From<ConvexHullWrapper<f64>> for Lump {
+fn faces_duplicate(face1: [Point; 3], face2: &[[Point; 3]]) -> bool {
+    todo!()
+}
+
+impl From<ConvexHullWrapper<f64>> for Brush {
     fn from(hull: ConvexHullWrapper<f64>) -> Self {
         let (points, face_indices) = hull.vertices_indices();
 
@@ -128,43 +137,43 @@ impl From<ConvexHullWrapper<f64>> for Lump {
         // When ArrayChunks is stabalized, switch to using that over tuples() and eliminate
         // the itertools dependancy.
         use itertools::Itertools;
-        let faces: Vec<([usize; 3], String)> = face_indices
+        let faces_possibly_duplicates: Vec<([usize; 3], String)> = face_indices
             .into_iter()
             .tuples()
             .map(|(idx1, idx2, idx3)| ([idx1, idx2, idx3], String::from(TEX_DEFAULT)))
             .collect();
 
         // TODO: Eliminate equivalent faces. It appears the library I use will split each
-        // lump into triangles, producing excessive faces, though the geometry will
+        // brush into triangles, producing excessive faces, though the geometry will
         // be the same.
-        // This is an important step, as currently, lumps will have twice the number
+        // This is an important step, as currently, brushs will have twice the number
         // of faces as required.
         // Test every face against every other face, and delete when two faces match.
+
+        let mut faces = Vec::new();
+
+        for potential in faces_possibly_duplicates.into_iter() {}
 
         Self { points, faces }
     }
 }
 
-impl MapElement for Lump {
-    fn bake(self) -> impl Display {
-        struct LumpDisp(Lump);
-        impl Display for LumpDisp {
+impl Brush {
+    pub(crate) fn bake(&self) -> impl Display + use<'_> {
+        struct BrushDisp<'a>(&'a Brush);
+        impl Display for BrushDisp<'_> {
             fn fmt(&self, f: &mut Formatter) -> fmt::Result {
                 writeln!(f, "{{",)?;
-                for face in self.0.to_faces() {
+                for face in self.0.to_faces_iter() {
                     writeln!(f, "{}", face.bake())?;
                 }
                 writeln!(f, "}}")?;
                 Ok(())
             }
         }
-        LumpDisp(self)
+        BrushDisp(self)
     }
 }
-
-// -----------------------------------
-//             Unit Tests
-// -----------------------------------
 
 #[cfg(test)]
 mod tests {
@@ -176,7 +185,7 @@ mod tests {
     }
 
     #[test]
-    fn test_lump_cube() {
+    fn test_brush_cube() {
         let points = vec![
             Point::from([0.0, 0.0, 0.0]),
             Point::from([0.0, 0.0, 1.0]),
@@ -189,10 +198,10 @@ mod tests {
             Point::from([0.5, 0.5, 0.5]),
         ];
 
-        let lump = Lump::try_from_points(&points, Some(1000)).unwrap();
+        let brush = Brush::try_from_points(&points, Some(1000)).unwrap();
 
-        let extracted_points: Vec<&Point> = lump.points().collect();
-        let extracted_faces: Vec<Face> = lump.to_faces().collect();
+        let extracted_points: &Vec<Point> = brush.points();
+        let extracted_faces: Vec<Face> = brush.to_faces_iter().collect();
 
         assert_eq!(extracted_points.len(), 8);
         assert_eq!(extracted_faces.len(), 12); // TODO: Change to 6 when the above TODO is resolved.
@@ -223,7 +232,7 @@ mod tests {
     }
 
     #[test]
-    fn test_lump_pyramid() {
+    fn test_brush_pyramid() {
         let points = vec![
             Point::from([0.0, 0.0, 0.0]),
             Point::from([0.0, 0.0, 1.0]),
@@ -232,10 +241,10 @@ mod tests {
             Point::from([0.3, 0.3, 0.3]),
         ];
 
-        let lump = Lump::try_from_points(&points, Some(1000)).unwrap();
+        let brush = Brush::try_from_points(&points, Some(1000)).unwrap();
 
-        let extracted_points: Vec<&Point> = lump.points().collect();
-        let extracted_faces: Vec<Face> = lump.to_faces().collect();
+        let extracted_points: &Vec<Point> = brush.points();
+        let extracted_faces: Vec<Face> = brush.to_faces_iter().collect();
 
         assert_eq!(extracted_points.len(), 4);
         assert_eq!(extracted_faces.len(), 4);
@@ -295,7 +304,7 @@ mod tests {
         assert_eq!(format!("{}", face.bake()), "( 1.000000 2.000000 3.000000 ) ( 10.000000 20.000000 30.000000 ) ( 100.000000 200.000000 300.000000 ) mtrl/invisible 0 0 0 0.5 0.5 0");
     }
     #[test]
-    fn bake_lump() {
+    fn bake_brush() {
         let points = vec![
             Point::from([0.0, 0.0, 0.0]),
             Point::from([0.0, 0.0, 1.0]),
@@ -304,7 +313,7 @@ mod tests {
             Point::from([0.3, 0.3, 0.3]),
         ];
 
-        let lump = Lump::try_from_points(&points, Some(1000)).unwrap();
+        let brush = Brush::try_from_points(&points, Some(1000)).unwrap();
 
         let should_eq_str = r"{
 ( 0.000000 1.000000 0.000000 ) ( 0.000000 0.000000 0.000000 ) ( 0.000000 0.000000 1.000000 ) mtrl/invisible 0 0 0 0.5 0.5 0
@@ -313,6 +322,6 @@ mod tests {
 ( 1.000000 0.000000 0.000000 ) ( 0.000000 0.000000 0.000000 ) ( 0.000000 1.000000 0.000000 ) mtrl/invisible 0 0 0 0.5 0.5 0
 }
 ";
-        assert_eq!(format!("{}", lump.bake()), should_eq_str);
+        assert_eq!(format!("{}", brush.bake()), should_eq_str);
     }
 }
