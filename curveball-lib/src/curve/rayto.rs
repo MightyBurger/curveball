@@ -1,5 +1,5 @@
 use crate::brush::Brush;
-use crate::curve::{Curve, CurveError};
+use crate::curve::{Curve, CurveResult};
 use glam::DVec3;
 
 use std::f64::consts::PI;
@@ -24,7 +24,7 @@ fn brush_tprism(
     x: f64,
     y: f64,
     h: f64,
-) -> Result<Brush, CurveError> {
+) -> CurveResult<Brush> {
     let x0 = rstart * (thetastart * PI / 180.0).cos();
     let y0 = rstart * (thetastart * PI / 180.0).sin();
     let x1 = rend * (thetaend * PI / 180.0).cos();
@@ -49,7 +49,7 @@ fn brush_tprism(
 }
 
 impl Curve for Rayto {
-    fn bake(&self) -> Result<Vec<Brush>, CurveError> {
+    fn bake(&self) -> CurveResult<Vec<Brush>> {
         let n = self.n;
         let r0 = self.r0;
         let r1 = self.r1;
