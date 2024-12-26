@@ -1,68 +1,24 @@
 const TEX_DEFAULT: &str = "mtrl/invisible";
 use core::fmt;
+use glam::DVec3;
 use std::fmt::{Display, Formatter};
 
-#[derive(Debug, Default, Clone, Copy, PartialOrd, PartialEq)]
-pub struct Point {
-    pub x: f64,
-    pub y: f64,
-    pub z: f64,
-}
-
-impl Point {
-    pub fn dot(self, other: Point) -> f64 {
-        self.x * other.x + self.y * other.y + self.z * other.z
-    }
-}
-
-impl From<[f64; 3]> for Point {
-    fn from(value: [f64; 3]) -> Self {
-        Self {
-            x: value[0],
-            y: value[1],
-            z: value[2],
-        }
-    }
-}
-
-impl From<Point> for [f64; 3] {
-    fn from(value: Point) -> Self {
-        [value.x, value.y, value.z]
-    }
-}
-
-impl From<(f64, f64, f64)> for Point {
-    fn from(value: (f64, f64, f64)) -> Self {
-        Self {
-            x: value.0,
-            y: value.1,
-            z: value.2,
-        }
-    }
-}
-
-impl From<Point> for (f64, f64, f64) {
-    fn from(value: Point) -> Self {
-        (value.x, value.y, value.z)
-    }
-}
-
-impl Point {
-    pub(crate) fn bake(&self) -> impl Display {
-        struct PointDisp(Point);
-        impl Display for PointDisp {
-            fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-                write!(f, "{:.6} {:.6} {:.6}", self.0.x, self.0.y, self.0.z)
-            }
-        }
-        PointDisp(*self)
-    }
-}
+// impl Point {
+//     pub(crate) fn bake(&self) -> impl Display {
+//         struct PointDisp(Point);
+//         impl Display for PointDisp {
+//             fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+//                 write!(f, "{:.6} {:.6} {:.6}", self.0.x, self.0.y, self.0.z)
+//             }
+//         }
+//         PointDisp(*self)
+//     }
+// }
 
 // Not Copy to keep adding a texture in the realm of possibilities
-#[derive(Debug, Default, Clone, PartialOrd, PartialEq)]
+#[derive(Debug, Default, Clone, PartialEq)]
 pub struct Face {
-    pub points: [Point; 3],
+    pub points: [DVec3; 3],
     pub texture: String,
 }
 
@@ -73,17 +29,19 @@ impl Face {
             fn fmt(&self, f: &mut Formatter) -> fmt::Result {
                 write!(
                     f,
-                    "( {} ) ( {} ) ( {} ) {} 0 0 0 0.5 0.5 0",
-                    self.0.points[0].bake(),
-                    self.0.points[1].bake(),
-                    self.0.points[2].bake(),
+                    "( {:.6} {:.6} {:.6} ) ( {:.6} {:.6} {:.6} ) ( {:.6} {:.6} {:.6} ) {} 0 0 0 0.5 0.5 0",
+                    self.0.points[0][0],self.0.points[0][1], self.0.points[0][2], 
+                    self.0.points[1][0],self.0.points[1][1], self.0.points[1][2], 
+                    self.0.points[2][0],self.0.points[2][1], self.0.points[2][2], 
                     self.0.texture
                 )
             }
         }
         FaceDisplay(self)
     }
-    pub fn normal(&self) -> [f64; 3] {}
+    pub fn normal(&self) -> DVec3 {
+        todo!()
+    }
 }
 
 // #[derive(Debug, Default, Clone, PartialOrd, PartialEq)]
@@ -96,13 +54,13 @@ impl Face {
 use chull::ConvexHullWrapper;
 #[derive(Debug, Clone)]
 pub struct Brush {
-    points: Vec<Point>,
+    points: Vec<DVec3>,
     faces: Vec<([usize; 3], String)>, // the [usize; 3] contains indices into the points vector
 }
 
 impl Brush {
     pub fn try_from_points<'a>(
-        points: impl IntoIterator<Item = &'a Point>,
+        points: impl IntoIterator<Item = &'a DVec3>,
         max_iter: Option<usize>,
     ) -> Result<Self, chull::convex::ErrorKind> {
         let points: Vec<Vec<f64>> = points
@@ -115,7 +73,7 @@ impl Brush {
         Ok(hull.into())
     }
 
-    pub fn face_point_indices(&self) -> (&Vec<Point>, &Vec<([usize; 3], String)>) {
+    pub fn face_point_indices(&self) -> (&Vec<DVec3>, &Vec<([usize; 3], String)>) {
         (&self.points, &self.faces)
     }
 
@@ -126,25 +84,28 @@ impl Brush {
         })
     }
 
-    pub fn points(&self) -> &Vec<Point> {
+    pub fn points(&self) -> &Vec<DVec3> {
         &self.points
     }
-    pub fn points_iter(&self) -> impl Iterator<Item = &Point> + use<'_> {
+    pub fn points_iter(&self) -> impl Iterator<Item = &DVec3> + use<'_> {
         self.points.iter()
     }
 }
 
-fn faces_duplicate(face1: [Point; 3], face2: &[[Point; 3]]) -> bool {
-    todo!()
+fn faces_duplicate(face1: [DVec3; 3], face2: [DVec3; 3]) -> bool {
+    let normal1 = (face1[1] - face1[0]).cross(face1[2] - face1[0]);
+    let normal2 = (face2[1] - face2[0]).cross(face2[2] - face2[0]);
+    if normal1.dot(normal2) == 1.0 {return true;}
+    false
 }
 
 impl From<ConvexHullWrapper<f64>> for Brush {
     fn from(hull: ConvexHullWrapper<f64>) -> Self {
         let (points, face_indices) = hull.vertices_indices();
 
-        let points = points
+        let points: Vec<DVec3> = points
             .into_iter()
-            .map(|vertex| Point {
+            .map(|vertex| DVec3 {
                 x: *vertex
                     .get(0)
                     .expect("vertices expected to have three components"),
@@ -158,27 +119,38 @@ impl From<ConvexHullWrapper<f64>> for Brush {
             .collect();
 
         // Just a check.
+        #[cfg(debug_assertions)]
         assert_eq!(face_indices.len() % 3, 0);
 
-        // When ArrayChunks is stabalized, switch to using that over tuples() and eliminate
-        // the itertools dependancy.
+        // TODO: Redo this really gross block of code.
+        // Its purpose is to add face_indices, but only the ones that are
+        // not duplicates.
         use itertools::Itertools;
-        let faces_possibly_duplicates: Vec<([usize; 3], String)> = face_indices
-            .into_iter()
+
+        let face_indices2: Vec<(usize, usize, usize)> = face_indices
+            .iter()
             .tuples()
-            .map(|(idx1, idx2, idx3)| ([idx1, idx2, idx3], String::from(TEX_DEFAULT)))
-            .collect();
+            .fold(Vec::new(), |faces, (i1, i2, i3)|  {
+                let mut unique = true;
+                for (s1, s2, s3) in faces.iter() {
+                    let face1 = [points[*i1], points[*i2], points[*i3]];
+                    let face2 = [points[*s1], points[*s2], points[*s3]];
+                    if faces_duplicate(face1, face2) {
+                        unique = false;
+                    }
+                }
+                if unique {
+                    let mut next = faces.clone();
+                    next.push((*i1, *i2, *i3));
+                    next
+                }
+                else {
+                    faces
+                }
+            });
 
-        // TODO: Eliminate equivalent faces. It appears the library I use will split each
-        // brush into triangles, producing excessive faces, though the geometry will
-        // be the same.
-        // This is an important step, as currently, brushs will have twice the number
-        // of faces as required.
-        // Test every face against every other face, and delete when two faces match.
+        let faces = face_indices2.into_iter().map(|(i1, i2, i3)| ([i1, i2, i3], String::from(TEX_DEFAULT))).collect();
 
-        let mut faces = Vec::new();
-
-        for potential in faces_possibly_duplicates.into_iter() {}
 
         Self { points, faces }
     }
@@ -206,70 +178,70 @@ mod tests {
     use super::*;
 
     const EPSILON: f64 = 0.000000001;
-    fn almost_equals(a: &Point, b: &Point) -> bool {
+    fn almost_equals(a: &DVec3, b: &DVec3) -> bool {
         (a.x - b.x).abs() < EPSILON && (a.y - b.y).abs() < EPSILON && (a.z - b.z).abs() < EPSILON
     }
 
     #[test]
     fn test_brush_cube() {
         let points = vec![
-            Point::from([0.0, 0.0, 0.0]),
-            Point::from([0.0, 0.0, 1.0]),
-            Point::from([0.0, 1.0, 0.0]),
-            Point::from([0.0, 1.0, 1.0]),
-            Point::from([1.0, 0.0, 0.0]),
-            Point::from([1.0, 0.0, 1.0]),
-            Point::from([1.0, 1.0, 0.0]),
-            Point::from([1.0, 1.0, 1.0]),
-            Point::from([0.5, 0.5, 0.5]),
+            DVec3::from([0.0, 0.0, 0.0]),
+            DVec3::from([0.0, 0.0, 1.0]),
+            DVec3::from([0.0, 1.0, 0.0]),
+            DVec3::from([0.0, 1.0, 1.0]),
+            DVec3::from([1.0, 0.0, 0.0]),
+            DVec3::from([1.0, 0.0, 1.0]),
+            DVec3::from([1.0, 1.0, 0.0]),
+            DVec3::from([1.0, 1.0, 1.0]),
+            DVec3::from([0.5, 0.5, 0.5]),
         ];
 
         let brush = Brush::try_from_points(&points, Some(1000)).unwrap();
 
-        let extracted_points: &Vec<Point> = brush.points();
+        let extracted_points: &Vec<DVec3> = brush.points();
         let extracted_faces: Vec<Face> = brush.to_faces_iter().collect();
 
         assert_eq!(extracted_points.len(), 8);
-        assert_eq!(extracted_faces.len(), 12); // TODO: Change to 6 when the above TODO is resolved.
+        assert_eq!(extracted_faces.len(), 6);
         assert!(extracted_points
             .iter()
-            .any(|point| almost_equals(point, &Point::from([0.0, 0.0, 0.0]))));
+            .any(|point| almost_equals(point, &DVec3::from([0.0, 0.0, 0.0]))));
         assert!(extracted_points
             .iter()
-            .any(|point| almost_equals(point, &Point::from([0.0, 0.0, 1.0]))));
+            .any(|point| almost_equals(point, &DVec3::from([0.0, 0.0, 1.0]))));
         assert!(extracted_points
             .iter()
-            .any(|point| almost_equals(point, &Point::from([0.0, 1.0, 0.0]))));
+            .any(|point| almost_equals(point, &DVec3::from([0.0, 1.0, 0.0]))));
         assert!(extracted_points
             .iter()
-            .any(|point| almost_equals(point, &Point::from([0.0, 1.0, 1.0]))));
+            .any(|point| almost_equals(point, &DVec3::from([0.0, 1.0, 1.0]))));
         assert!(extracted_points
             .iter()
-            .any(|point| almost_equals(point, &Point::from([1.0, 0.0, 0.0]))));
+            .any(|point| almost_equals(point, &DVec3::from([1.0, 0.0, 0.0]))));
         assert!(extracted_points
             .iter()
-            .any(|point| almost_equals(point, &Point::from([1.0, 0.0, 1.0]))));
+            .any(|point| almost_equals(point, &DVec3::from([1.0, 0.0, 1.0]))));
         assert!(extracted_points
             .iter()
-            .any(|point| almost_equals(point, &Point::from([1.0, 1.0, 0.0]))));
+            .any(|point| almost_equals(point, &DVec3::from([1.0, 1.0, 0.0]))));
         assert!(extracted_points
             .iter()
-            .any(|point| almost_equals(point, &Point::from([1.0, 1.0, 1.0]))));
+            .any(|point| almost_equals(point, &DVec3::from([1.0, 1.0, 1.0]))));
     }
 
     #[test]
     fn test_brush_pyramid() {
         let points = vec![
-            Point::from([0.0, 0.0, 0.0]),
-            Point::from([0.0, 0.0, 1.0]),
-            Point::from([0.0, 1.0, 0.0]),
-            Point::from([1.0, 0.0, 0.0]),
-            Point::from([0.3, 0.3, 0.3]),
+            DVec3::from([0.0, 0.0, 0.0]),
+            DVec3::from([0.0, 0.0, 1.0]),
+            DVec3::from([0.0, 1.0, 0.0]),
+            DVec3::from([1.0, 0.0, 0.0]),
+            DVec3::from([0.3, 0.3, 0.3]),
         ];
 
         let brush = Brush::try_from_points(&points, Some(1000)).unwrap();
 
-        let extracted_points: &Vec<Point> = brush.points();
+        let extracted_points: &Vec<DVec3> = brush.points();
         let extracted_faces: Vec<Face> = brush.to_faces_iter().collect();
 
         assert_eq!(extracted_points.len(), 4);
@@ -277,46 +249,33 @@ mod tests {
 
         assert!(extracted_points
             .iter()
-            .any(|point| almost_equals(point, &Point::from([0.0, 0.0, 0.0]))));
+            .any(|point| almost_equals(point, &DVec3::from([0.0, 0.0, 0.0]))));
         assert!(extracted_points
             .iter()
-            .any(|point| almost_equals(point, &Point::from([0.0, 0.0, 1.0]))));
+            .any(|point| almost_equals(point, &DVec3::from([0.0, 0.0, 1.0]))));
         assert!(extracted_points
             .iter()
-            .any(|point| almost_equals(point, &Point::from([0.0, 1.0, 0.0]))));
+            .any(|point| almost_equals(point, &DVec3::from([0.0, 1.0, 0.0]))));
         assert!(extracted_points
             .iter()
-            .any(|point| almost_equals(point, &Point::from([1.0, 0.0, 0.0]))));
-    }
-
-    #[test]
-    fn bake_point() {
-        let testpoint = Point {
-            x: 10.0,
-            y: 20.0,
-            z: 30.0,
-        };
-        assert_eq!(
-            format!("{}", testpoint.bake()),
-            "10.000000 20.000000 30.000000"
-        );
+            .any(|point| almost_equals(point, &DVec3::from([1.0, 0.0, 0.0]))));
     }
 
     #[test]
     fn bake_face() {
-        let testpoint1 = Point {
+        let testpoint1 = DVec3 {
             x: 1.0,
             y: 2.0,
             z: 3.0,
         };
 
-        let testpoint2 = Point {
+        let testpoint2 = DVec3 {
             x: 10.0,
             y: 20.0,
             z: 30.0,
         };
 
-        let testpoint3 = Point {
+        let testpoint3 = DVec3 {
             x: 100.0,
             y: 200.0,
             z: 300.0,
@@ -332,11 +291,11 @@ mod tests {
     #[test]
     fn bake_brush() {
         let points = vec![
-            Point::from([0.0, 0.0, 0.0]),
-            Point::from([0.0, 0.0, 1.0]),
-            Point::from([0.0, 1.0, 0.0]),
-            Point::from([1.0, 0.0, 0.0]),
-            Point::from([0.3, 0.3, 0.3]),
+            DVec3::from([0.0, 0.0, 0.0]),
+            DVec3::from([0.0, 0.0, 1.0]),
+            DVec3::from([0.0, 1.0, 0.0]),
+            DVec3::from([1.0, 0.0, 0.0]),
+            DVec3::from([0.3, 0.3, 0.3]),
         ];
 
         let brush = Brush::try_from_points(&points, Some(1000)).unwrap();
