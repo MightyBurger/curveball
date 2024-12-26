@@ -26,3 +26,6 @@ impl From<SimpleWorldspawn> for QEntity {
 
 // TODO: Add other Neverball entities
 // TODO: Add TrenchbroomGroup entity
+//
+#[cfg(test)]
+mod tests {}
