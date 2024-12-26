@@ -9,6 +9,12 @@ pub struct Point {
     pub z: f64,
 }
 
+impl Point {
+    pub fn dot(self, other: Point) -> f64 {
+        self.x * other.x + self.y * other.y + self.z * other.z
+    }
+}
+
 impl From<[f64; 3]> for Point {
     fn from(value: [f64; 3]) -> Self {
         Self {
@@ -19,6 +25,12 @@ impl From<[f64; 3]> for Point {
     }
 }
 
+impl From<Point> for [f64; 3] {
+    fn from(value: Point) -> Self {
+        [value.x, value.y, value.z]
+    }
+}
+
 impl From<(f64, f64, f64)> for Point {
     fn from(value: (f64, f64, f64)) -> Self {
         Self {
@@ -26,6 +38,12 @@ impl From<(f64, f64, f64)> for Point {
             y: value.1,
             z: value.2,
         }
+    }
+}
+
+impl From<Point> for (f64, f64, f64) {
+    fn from(value: Point) -> Self {
+        (value.x, value.y, value.z)
     }
 }
 
@@ -65,7 +83,15 @@ impl Face {
         }
         FaceDisplay(self)
     }
+    pub fn normal(&self) -> [f64; 3] {}
 }
+
+// #[derive(Debug, Default, Clone, PartialOrd, PartialEq)]
+// pub struct FaceNormalOrig {
+//     pub normal: [f64; 3], // normal vector of the plane
+//     pub dist: [f64; 3],   // minimum distance to the origin
+//     pub texture: String,
+// }
 
 use chull::ConvexHullWrapper;
 #[derive(Debug, Clone)]
