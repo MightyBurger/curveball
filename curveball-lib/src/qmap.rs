@@ -17,7 +17,7 @@ impl QEntity {
             fn fmt(&self, f: &mut Formatter) -> fmt::Result {
                 writeln!(f, "{{",)?;
                 for (key, value) in self.0.parameters.iter() {
-                    writeln!(f, "\"{key}\", \"{value}\"")?;
+                    writeln!(f, "\"{key}\" \"{value}\"")?;
                 }
                 for (i, brush) in self.0.brushes.iter().enumerate() {
                     writeln!(f, "// brush {i}")?;
@@ -113,7 +113,7 @@ mod tests {
 // Format: Quake3
 // entity 0
 {
-"classname", "worldspawn"
+"classname" "worldspawn"
 // brush 0
 {
 ( 0.000000 1.000000 0.000000 ) ( 0.000000 0.000000 0.000000 ) ( 0.000000 0.000000 1.000000 ) mtrl/invisible 0 0 0 0.5 0.5 0

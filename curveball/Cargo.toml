@@ -5,4 +5,5 @@ edition = "2021"
 
 [dependencies]
 clap = { version = "4.5.23", features = ["derive"] }
+colored = "2.2.0"
 curveball-lib = { path = "../curveball-lib" }

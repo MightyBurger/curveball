@@ -52,10 +52,10 @@ impl Side {
             fn fmt(&self, f: &mut Formatter) -> fmt::Result {
                 write!(
                     f,
-                    "( {:.6} {:.6} {:.6} ) ( {:.6} {:.6} {:.6} ) ( {:.6} {:.6} {:.6} ) {} 0 0 0 0.5 0.5 0",
-                    self.0.geom.0[0][0], self.0.geom.0[0][1], self.0.geom.0[0][2],
-                    self.0.geom.0[1][0], self.0.geom.0[1][1], self.0.geom.0[1][2],
-                    self.0.geom.0[2][0], self.0.geom.0[2][1], self.0.geom.0[2][2],
+                    "( {:.6} {:.6} {:.6} ) ( {:.6} {:.6} {:.6} ) ( {:.6} {:.6} {:.6} ) {} 0 0 0 0.5 0.5 0 0 0",
+                    self.0.geom.0[0][0], self.0.geom.0[0][2], self.0.geom.0[0][1],
+                    self.0.geom.0[1][0], self.0.geom.0[1][2], self.0.geom.0[1][1],
+                    self.0.geom.0[2][0], self.0.geom.0[2][2], self.0.geom.0[2][1],
                     self.0.mtrl.texture
                 )
             }
