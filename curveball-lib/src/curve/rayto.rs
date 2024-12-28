@@ -1,6 +1,7 @@
 use crate::curve::{Curve, CurveResult, MAX_HULL_ITER};
 use crate::map::Brush;
 use glam::DVec3;
+use thiserror::Error;
 
 use std::f64::consts::PI;
 
@@ -18,6 +19,9 @@ pub struct Rayto {
 
 impl Curve for Rayto {
     fn bake(&self) -> CurveResult<Vec<Brush>> {
+        if self.n < 1 {
+            return Err(RaytoError::NotEnoughSegments { n: self.n })?;
+        }
         // get delta values
         let dr = (self.r1 - self.r0) / (self.n as f64);
         let dtheta = (self.theta1 - self.theta0) / (self.n as f64);
@@ -74,4 +78,10 @@ impl Curve for Rayto {
 
         Ok(brushes)
     }
+}
+
+#[derive(Error, Debug)]
+pub enum RaytoError {
+    #[error("n = {n}. Number of segments must be at least 1.")]
+    NotEnoughSegments { n: u32 },
 }

@@ -1,16 +1,16 @@
-pub mod rayto;
-pub use rayto::Rayto;
-
-pub mod bank;
-pub use bank::Bank;
-
-pub mod catenary;
-pub use catenary::Catenary;
-
-const MAX_HULL_ITER: Option<usize> = Some(10_000);
-
 use crate::map::geometry::Brush;
 use thiserror::Error;
+
+pub mod rayto;
+pub use rayto::{Rayto, RaytoError};
+
+pub mod bank;
+pub use bank::{Bank, BankError};
+
+pub mod catenary;
+pub use catenary::{Catenary, CatenaryError};
+
+const MAX_HULL_ITER: Option<usize> = Some(10_000);
 
 pub trait Curve {
     fn bake(&self) -> Result<Vec<Brush>, CurveError>;
@@ -20,10 +20,12 @@ pub trait Curve {
 pub enum CurveError {
     #[error("Failed to find convex hull: {0}")]
     ConvexHullFail(#[from] chull::ErrorKind),
-    #[error("Given length is too short")]
-    CatenaryTooShort,
-    #[error("Newton's method did not converge")]
-    CatenaryNetwonFail,
+    #[error("{0}")]
+    RaytoError(#[from] RaytoError),
+    #[error("{0}")]
+    BankError(#[from] BankError),
+    #[error("{0}")]
+    CatenaryError(#[from] CatenaryError),
 }
 
 pub type CurveResult<T> = Result<T, CurveError>;

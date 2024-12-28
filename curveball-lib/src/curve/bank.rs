@@ -1,6 +1,7 @@
 use crate::curve::{Curve, CurveResult, MAX_HULL_ITER};
 use crate::map::Brush;
 use glam::DVec3;
+use thiserror::Error;
 
 use std::f64::consts::PI;
 
@@ -24,6 +25,10 @@ fn deg2rad(deg: f64) -> f64 {
 
 impl Curve for Bank {
     fn bake(&self) -> CurveResult<Vec<Brush>> {
+        if self.n < 1 {
+            return Err(BankError::NotEnoughSegments { n: self.n })?;
+        }
+
         // get delta values
         let dri = (self.ri1 - self.ri0) / (self.n as f64);
         let dro = (self.ro1 - self.ro0) / (self.n as f64);
@@ -115,4 +120,9 @@ impl Curve for Bank {
 
         Ok(brushes)
     }
+}
+#[derive(Error, Debug)]
+pub enum BankError {
+    #[error("n = {n}. Number of segments must be at least 1.")]
+    NotEnoughSegments { n: u32 },
 }

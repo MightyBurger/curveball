@@ -1,6 +1,7 @@
 use crate::curve::{Curve, CurveResult, MAX_HULL_ITER};
 use crate::map::Brush;
 use glam::DVec3;
+use thiserror::Error;
 
 #[derive(Debug, Default, Clone)]
 pub struct Catenary {
@@ -17,6 +18,10 @@ pub struct Catenary {
 
 impl Curve for Catenary {
     fn bake(&self) -> CurveResult<Vec<Brush>> {
+        if self.n < 1 {
+            return Err(CatenaryError::NotEnoughSegments { n: self.n })?;
+        }
+
         // get delta values
         let v = self.z1 - self.z0;
         let h = self.x1 - self.x0;
@@ -29,8 +34,12 @@ impl Curve for Catenary {
             }
         };
 
-        if self.s < f64::sqrt(f64::powi(self.z1 - self.z0, 2) + f64::powi(self.x1 - self.x0, 2)) {
-            return Err(crate::curve::CurveError::CatenaryTooShort);
+        let min_s = f64::sqrt(f64::powi(self.z1 - self.z0, 2) + f64::powi(self.x1 - self.x0, 2));
+        if self.s < min_s {
+            return Err(CatenaryError::LengthTooShort {
+                given: self.s,
+                min: min_s,
+            })?;
         }
 
         let mut brushes = Vec::new();
@@ -114,6 +123,16 @@ impl Curve for Catenary {
     }
 }
 
+#[derive(Error, Debug)]
+pub enum CatenaryError {
+    #[error("n = {n}. Number of segments must be at least 1.")]
+    NotEnoughSegments { n: u32 },
+    #[error("Given length {given} is too short; must be at least {min}.")]
+    LengthTooShort { given: f64, min: f64 },
+    #[error("Newton's method failed to converge to an accurate solution after {iterations} iterations. The initial guess was {initial}. Change the parameters to a less extreme catenary curve, or try again with a different initial guess.")]
+    NewtonFail { iterations: i32, initial: f64 },
+}
+
 // ---------- FINDING THE CATENARY PARAMETER "a" ----------
 fn catenary(x: f64, a: f64, k: f64, c: f64) -> f64 {
     a * f64::cosh((x - k) / a) + c
@@ -129,7 +148,7 @@ fn newton_a(
     x1: f64,
     z1: f64,
     initial_guess: f64,
-) -> CurveResult<f64> {
+) -> Result<f64, CatenaryError> {
     let iteration_limit = 200;
 
     // Limit for how inaccurate our points can be. We only need accuracy to six decimal places,
@@ -160,7 +179,10 @@ fn newton_a(
     if icount >= iteration_limit
         || !f64::is_finite(catenary_bounds_err(x0, z0, x1, z1, b_ip1 * h, s))
     {
-        Err(crate::curve::CurveError::CatenaryNetwonFail)
+        Err(CatenaryError::NewtonFail {
+            iterations: icount,
+            initial: initial_guess,
+        })
     } else {
         eprintln!(
             "Discovered a sufficiently accurate solution after {} iterations.",
