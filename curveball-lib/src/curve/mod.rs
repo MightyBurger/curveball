@@ -1,5 +1,7 @@
 pub mod rayto;
 
+const MAX_HULL_ITER: Option<usize> = Some(10_000);
+
 use crate::brush::Brush;
 use thiserror::Error;
 
@@ -9,7 +11,7 @@ pub trait Curve {
 
 #[derive(Error, Debug)]
 pub enum CurveError {
-    #[error("Error calculating convex hull: {0}")]
+    #[error("Failed to find convex hull: {0}")]
     ConvexHullFail(#[from] chull::ErrorKind),
 }
 

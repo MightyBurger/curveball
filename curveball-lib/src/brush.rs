@@ -72,12 +72,12 @@ pub struct Brush {
 }
 
 impl Brush {
-    pub fn try_from_vertices<'a>(
-        vertices: impl IntoIterator<Item = &'a DVec3>,
+    pub fn try_from_vertices(
+        vertices: &Vec<DVec3>,
         max_iter: Option<usize>,
     ) -> Result<Self, chull::convex::ErrorKind> {
         let vertices: Vec<Vec<f64>> = vertices
-            .into_iter()
+            .iter()
             .map(|vertex| vec![vertex.x, vertex.y, vertex.z])
             .collect();
 
@@ -101,24 +101,8 @@ impl Brush {
         })
     }
 
-    pub fn into_sides_iter(self) -> impl Iterator<Item = Side> {
-        self.sides
-            .into_iter()
-            .map(move |([idx0, idx1, idx2], mtrl)| Side {
-                geom: SideGeom([
-                    self.vertices[idx0],
-                    self.vertices[idx1],
-                    self.vertices[idx2],
-                ]),
-                mtrl,
-            })
-    }
-
     pub fn vertices(&self) -> &Vec<DVec3> {
         &self.vertices
-    }
-    pub fn vertices_iter(&self) -> impl Iterator<Item = &DVec3> + use<'_> {
-        self.vertices.iter()
     }
 }
 

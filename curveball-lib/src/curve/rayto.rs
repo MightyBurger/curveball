@@ -1,5 +1,5 @@
 use crate::brush::Brush;
-use crate::curve::{Curve, CurveResult};
+use crate::curve::{Curve, CurveResult, MAX_HULL_ITER};
 use glam::DVec3;
 
 use std::f64::consts::PI;
@@ -45,7 +45,10 @@ fn brush_tprism(
     let pe = DVec3 { x: x0, y: y0, z: h };
     let pf = DVec3 { x: x1, y: y1, z: h };
 
-    Ok(Brush::try_from_vertices(&[pa, pb, pc, pd, pe, pf], None)?)
+    Ok(Brush::try_from_vertices(
+        &vec![pa, pb, pc, pd, pe, pf],
+        MAX_HULL_ITER,
+    )?)
 }
 
 impl Curve for Rayto {
