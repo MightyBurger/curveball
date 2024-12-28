@@ -1,5 +1,5 @@
 use crate::curve::{Curve, CurveResult, MAX_HULL_ITER};
-use crate::map::geometry::Brush;
+use crate::map::Brush;
 use glam::DVec3;
 
 use std::f64::consts::PI;
@@ -16,65 +16,60 @@ pub struct Rayto {
     pub h: f64,
 }
 
-fn brush_tprism(
-    rstart: f64,
-    rend: f64,
-    thetastart: f64,
-    thetaend: f64,
-    x: f64,
-    y: f64,
-    h: f64,
-) -> CurveResult<Brush> {
-    let x0 = rstart * (thetastart * PI / 180.0).cos();
-    let y0 = rstart * (thetastart * PI / 180.0).sin();
-    let x1 = rend * (thetaend * PI / 180.0).cos();
-    let y1 = rend * (thetaend * PI / 180.0).sin();
-
-    let pa = DVec3 { x, y, z: 0.0 };
-    let pb = DVec3 {
-        x: x0,
-        y: y0,
-        z: 0.0,
-    };
-    let pc = DVec3 {
-        x: x1,
-        y: y1,
-        z: 0.0,
-    };
-    let pd = DVec3 { x, y, z: h };
-    let pe = DVec3 { x: x0, y: y0, z: h };
-    let pf = DVec3 { x: x1, y: y1, z: h };
-
-    Ok(Brush::try_from_vertices(
-        &vec![pa, pb, pc, pd, pe, pf],
-        MAX_HULL_ITER,
-    )?)
-}
-
 impl Curve for Rayto {
     fn bake(&self) -> CurveResult<Vec<Brush>> {
-        let n = self.n;
-        let r0 = self.r0;
-        let r1 = self.r1;
-        let theta0 = self.theta0;
-        let theta1 = self.theta1;
-        let x = self.x;
-        let y = self.y;
-        let h = self.h;
-
         // get delta values
-        let dr = (r1 - r0) / (n as f64);
-        let dtheta = (theta1 - theta0) / (n as f64);
+        let dr = (self.r1 - self.r0) / (self.n as f64);
+        let dtheta = (self.theta1 - self.theta0) / (self.n as f64);
 
         let mut brushes = Vec::new();
 
-        for i in 0..n {
-            let rstart = r0 + dr * (i as f64);
-            let rend = r0 + dr * (i as f64 + 1.0);
-            let thetastart = theta0 + dtheta * (i as f64);
-            let thetaend = theta0 + dtheta * (i as f64 + 1.0);
+        for i in 0..self.n {
+            let rstart = self.r0 + dr * (i as f64);
+            let rend = self.r0 + dr * (i as f64 + 1.0);
+            let thetastart = self.theta0 + dtheta * (i as f64);
+            let thetaend = self.theta0 + dtheta * (i as f64 + 1.0);
 
-            brushes.push(brush_tprism(rstart, rend, thetastart, thetaend, x, y, h)?);
+            let x0 = rstart * (thetastart * PI / 180.0).cos();
+            let y0 = rstart * (thetastart * PI / 180.0).sin();
+            let x1 = rend * (thetaend * PI / 180.0).cos();
+            let y1 = rend * (thetaend * PI / 180.0).sin();
+
+            let pa = DVec3 {
+                x: self.x,
+                y: self.y,
+                z: 0.0,
+            };
+            let pb = DVec3 {
+                x: x0,
+                y: y0,
+                z: 0.0,
+            };
+            let pc = DVec3 {
+                x: x1,
+                y: y1,
+                z: 0.0,
+            };
+            let pd = DVec3 {
+                x: self.x,
+                y: self.y,
+                z: self.h,
+            };
+            let pe = DVec3 {
+                x: x0,
+                y: y0,
+                z: self.h,
+            };
+            let pf = DVec3 {
+                x: x1,
+                y: y1,
+                z: self.h,
+            };
+
+            brushes.push(Brush::try_from_vertices(
+                &vec![pa, pb, pc, pd, pe, pf],
+                MAX_HULL_ITER,
+            )?);
         }
 
         Ok(brushes)
