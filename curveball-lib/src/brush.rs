@@ -53,9 +53,9 @@ impl Side {
                 write!(
                     f,
                     "( {:.6} {:.6} {:.6} ) ( {:.6} {:.6} {:.6} ) ( {:.6} {:.6} {:.6} ) {} 0 0 0 0.5 0.5 0 0 0",
-                    self.0.geom.0[0][0], self.0.geom.0[0][2], self.0.geom.0[0][1],
-                    self.0.geom.0[1][0], self.0.geom.0[1][2], self.0.geom.0[1][1],
-                    self.0.geom.0[2][0], self.0.geom.0[2][2], self.0.geom.0[2][1],
+                    self.0.geom.0[0][0], self.0.geom.0[0][1], self.0.geom.0[0][2],
+                    self.0.geom.0[1][0], self.0.geom.0[1][1], self.0.geom.0[1][2],
+                    self.0.geom.0[2][0], self.0.geom.0[2][1], self.0.geom.0[2][2],
                     self.0.mtrl.texture
                 )
             }
@@ -152,31 +152,31 @@ impl From<ConvexHullWrapper<f64>> for Brush {
 
         use itertools::Itertools;
 
-        let side_indices2: Vec<(usize, usize, usize)> =
-            side_indices
-                .iter()
-                .tuples()
-                .fold(Vec::new(), |sides, (i1, i2, i3)| {
-                    let mut unique = true;
-                    for (s1, s2, s3) in sides.iter() {
-                        let side1 = SideGeom([vertices[*i1], vertices[*i2], vertices[*i3]]);
-                        let side2 = SideGeom([vertices[*s1], vertices[*s2], vertices[*s3]]);
-                        if SideGeom::equivalent(side1, side2) {
-                            unique = false;
-                        }
+        let side_indices2: Vec<(usize, usize, usize)> = side_indices
+            .iter()
+            .tuples()
+            .map(|(i0, i1, i2)| (i1, i0, i2)) // Reorder to (p1-p0; p2-p0) order
+            .fold(Vec::new(), |sides, (i0, i1, i2)| {
+                let mut unique = true;
+                for (s0, s1, s2) in sides.iter() {
+                    let side1 = SideGeom([vertices[*i0], vertices[*i1], vertices[*i2]]);
+                    let side2 = SideGeom([vertices[*s0], vertices[*s1], vertices[*s2]]);
+                    if SideGeom::equivalent(side1, side2) {
+                        unique = false;
                     }
-                    if unique {
-                        let mut next = sides.clone();
-                        next.push((*i1, *i2, *i3));
-                        next
-                    } else {
-                        sides
-                    }
-                });
+                }
+                if unique {
+                    let mut next = sides.clone();
+                    next.push((*i0, *i1, *i2));
+                    next
+                } else {
+                    sides
+                }
+            });
 
         let sides = side_indices2
             .into_iter()
-            .map(|(i1, i2, i3)| ([i1, i2, i3], SideMtrl::default()))
+            .map(|(i0, i1, i2)| ([i0, i1, i2], SideMtrl::default()))
             .collect();
 
         Self { vertices, sides }
