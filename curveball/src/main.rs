@@ -47,19 +47,13 @@ struct RaytoArgs {
 fn main() {
     let cli = Cli::parse();
     let map = map(cli.command).unwrap_or_else(|err| {
-        eprintln!(
-            "{} could not create curve, caused by: \n{err}",
-            "error:".red(),
-        );
+        eprintln!("{} {err}", "error:".red());
         std::process::exit(1);
     });
     match cli.file {
         None => println!("{}", map.to_string()),
         Some(filename) => std::fs::write(filename, map.to_string()).unwrap_or_else(|err| {
-            eprintln!(
-                "{} could not write to specified file, caused by: {err}",
-                "error:".red(),
-            );
+            eprintln!("{} {err}", "error:".red());
             std::process::exit(1);
         }),
     }
