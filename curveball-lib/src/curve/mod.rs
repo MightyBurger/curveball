@@ -1,8 +1,7 @@
 pub mod rayto;
-
 const MAX_HULL_ITER: Option<usize> = Some(10_000);
 
-use crate::brush::Brush;
+use crate::map::geometry::Brush;
 use thiserror::Error;
 
 pub trait Curve {

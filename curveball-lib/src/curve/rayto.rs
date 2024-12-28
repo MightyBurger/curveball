@@ -1,5 +1,5 @@
-use crate::brush::Brush;
 use crate::curve::{Curve, CurveResult, MAX_HULL_ITER};
+use crate::map::geometry::Brush;
 use glam::DVec3;
 
 use std::f64::consts::PI;

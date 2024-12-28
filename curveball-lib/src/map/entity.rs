@@ -1,5 +1,5 @@
-use crate::brush::Brush;
-use crate::qmap::QEntity;
+use crate::map::geometry::Brush;
+use crate::map::qmap::QEntity;
 use std::collections::HashMap;
 
 #[derive(Debug, Clone)]

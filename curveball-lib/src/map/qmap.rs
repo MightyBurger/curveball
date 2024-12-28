@@ -1,4 +1,4 @@
-use crate::brush::Brush;
+use crate::map::geometry::Brush;
 use core::fmt;
 use std::fmt::{Display, Formatter};
 
@@ -87,7 +87,7 @@ impl From<&QMap> for String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::entity::SimpleWorldspawn;
+    use crate::map::entity::SimpleWorldspawn;
     use glam::DVec3;
 
     #[test]
