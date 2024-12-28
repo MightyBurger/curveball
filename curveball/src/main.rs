@@ -1,7 +1,7 @@
 use clap::{Args, Parser, Subcommand};
 use colored::Colorize;
 
-use curveball_lib::curve::{Bank, Curve, CurveResult, Rayto};
+use curveball_lib::curve::{Bank, Catenary, Curve, CurveResult, Rayto};
 use curveball_lib::map::{Brush, QEntity, QMap, SimpleWorldspawn};
 
 #[derive(Parser)]
@@ -20,6 +20,8 @@ enum Commands {
     Rayto(RaytoArgs),
     #[command(about = "Generate a banked curve")]
     Bank(BankArgs),
+    #[command(about = "Generate a catenary curve")]
+    Catenary(CatenaryArgs),
 }
 
 #[derive(Args)]
@@ -66,6 +68,31 @@ pub struct BankArgs {
     pub fill: bool,
 }
 
+#[derive(Args)]
+pub struct CatenaryArgs {
+    #[arg(long, help = "Number of segments")]
+    pub n: u32,
+    #[arg(long, help = "Starting horizontal position of curve")]
+    pub x0: f64,
+    #[arg(long, help = "Starting height of curve")]
+    pub z0: f64,
+    #[arg(long, help = "Ending horizontal position of curve")]
+    pub x1: f64,
+    #[arg(long, help = "Ending height of curve")]
+    pub z1: f64,
+    #[arg(long, help = "Length of the curve (i.e. how long your rope is)")]
+    pub s: f64,
+    #[arg(long, help = "Width of the curve")]
+    pub w: f64,
+    #[arg(long, help = "Thickness of the curve")]
+    pub t: f64,
+    #[arg(
+        long,
+        help = "The initial guess for the catenary parameter 'a'; used for Newton's method"
+    )]
+    pub initial_guess: Option<f64>,
+}
+
 fn main() {
     let cli = Cli::parse();
     let map = map(cli.command).unwrap_or_else(|err| {
@@ -105,6 +132,18 @@ fn map(command: Commands) -> CurveResult<QMap> {
             h: args.h,
             t: args.t,
             fill: args.fill,
+        }
+        .bake()?,
+        Commands::Catenary(args) => Catenary {
+            n: args.n,
+            x0: args.x0,
+            z0: args.z0,
+            x1: args.x1,
+            z1: args.z1,
+            s: args.s,
+            w: args.w,
+            t: args.t,
+            initial_guess: args.initial_guess,
         }
         .bake()?,
     };
