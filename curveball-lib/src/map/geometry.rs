@@ -1,4 +1,5 @@
 const TEX_DEFAULT: &str = "mtrl/invisible";
+const ALMOST_EQUAL_DELTA: f64 = 0.000000001;
 use core::fmt;
 use glam::DVec3;
 use std::fmt::{Display, Formatter};
@@ -15,10 +16,10 @@ impl SideGeom {
         self.normal().dot(p1)
     }
     pub fn equivalent(self, other: SideGeom) -> bool {
-        if self.normal().dot(other.normal()) < 1.0 {
+        if self.normal().dot(other.normal()) < 1.0 - ALMOST_EQUAL_DELTA {
             return false;
         }
-        if self.dist() != other.dist() {
+        if (self.dist() - other.dist()) > ALMOST_EQUAL_DELTA {
             return false;
         }
         true
@@ -90,15 +91,49 @@ impl Brush {
         (&self.vertices, &self.sides)
     }
 
-    pub fn to_sides_iter(&self) -> impl Iterator<Item = Side> + use<'_> {
-        self.sides.iter().map(|([idx0, idx1, idx2], mtrl)| Side {
-            geom: SideGeom([
-                self.vertices[*idx0],
-                self.vertices[*idx1],
-                self.vertices[*idx2],
-            ]),
-            mtrl: mtrl.clone(),
-        })
+    pub fn to_sides(&self) -> Vec<Side> {
+        let mut result: Vec<_> = self
+            .sides
+            .iter()
+            .map(|([idx0, idx1, idx2], mtrl)| Side {
+                geom: SideGeom([
+                    self.vertices[*idx0],
+                    self.vertices[*idx1],
+                    self.vertices[*idx2],
+                ]),
+                mtrl: mtrl.clone(),
+            })
+            .collect();
+
+        let keep: Vec<_> = result
+            .iter()
+            .enumerate()
+            .map(|(i, candidate)| {
+                !result[0..i]
+                    .iter()
+                    .any(|so_far| SideGeom::equivalent(so_far.geom, candidate.geom))
+            })
+            .collect();
+
+        let mut keep_iter = keep.iter();
+
+        // SideGeom::equivalent(*a, *b)
+        result.retain(|_| *keep_iter.next().unwrap());
+        result
+
+        // self.sides
+        //     .iter()
+        //     .map(|([idx0, idx1, idx2], mtrl)| Side {
+        //         geom: SideGeom([
+        //             self.vertices[*idx0],
+        //             self.vertices[*idx1],
+        //             self.vertices[*idx2],
+        //         ]),
+        //         mtrl: mtrl.clone(),
+        //     })
+        //     .unique_by(|Side { geom: a, mtrl: _ }, Side { geom: b, mtrl: _ }| {
+        //         SideGeom::equivalent(*a, *b)
+        //     })
     }
 
     pub fn vertices(&self) -> &Vec<DVec3> {
@@ -129,37 +164,11 @@ impl From<ConvexHullWrapper<f64>> for Brush {
         #[cfg(debug_assertions)]
         assert_eq!(side_indices.len() % 3, 0);
 
-        // TODO: This block of code is kind of gross, consider rewriting.
-        // Its purpose is: to group three side indices at a time from the result
-        // of hull.vertices_indices();, to remove duplicate sides, and to attach
-        // a texture of TEX_DEFAULT.
-
         use itertools::Itertools;
-
-        let side_indices2: Vec<(usize, usize, usize)> = side_indices
-            .iter()
+        let sides = side_indices
+            .into_iter()
             .tuples()
             .map(|(i0, i1, i2)| (i1, i0, i2)) // Reorder to (p1-p0; p2-p0) order
-            .fold(Vec::new(), |sides, (i0, i1, i2)| {
-                let mut unique = true;
-                for (s0, s1, s2) in sides.iter() {
-                    let side1 = SideGeom([vertices[*i0], vertices[*i1], vertices[*i2]]);
-                    let side2 = SideGeom([vertices[*s0], vertices[*s1], vertices[*s2]]);
-                    if SideGeom::equivalent(side1, side2) {
-                        unique = false;
-                    }
-                }
-                if unique {
-                    let mut next = sides.clone();
-                    next.push((*i0, *i1, *i2));
-                    next
-                } else {
-                    sides
-                }
-            });
-
-        let sides = side_indices2
-            .into_iter()
             .map(|(i0, i1, i2)| ([i0, i1, i2], SideMtrl::default()))
             .collect();
 
@@ -173,7 +182,7 @@ impl Brush {
         impl Display for BrushDisp<'_> {
             fn fmt(&self, f: &mut Formatter) -> fmt::Result {
                 writeln!(f, "{{",)?;
-                for side in self.0.to_sides_iter() {
+                for side in self.0.to_sides().iter() {
                     writeln!(f, "{}", side.bake())?;
                 }
                 writeln!(f, "}}")?;
@@ -210,7 +219,7 @@ mod tests {
         let brush = Brush::try_from_vertices(&vertices, Some(1000)).unwrap();
 
         let extracted_vertices: &Vec<DVec3> = brush.vertices();
-        let extracted_sides: Vec<Side> = brush.to_sides_iter().collect();
+        let extracted_sides: Vec<Side> = brush.to_sides();
 
         assert_eq!(extracted_vertices.len(), 8);
         assert_eq!(extracted_sides.len(), 6);
@@ -253,7 +262,7 @@ mod tests {
         let brush = Brush::try_from_vertices(&vertices, Some(1000)).unwrap();
 
         let extracted_vertices: &Vec<DVec3> = brush.vertices();
-        let extracted_sides: Vec<Side> = brush.to_sides_iter().collect();
+        let extracted_sides: Vec<Side> = brush.to_sides();
 
         assert_eq!(extracted_vertices.len(), 4);
         assert_eq!(extracted_sides.len(), 4);
@@ -299,8 +308,9 @@ mod tests {
 
         assert_eq!(format!("{}", side.bake()), "( 1.000000 2.000000 3.000000 ) ( 10.000000 20.000000 30.000000 ) ( 100.000000 200.000000 300.000000 ) mtrl/invisible 0 0 0 0.5 0.5 0 0 0");
     }
+
     #[test]
-    fn bake_brush() {
+    fn bake_brush_pyramid() {
         let vertices = vec![
             DVec3::from([0.0, 0.0, 0.0]),
             DVec3::from([0.0, 0.0, 1.0]),

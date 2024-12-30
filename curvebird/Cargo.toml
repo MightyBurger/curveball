@@ -1,0 +1,7 @@
+[package]
+name = "curvebird"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+curveball-lib = { path = "../curveball-lib" }
