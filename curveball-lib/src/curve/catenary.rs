@@ -149,7 +149,7 @@ fn newton_a(
     z1: f64,
     initial_guess: f64,
 ) -> Result<f64, CatenaryError> {
-    let iteration_limit = 200;
+    let iteration_limit = 10_000;
 
     // Limit for how inaccurate our points can be. We only need accuracy to six decimal places,
     // so this should be just fine.
@@ -161,33 +161,19 @@ fn newton_a(
     let mut b_ip1: f64 = b_i;
     let mut icount: i32 = 0;
     while catenary_bounds_err(x0, z0, x1, z1, b_ip1 * h, s) > epsilon && icount < iteration_limit {
-        eprintln!(
-            "Iteration {}: maximum error is {}",
-            icount,
-            catenary_bounds_err(x0, z0, x1, z1, b_ip1 * h, s)
-        );
         b_i = b_ip1;
         b_ip1 = b_i - f2b(b_i, v, h, s) / df2b(b_i);
         icount += 1;
     }
-    eprintln!(
-        "Iteration {}: maximum error is {}",
-        icount,
-        catenary_bounds_err(x0, z0, x1, z1, b_ip1 * h, s)
-    );
     // a = bh
     if icount >= iteration_limit
         || !f64::is_finite(catenary_bounds_err(x0, z0, x1, z1, b_ip1 * h, s))
     {
         Err(CatenaryError::NewtonFail {
-            iterations: icount,
+            iterations: iteration_limit,
             initial: initial_guess,
         })
     } else {
-        eprintln!(
-            "Discovered a sufficiently accurate solution after {} iterations.",
-            icount
-        );
         Ok(b_ip1 * h)
     }
 }
