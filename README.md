@@ -6,7 +6,7 @@ Curve generator for [Neverball]
 
 </div>
 
-Curveball is a set of tools for generating curved geometry. It was written to support the development of a new [Neverball] level set, as the existing [curve.c] was not able to meet this set's needs. 
+Curveball is a set of tools for generating curved geometry. It was written to support the development of a new [Neverball] level set by producing curves [curve.c] cannot generate. 
 
 
 ## Usage
@@ -15,25 +15,30 @@ Install [Rust](https://www.rust-lang.org/).
 
 In your command line, run `cargo install curveball`.
 
+Run `curveball --help`.
+
 ## Features
 
 Curveball currently supports generating these curves:
 
 - Catenary
-- Cones (generates with half the number of lumps compared to [curve.c])
-- "Rayto" curves
+- Bank (generates with half the number of lumps compared to [curve.c])
+- "Rayto" - triangular prisms from a circular arc to a point
+- Serpentine
 
 ## Structure
 
 If you are unfamiliar with Rust, projects are often organized in Cargo workspaces. This repository is a workspace, and it contains the following crates:
 
-- `curveball` - Binary crate; compiles to the command-line tool `curveball`. Calls functions defined in `curveball-lib`.
+- `curveball` - Binary crate; compiles to the CLI tool.
+- `curvebird` - Binary crate; compiles to the GUI tool.
 - `curveball-lib` - Library crate containing functions to generate various curves.
-
 
 ## Project status
 
-Curveball is in early development and is not currently useable.
+The CLI interface, `curveball`, is useable.
+
+The GUI interface, `curvebird`, is a WIP.
 
 ## License
 
