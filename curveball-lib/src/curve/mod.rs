@@ -10,6 +10,9 @@ pub use bank::{Bank, BankError};
 pub mod catenary;
 pub use catenary::{Catenary, CatenaryError};
 
+pub mod serpentine;
+pub use serpentine::{Serpentine, SerpentineError};
+
 const MAX_HULL_ITER: Option<usize> = Some(10_000);
 
 pub trait Curve {
@@ -26,6 +29,8 @@ pub enum CurveError {
     BankError(#[from] BankError),
     #[error("{0}")]
     CatenaryError(#[from] CatenaryError),
+    #[error("{0}")]
+    SerpentineError(#[from] SerpentineError),
 }
 
 pub type CurveResult<T> = Result<T, CurveError>;

@@ -1,7 +1,7 @@
 use clap::{Args, Parser, Subcommand};
 use colored::Colorize;
 
-use curveball_lib::curve::{Bank, Catenary, Curve, CurveResult, Rayto};
+use curveball_lib::curve::{Bank, Catenary, Curve, CurveResult, Rayto, Serpentine};
 use curveball_lib::map::{Brush, QEntity, QMap, SimpleWorldspawn};
 
 #[derive(Parser)]
@@ -22,6 +22,10 @@ enum Commands {
     Bank(BankArgs),
     #[command(about = "Generate a catenary curve")]
     Catenary(CatenaryArgs),
+    #[command(about = "Generate a serpentine curve")]
+    Serpentine(SerpentineArgs),
+    #[command(about = "Generate a symmetric serpentine curve")]
+    EasySerp(EasySerpArgs),
 }
 
 #[derive(Args)]
@@ -93,6 +97,43 @@ pub struct CatenaryArgs {
     pub initial_guess: Option<f64>,
 }
 
+#[derive(Args)]
+pub struct SerpentineArgs {
+    #[arg(long, help = "Number of segments in first arc")]
+    pub n0: u32,
+    #[arg(long, help = "Number of segments in second arc")]
+    pub n1: u32,
+    #[arg(long, help = "Ending horizontal position of curve")]
+    pub x: f64,
+    #[arg(long, help = "Ending height of curve")]
+    pub z: f64,
+    #[arg(long, help = "Midpoint horizontal position")]
+    pub xm: f64,
+    #[arg(long, help = "Midpoint vertical position")]
+    pub zm: f64,
+    #[arg(long, help = "Width of the curve")]
+    pub w: f64,
+    #[arg(long, help = "Thickness of the curve")]
+    pub t: f64,
+}
+
+#[derive(Args)]
+pub struct EasySerpArgs {
+    #[arg(
+        long,
+        help = "Number of segments; rounded up to the nearest multiple of 2"
+    )]
+    pub n: u32,
+    #[arg(long, help = "Ending horizontal position of curve")]
+    pub x: f64,
+    #[arg(long, help = "Ending height of curve")]
+    pub z: f64,
+    #[arg(long, help = "Width of the curve")]
+    pub w: f64,
+    #[arg(long, help = "Thickness of the curve")]
+    pub t: f64,
+}
+
 fn main() {
     let cli = Cli::parse();
     let map = map(cli.command).unwrap_or_else(|err| {
@@ -106,6 +147,9 @@ fn main() {
             std::process::exit(1);
         }),
     }
+}
+pub fn div_up(a: u32, b: u32) -> u32 {
+    (a + (b - 1)) / b
 }
 
 fn map(command: Commands) -> CurveResult<QMap> {
@@ -144,6 +188,28 @@ fn map(command: Commands) -> CurveResult<QMap> {
             w: args.w,
             t: args.t,
             initial_guess: args.initial_guess,
+        }
+        .bake()?,
+        Commands::Serpentine(args) => Serpentine {
+            n0: args.n0,
+            n1: args.n1,
+            x: args.x,
+            z: args.z,
+            xm: args.xm,
+            zm: args.zm,
+            w: args.w,
+            t: args.t,
+        }
+        .bake()?,
+        Commands::EasySerp(args) => Serpentine {
+            n0: div_up(args.n, 2),
+            n1: div_up(args.n, 2),
+            x: args.x,
+            z: args.z,
+            xm: args.x / 2.0,
+            zm: args.z / 2.0,
+            w: args.w,
+            t: args.t,
         }
         .bake()?,
     };
