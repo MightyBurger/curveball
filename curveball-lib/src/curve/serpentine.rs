@@ -1,4 +1,4 @@
-use crate::curve::{Curve, CurveResult, MAX_HULL_ITER};
+use crate::curve::{Curve, CurveError, CurveResult, MAX_HULL_ITER};
 use crate::map::Brush;
 use glam::DVec3;
 use itertools::Itertools;
@@ -53,9 +53,7 @@ impl Curve for Serpentine {
         let arc0_iter = theta0_start.lerp_iter_closed(theta0_end, self.n0 as usize + 1);
         let arc1_iter = theta1_start.lerp_iter_closed(theta1_end, self.n1 as usize + 1);
 
-        let mut brushes = Vec::new();
-
-        for brush in arc0_iter
+        let brush_iter0 = arc0_iter
             .map(|dtheta| {
                 let r_in = r0;
                 let r_out = r0 + self.t;
@@ -81,12 +79,9 @@ impl Curve for Serpentine {
             .map(|(f1, f2)| {
                 let vertices: Vec<DVec3> = f1.into_iter().chain(f2.into_iter()).collect();
                 Brush::try_from_vertices(&vertices, MAX_HULL_ITER)
-            })
-        {
-            brushes.push(brush?);
-        }
+            });
 
-        for brush in arc1_iter
+        let brush_iter1 = arc1_iter
             .map(|dtheta| {
                 let r_in = r1 - self.t;
                 let r_out = r1;
@@ -112,12 +107,12 @@ impl Curve for Serpentine {
             .map(|(f1, f2)| {
                 let vertices: Vec<DVec3> = f1.into_iter().chain(f2.into_iter()).collect();
                 Brush::try_from_vertices(&vertices, MAX_HULL_ITER)
-            })
-        {
-            brushes.push(brush?);
-        }
+            });
 
-        Ok(brushes)
+        brush_iter0
+            .chain(brush_iter1)
+            .map(|brush_result| brush_result.map_err(|err| CurveError::from(err)))
+            .collect()
     }
 }
 #[derive(Error, Debug)]
