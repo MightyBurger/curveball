@@ -49,12 +49,24 @@ fn main() {
         .add_plugins(CameraControllerPlugin)
         .add_plugins(EguiPlugin)
         .add_systems(Startup, setup)
+        .add_systems(Update, draw_grid)
         .add_systems(Update, input_handler)
         .add_systems(Update, ui)
         .add_systems(Update, update_mesh)
         .init_resource::<OccupiedScreenSpace>()
         .init_resource::<CurveSelect>()
         .run();
+}
+
+fn draw_grid(mut gizmos: Gizmos) {
+    const COUNT: u32 = 200;
+    const SPACING: f32 = 16.0;
+    gizmos.grid(
+        Quat::from_rotation_x(std::f32::consts::PI / 2.0),
+        UVec2::splat(COUNT),
+        Vec2::new(SPACING, SPACING),
+        LinearRgba::gray(0.65),
+    );
 }
 
 fn setup(mut commands: Commands) {

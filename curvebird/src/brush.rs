@@ -74,14 +74,14 @@ impl Default for BankArgs {
     fn default() -> Self {
         Self {
             n: 8,
-            ri0: 16.0,
-            ro0: 32.0,
-            ri1: 16.0,
-            ro1: 32.0,
+            ri0: 64.0,
+            ro0: 128.0,
+            ri1: 64.0,
+            ro1: 128.0,
             theta0: 0.0,
             theta1: 90.0,
             h: 64.0,
-            t: 32.0,
+            t: 8.0,
             fill: false,
         }
     }
@@ -243,6 +243,7 @@ pub fn update_mesh(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
+    // Check if mesh actually needs to update
     if !curve_select.is_changed() {
         return;
     }
@@ -253,13 +254,15 @@ pub fn update_mesh(
         }
     }
 
-    info!("mesh changed");
+    // Remove the old mesh
     for mesh_handle in mesh_query_1.iter() {
         meshes.remove(mesh_handle);
     }
     for mesh_entity in mesh_query_2.iter() {
         commands.entity(mesh_entity).despawn();
     }
+
+    // Create the new mesh
     match curve_select.mesh() {
         Ok(mesh) => {
             info!("mesh made");
@@ -274,8 +277,8 @@ pub fn update_mesh(
                 CustomUV,
             ));
         }
-        Err(_) => {
-            info!("ERROR MAKING MESH!!");
+        Err(e) => {
+            warn!("{}", e);
         }
     }
 
