@@ -4,4 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+bevy = "0.15.0"
 curveball-lib = { path = "../curveball-lib" }
+glam = "0.29.2"
+

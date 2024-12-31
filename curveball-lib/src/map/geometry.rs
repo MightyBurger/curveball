@@ -91,19 +91,19 @@ impl Brush {
         (&self.vertices, &self.sides)
     }
 
-    pub fn to_sides(&self) -> Vec<Side> {
-        let mut result: Vec<_> = self
-            .sides
-            .iter()
-            .map(|([idx0, idx1, idx2], mtrl)| Side {
-                geom: SideGeom([
-                    self.vertices[*idx0],
-                    self.vertices[*idx1],
-                    self.vertices[*idx2],
-                ]),
-                mtrl: mtrl.clone(),
-            })
-            .collect();
+    pub fn triangles(&self) -> impl Iterator<Item = Side> + use<'_> {
+        self.sides.iter().map(|([idx0, idx1, idx2], mtrl)| Side {
+            geom: SideGeom([
+                self.vertices[*idx0],
+                self.vertices[*idx1],
+                self.vertices[*idx2],
+            ]),
+            mtrl: mtrl.clone(),
+        })
+    }
+
+    pub fn to_sides_unique(&self) -> Vec<Side> {
+        let mut result: Vec<_> = self.triangles().collect();
 
         let keep: Vec<_> = result
             .iter()
@@ -120,20 +120,6 @@ impl Brush {
         // SideGeom::equivalent(*a, *b)
         result.retain(|_| *keep_iter.next().unwrap());
         result
-
-        // self.sides
-        //     .iter()
-        //     .map(|([idx0, idx1, idx2], mtrl)| Side {
-        //         geom: SideGeom([
-        //             self.vertices[*idx0],
-        //             self.vertices[*idx1],
-        //             self.vertices[*idx2],
-        //         ]),
-        //         mtrl: mtrl.clone(),
-        //     })
-        //     .unique_by(|Side { geom: a, mtrl: _ }, Side { geom: b, mtrl: _ }| {
-        //         SideGeom::equivalent(*a, *b)
-        //     })
     }
 
     pub fn vertices(&self) -> &Vec<DVec3> {
@@ -182,7 +168,7 @@ impl Brush {
         impl Display for BrushDisp<'_> {
             fn fmt(&self, f: &mut Formatter) -> fmt::Result {
                 writeln!(f, "{{",)?;
-                for side in self.0.to_sides().iter() {
+                for side in self.0.to_sides_unique().iter() {
                     writeln!(f, "{}", side.bake())?;
                 }
                 writeln!(f, "}}")?;
@@ -219,7 +205,7 @@ mod tests {
         let brush = Brush::try_from_vertices(&vertices, Some(1000)).unwrap();
 
         let extracted_vertices: &Vec<DVec3> = brush.vertices();
-        let extracted_sides: Vec<Side> = brush.to_sides();
+        let extracted_sides: Vec<Side> = brush.to_sides_unique();
 
         assert_eq!(extracted_vertices.len(), 8);
         assert_eq!(extracted_sides.len(), 6);
@@ -262,7 +248,7 @@ mod tests {
         let brush = Brush::try_from_vertices(&vertices, Some(1000)).unwrap();
 
         let extracted_vertices: &Vec<DVec3> = brush.vertices();
-        let extracted_sides: Vec<Side> = brush.to_sides();
+        let extracted_sides: Vec<Side> = brush.to_sides_unique();
 
         assert_eq!(extracted_vertices.len(), 4);
         assert_eq!(extracted_sides.len(), 4);
