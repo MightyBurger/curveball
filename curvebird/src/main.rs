@@ -13,8 +13,12 @@ use bevy::{
     },
 };
 
+use crate::brush::{BankArgs, CurveSelect, RaytoArgs};
+
 use bevy_egui::{egui, EguiContexts, EguiPlugin};
 
+mod brush;
+use brush::update_mesh;
 mod camera_controller;
 use camera_controller::{CameraController, CameraControllerPlugin};
 
@@ -76,111 +80,6 @@ struct OccupiedScreenSpace {
     right: f32,
 }
 
-#[derive(Resource, Debug, Clone, PartialEq, PartialOrd)]
-enum CurveSelect {
-    Rayto(RaytoArgs),
-    Bank(BankArgs),
-    // catenary
-    // serpentine
-    // easy-serp
-}
-
-impl Default for CurveSelect {
-    fn default() -> Self {
-        Self::Bank(BankArgs::default())
-    }
-}
-
-#[derive(Debug, Clone, PartialEq, PartialOrd)]
-struct RaytoArgs {
-    n: u32,
-    r0: f64,
-    r1: f64,
-    theta0: f64,
-    theta1: f64,
-    x: f64,
-    y: f64,
-    h: f64,
-}
-
-impl Default for RaytoArgs {
-    fn default() -> Self {
-        Self {
-            n: 8,
-            r0: 32.0,
-            r1: 32.0,
-            theta0: 0.0,
-            theta1: 90.0,
-            x: 32.0,
-            y: 32.0,
-            h: 8.0,
-        }
-    }
-}
-
-#[derive(Debug, Clone, PartialEq, PartialOrd)]
-struct BankArgs {
-    pub n: u32,
-    pub ri0: f64,
-    pub ro0: f64,
-    pub ri1: f64,
-    pub ro1: f64,
-    pub theta0: f64,
-    pub theta1: f64,
-    pub h: f64,
-    pub t: f64,
-    pub fill: bool,
-}
-
-impl Default for BankArgs {
-    fn default() -> Self {
-        Self {
-            n: 8,
-            ri0: 16.0,
-            ro0: 32.0,
-            ri1: 16.0,
-            ro1: 32.0,
-            theta0: 0.0,
-            theta1: 90.0,
-            h: 64.0,
-            t: 32.0,
-            fill: false,
-        }
-    }
-}
-
-impl CurveSelect {
-    fn mesh(&self) -> CurveResult<Mesh> {
-        let brushes = match self {
-            Self::Rayto(args) => Rayto {
-                n: args.n,
-                r0: args.r0,
-                r1: args.r1,
-                theta0: args.theta0,
-                theta1: args.theta1,
-                x: args.x,
-                y: args.y,
-                h: args.h,
-            }
-            .bake()?,
-            Self::Bank(args) => Bank {
-                n: args.n,
-                ri0: args.ri0,
-                ro0: args.ro0,
-                ri1: args.ri1,
-                ro1: args.ro1,
-                theta0: args.theta0,
-                theta1: args.theta1,
-                h: args.h,
-                t: args.t,
-                fill: args.fill,
-            }
-            .bake()?,
-        };
-        Ok(brushes_to_mesh(&brushes))
-    }
-}
-
 fn ui_example(
     mut contexts: EguiContexts,
     mut occupied_screen_space: ResMut<OccupiedScreenSpace>,
@@ -205,44 +104,6 @@ fn ui_example(
         .response
         .rect
         .width();
-}
-
-fn update_mesh(
-    mut commands: Commands,
-    curve_select: Res<CurveSelect>,
-    mesh_query_1: Query<&Mesh3d, With<CustomUV>>,
-    mesh_query_2: Query<Entity, With<CustomUV>>,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
-) {
-    if curve_select.is_changed() {
-        info!("mesh changed");
-        match curve_select.mesh() {
-            Ok(mesh) => {
-                info!("mesh made");
-
-                for mesh_handle in mesh_query_1.iter() {
-                    meshes.remove(mesh_handle);
-                }
-                for mesh_entity in mesh_query_2.iter() {
-                    commands.entity(mesh_entity).despawn();
-                }
-
-                // Create and save a handle to the mesh.
-                let cube_mesh_handle: Handle<Mesh> = meshes.add(mesh);
-
-                // Render the mesh with the custom texture, and add the marker.
-                commands.spawn((
-                    Mesh3d(cube_mesh_handle),
-                    MeshMaterial3d(materials.add(StandardMaterial { ..default() })),
-                    CustomUV,
-                ));
-            }
-            Err(_) => {
-                info!("ERROR MAKING MESH!!");
-            }
-        }
-    }
 }
 
 // System to receive input from the user,
@@ -279,24 +140,6 @@ fn input_handler(
             transform.look_to(Vec3::NEG_Z, Vec3::Y);
         }
     }
-}
-
-fn create_test_mesh() -> Mesh {
-    let curve = Catenary {
-        n: 8,
-        x0: 0.0,
-        z0: 0.0,
-        x1: 1.0,
-        z1: 0.0,
-        s: 1.1,
-        w: 0.5,
-        t: 0.2,
-        initial_guess: None,
-    }
-    .bake()
-    .unwrap();
-
-    brushes_to_mesh(&curve)
 }
 
 fn brushes_to_mesh<'a>(brush: impl IntoIterator<Item = &'a Brush>) -> Mesh {
