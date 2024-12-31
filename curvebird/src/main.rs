@@ -2,6 +2,8 @@
 //! assign a custom UV mapping for a custom texture,
 //! and how to change the UV mapping at run-time.
 
+#![allow(unused_imports)]
+
 use bevy::{
     prelude::*,
     render::{
@@ -10,6 +12,8 @@ use bevy::{
         render_resource::PrimitiveTopology,
     },
 };
+
+use bevy_egui::{egui, EguiContexts, EguiPlugin};
 
 mod camera_controller;
 use camera_controller::{CameraController, CameraControllerPlugin};
@@ -26,15 +30,42 @@ struct CustomUV;
 
 fn main() {
     App::new()
-        .add_plugins((DefaultPlugins, CameraControllerPlugin))
+        .add_plugins(DefaultPlugins)
+        .add_plugins(CameraControllerPlugin)
+        .add_plugins(EguiPlugin)
         .add_systems(Startup, setup)
         .add_systems(Update, input_handler)
+        .add_systems(Update, ui_example)
+        .init_resource::<OccupiedScreenSpace>()
         .run();
+}
+
+#[derive(Resource, Debug, Clone, PartialEq, PartialOrd)]
+enum CurveSelect {
+    // rayto
+    Bank(BankArgs),
+    // catenary
+    // serpentine
+    // easy-serp
+}
+
+#[derive(Debug, Clone, PartialEq, PartialOrd)]
+struct BankArgs {
+    pub n: u32,
+    pub ri0: f64,
+    pub ro0: f64,
+    pub ri1: f64,
+    pub ro1: f64,
+    pub theta0: f64,
+    pub theta1: f64,
+    pub h: f64,
+    pub t: f64,
+    pub fill: bool,
 }
 
 fn setup(
     mut commands: Commands,
-    asset_server: Res<AssetServer>,
+    // asset_server: Res<AssetServer>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut meshes: ResMut<Assets<Mesh>>,
 ) {
@@ -52,26 +83,31 @@ fn setup(
     let camera_and_light_transform =
         Transform::from_xyz(3.6, 3.6, 1.0).looking_at(Vec3::ZERO, Vec3::Y);
 
+    let cc = CameraController { ..default() };
+
     // Camera in 3D space.
-    commands.spawn((
-        Camera3d::default(),
-        camera_and_light_transform,
-        CameraController::default(),
-    ));
+    commands.spawn((Camera3d::default(), camera_and_light_transform, cc));
 
     // Light up the scene.
     commands.spawn((PointLight::default(), camera_and_light_transform));
+}
 
-    // Text to describe the controls.
-    commands.spawn((
-        Text::new("Controls:\nSpace: Change UVs\nX/Y/Z: Rotate\nR: Reset orientation"),
-        Node {
-            position_type: PositionType::Absolute,
-            top: Val::Px(12.0),
-            left: Val::Px(12.0),
-            ..default()
-        },
-    ));
+#[derive(Default, Debug, Resource)]
+struct OccupiedScreenSpace {
+    right: f32,
+}
+
+fn ui_example(mut contexts: EguiContexts, mut occupied_screen_space: ResMut<OccupiedScreenSpace>) {
+    let ctx = contexts.ctx_mut();
+    occupied_screen_space.right = egui::SidePanel::right("left_panel")
+        .resizable(true)
+        .show(ctx, |ui| {
+            ui.label("Right resizeable panel");
+            ui.allocate_rect(ui.available_rect_before_wrap(), egui::Sense::hover());
+        })
+        .response
+        .rect
+        .width();
 }
 
 // System to receive input from the user,

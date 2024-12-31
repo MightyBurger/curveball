@@ -59,7 +59,7 @@ impl Default for CameraController {
             key_up: KeyCode::KeyE,
             key_down: KeyCode::KeyQ,
             key_run: KeyCode::ShiftLeft,
-            mouse_key_cursor_grab: MouseButton::Left,
+            mouse_key_cursor_grab: MouseButton::Right,
             keyboard_key_toggle_cursor_grab: KeyCode::KeyM,
             walk_speed: 5.0,
             run_speed: 15.0,
