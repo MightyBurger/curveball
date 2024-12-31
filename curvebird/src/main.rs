@@ -37,30 +37,8 @@ fn main() {
         .add_systems(Update, input_handler)
         .add_systems(Update, ui_example)
         .init_resource::<OccupiedScreenSpace>()
+        .init_resource::<CurveSelect>()
         .run();
-}
-
-#[derive(Resource, Debug, Clone, PartialEq, PartialOrd)]
-enum CurveSelect {
-    // rayto
-    Bank(BankArgs),
-    // catenary
-    // serpentine
-    // easy-serp
-}
-
-#[derive(Debug, Clone, PartialEq, PartialOrd)]
-struct BankArgs {
-    pub n: u32,
-    pub ri0: f64,
-    pub ro0: f64,
-    pub ri1: f64,
-    pub ro1: f64,
-    pub theta0: f64,
-    pub theta1: f64,
-    pub h: f64,
-    pub t: f64,
-    pub fill: bool,
 }
 
 fn setup(
@@ -97,17 +75,138 @@ struct OccupiedScreenSpace {
     right: f32,
 }
 
-fn ui_example(mut contexts: EguiContexts, mut occupied_screen_space: ResMut<OccupiedScreenSpace>) {
+#[derive(Resource, Debug, Clone, PartialEq, PartialOrd)]
+enum CurveSelect {
+    Rayto(RaytoArgs),
+    Bank(BankArgs),
+    // catenary
+    // serpentine
+    // easy-serp
+}
+
+impl Default for CurveSelect {
+    fn default() -> Self {
+        Self::Bank(BankArgs::default())
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, PartialOrd)]
+struct RaytoArgs {
+    n: u32,
+    r0: f64,
+    r1: f64,
+    theta0: f64,
+    theta1: f64,
+    x: f64,
+    y: f64,
+    h: f64,
+}
+
+impl Default for RaytoArgs {
+    fn default() -> Self {
+        Self {
+            n: 8,
+            r0: 32.0,
+            r1: 32.0,
+            theta0: 0.0,
+            theta1: 90.0,
+            x: 32.0,
+            y: 32.0,
+            h: 8.0,
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, PartialOrd)]
+struct BankArgs {
+    pub n: u32,
+    pub ri0: f64,
+    pub ro0: f64,
+    pub ri1: f64,
+    pub ro1: f64,
+    pub theta0: f64,
+    pub theta1: f64,
+    pub h: f64,
+    pub t: f64,
+    pub fill: bool,
+}
+
+impl Default for BankArgs {
+    fn default() -> Self {
+        Self {
+            n: 8,
+            ri0: 16.0,
+            ro0: 32.0,
+            ri1: 16.0,
+            ro1: 32.0,
+            theta0: 0.0,
+            theta1: 90.0,
+            h: 64.0,
+            t: 32.0,
+            fill: false,
+        }
+    }
+}
+
+impl CurveSelect {
+    fn mesh(&self) -> CurveResult<Mesh> {
+        let brushes = match self {
+            Self::Rayto(args) => Rayto {
+                n: args.n,
+                r0: args.r0,
+                r1: args.r1,
+                theta0: args.theta0,
+                theta1: args.theta1,
+                x: args.x,
+                y: args.y,
+                h: args.h,
+            }
+            .bake()?,
+            Self::Bank(args) => Bank {
+                n: args.n,
+                ri0: args.ri0,
+                ro0: args.ro0,
+                ri1: args.ri1,
+                ro1: args.ro1,
+                theta0: args.theta0,
+                theta1: args.theta1,
+                h: args.h,
+                t: args.t,
+                fill: args.fill,
+            }
+            .bake()?,
+        };
+        Ok(brushes_to_mesh(&brushes))
+    }
+}
+
+fn ui_example(
+    mut contexts: EguiContexts,
+    mut occupied_screen_space: ResMut<OccupiedScreenSpace>,
+    mut curve_select: ResMut<CurveSelect>,
+) {
     let ctx = contexts.ctx_mut();
     occupied_screen_space.right = egui::SidePanel::right("left_panel")
         .resizable(true)
         .show(ctx, |ui| {
             ui.label("Right resizeable panel");
+            if ui.button("Here is a button").clicked() {
+                let next_curve = match *curve_select {
+                    CurveSelect::Rayto(_) => CurveSelect::Bank(BankArgs::default()),
+                    CurveSelect::Bank(_) => CurveSelect::Rayto(RaytoArgs::default()),
+                };
+                *curve_select = next_curve;
+            };
+            ui.label(format!("Selected curve is {:?}", *curve_select));
             ui.allocate_rect(ui.available_rect_before_wrap(), egui::Sense::hover());
         })
         .response
         .rect
         .width();
+}
+
+fn update_mesh(curve_select: Res<CurveSelect>) {
+    if curve_select.is_changed() {}
 }
 
 // System to receive input from the user,
@@ -161,10 +260,10 @@ fn create_test_mesh() -> Mesh {
     .bake()
     .unwrap();
 
-    brush_to_mesh(&curve)
+    brushes_to_mesh(&curve)
 }
 
-fn brush_to_mesh<'a>(brush: impl IntoIterator<Item = &'a Brush>) -> Mesh {
+fn brushes_to_mesh<'a>(brush: impl IntoIterator<Item = &'a Brush>) -> Mesh {
     let mut vertices = Vec::new();
     let mut normals = Vec::new();
     let mut colors = Vec::new();
