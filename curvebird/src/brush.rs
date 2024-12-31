@@ -18,9 +18,9 @@ use glam::DVec3;
 pub enum CurveSelect {
     Rayto(RaytoArgs),
     Bank(BankArgs),
-    // catenary
-    // serpentine
-    // easy-serp
+    Catenary(CatenaryArgs),
+    Serpentine(SerpentineArgs),
+    EasySerp(EasySerpArgs),
 }
 
 impl Default for CurveSelect {
@@ -87,6 +87,87 @@ impl Default for BankArgs {
     }
 }
 
+#[derive(Debug, Clone, PartialEq, PartialOrd)]
+pub struct CatenaryArgs {
+    pub n: u32,
+    pub x0: f64,
+    pub z0: f64,
+    pub x1: f64,
+    pub z1: f64,
+    pub s: f64,
+    pub w: f64,
+    pub t: f64,
+    pub initial_guess: Option<f64>,
+}
+
+impl Default for CatenaryArgs {
+    fn default() -> Self {
+        Self {
+            n: 8,
+            x0: 0.0,
+            z0: 0.0,
+            x1: 32.0,
+            z1: 0.0,
+            s: 34.0,
+            w: 16.0,
+            t: 8.0,
+            initial_guess: None,
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, PartialOrd)]
+pub struct SerpentineArgs {
+    pub n0: u32,
+    pub n1: u32,
+    pub x: f64,
+    pub z: f64,
+    pub xm: f64,
+    pub zm: f64,
+    pub w: f64,
+    pub t: f64,
+}
+
+impl Default for SerpentineArgs {
+    fn default() -> Self {
+        Self {
+            n0: 4,
+            n1: 4,
+            x: 32.0,
+            z: 16.0,
+            xm: 16.0,
+            zm: 8.0,
+            w: 16.0,
+            t: 8.0,
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, PartialOrd)]
+pub struct EasySerpArgs {
+    pub n: u32,
+    pub x: f64,
+    pub z: f64,
+    pub w: f64,
+    pub t: f64,
+}
+
+impl Default for EasySerpArgs {
+    fn default() -> Self {
+        Self {
+            n: 8,
+            x: 32.0,
+            z: 16.0,
+            w: 16.0,
+            t: 8.0,
+        }
+    }
+}
+
+pub fn div_up(a: u32, b: u32) -> u32 {
+    (a + (b - 1)) / b
+}
+
 impl CurveSelect {
     fn mesh(&self) -> CurveResult<Mesh> {
         let brushes = match self {
@@ -112,6 +193,40 @@ impl CurveSelect {
                 h: args.h,
                 t: args.t,
                 fill: args.fill,
+            }
+            .bake()?,
+            Self::Catenary(args) => Catenary {
+                n: args.n,
+                x0: args.x0,
+                z0: args.z0,
+                x1: args.x1,
+                z1: args.z1,
+                s: args.s,
+                w: args.w,
+                t: args.t,
+                initial_guess: args.initial_guess,
+            }
+            .bake()?,
+            Self::Serpentine(args) => Serpentine {
+                n0: args.n0,
+                n1: args.n1,
+                x: args.x,
+                z: args.z,
+                xm: args.xm,
+                zm: args.zm,
+                w: args.w,
+                t: args.t,
+            }
+            .bake()?,
+            Self::EasySerp(args) => Serpentine {
+                n0: div_up(args.n, 2),
+                n1: div_up(args.n, 2),
+                x: args.x,
+                z: args.z,
+                xm: args.x / 2.0,
+                zm: args.z / 2.0,
+                w: args.w,
+                t: args.t,
             }
             .bake()?,
         };

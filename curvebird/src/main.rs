@@ -30,18 +30,21 @@ use curveball_lib::curve::{Bank, Catenary, Curve, CurveResult, Rayto, Serpentine
 use curveball_lib::map::{Brush, QEntity, QMap, Side, SideGeom, SimpleWorldspawn};
 use glam::DVec3;
 
-// Define a "marker" component to mark the custom mesh. Marker components are often used in Bevy for
-// filtering entities in queries with `With`, they're usually not queried directly since they don't
-// contain information within them.
 #[derive(Component)]
 struct CustomUV;
 
 fn main() {
     App::new()
-        .add_plugins(DefaultPlugins)
+        .add_plugins(DefaultPlugins.set(WindowPlugin {
+            primary_window: Some(Window {
+                title: "curvebird".to_string(),
+                ..default()
+            }),
+            ..default()
+        }))
         .insert_resource(AmbientLight {
             color: Color::default(),
-            brightness: 4000.0,
+            brightness: 2000.0,
         })
         .add_plugins(CameraControllerPlugin)
         .add_plugins(EguiPlugin)
@@ -57,7 +60,7 @@ fn main() {
 fn setup(mut commands: Commands) {
     // Transform for the camera and lighting, looking at (0,0,0) (the position of the mesh).
     let camera_and_light_transform =
-        Transform::from_xyz(128.0, 128.0, 128.0).looking_at(Vec3::ZERO, Vec3::Y);
+        Transform::from_xyz(-128.0, 128.0, -128.0).looking_at(Vec3::ZERO, Vec3::Y);
 
     let cc = CameraController::default();
 
