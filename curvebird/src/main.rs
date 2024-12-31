@@ -39,6 +39,10 @@ struct CustomUV;
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
+        .insert_resource(AmbientLight {
+            color: Color::default(),
+            brightness: 4000.0,
+        })
         .add_plugins(CameraControllerPlugin)
         .add_plugins(EguiPlugin)
         .add_systems(Startup, setup)
@@ -50,33 +54,25 @@ fn main() {
         .run();
 }
 
-fn setup(
-    mut commands: Commands,
-    // asset_server: Res<AssetServer>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
-    mut meshes: ResMut<Assets<Mesh>>,
-) {
-    // // Create and save a handle to the mesh.
-    // let cube_mesh_handle: Handle<Mesh> = meshes.add(create_test_mesh());
-    //
-    // // Render the mesh with the custom texture, and add the marker.
-    // commands.spawn((
-    //     Mesh3d(cube_mesh_handle),
-    //     MeshMaterial3d(materials.add(StandardMaterial { ..default() })),
-    //     CustomUV,
-    // ));
-
+fn setup(mut commands: Commands) {
     // Transform for the camera and lighting, looking at (0,0,0) (the position of the mesh).
     let camera_and_light_transform =
         Transform::from_xyz(128.0, 128.0, 128.0).looking_at(Vec3::ZERO, Vec3::Y);
 
-    let cc = CameraController { ..default() };
+    let cc = CameraController::default();
 
     // Camera in 3D space.
     commands.spawn((Camera3d::default(), camera_and_light_transform, cc));
 
     // Light up the scene.
-    commands.spawn((PointLight::default(), camera_and_light_transform));
+    commands.spawn((
+        PointLight {
+            intensity: 100_000_000.0,
+            range: 400.0,
+            ..default()
+        },
+        camera_and_light_transform,
+    ));
 }
 
 // System to receive input from the user,

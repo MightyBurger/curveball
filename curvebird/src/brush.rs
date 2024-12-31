@@ -122,39 +122,49 @@ impl CurveSelect {
 pub fn update_mesh(
     mut commands: Commands,
     curve_select: Res<CurveSelect>,
+    mut previous: Local<Option<CurveSelect>>,
     mesh_query_1: Query<&Mesh3d, With<CustomUV>>,
     mesh_query_2: Query<Entity, With<CustomUV>>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
-    if curve_select.is_changed() {
-        info!("mesh changed");
-        match curve_select.mesh() {
-            Ok(mesh) => {
-                info!("mesh made");
+    if !curve_select.is_changed() {
+        return;
+    }
 
-                for mesh_handle in mesh_query_1.iter() {
-                    meshes.remove(mesh_handle);
-                }
-                for mesh_entity in mesh_query_2.iter() {
-                    commands.entity(mesh_entity).despawn();
-                }
-
-                // Create and save a handle to the mesh.
-                let cube_mesh_handle: Handle<Mesh> = meshes.add(mesh);
-
-                // Render the mesh with the custom texture, and add the marker.
-                commands.spawn((
-                    Mesh3d(cube_mesh_handle),
-                    MeshMaterial3d(materials.add(StandardMaterial { ..default() })),
-                    CustomUV,
-                ));
-            }
-            Err(_) => {
-                info!("ERROR MAKING MESH!!");
-            }
+    if let Some(prev) = previous.clone() {
+        if prev == *curve_select {
+            return;
         }
     }
+
+    info!("mesh changed");
+    for mesh_handle in mesh_query_1.iter() {
+        meshes.remove(mesh_handle);
+    }
+    for mesh_entity in mesh_query_2.iter() {
+        commands.entity(mesh_entity).despawn();
+    }
+    match curve_select.mesh() {
+        Ok(mesh) => {
+            info!("mesh made");
+
+            // Create and save a handle to the mesh.
+            let cube_mesh_handle: Handle<Mesh> = meshes.add(mesh);
+
+            // Render the mesh with the custom texture, and add the marker.
+            commands.spawn((
+                Mesh3d(cube_mesh_handle),
+                MeshMaterial3d(materials.add(StandardMaterial { ..default() })),
+                CustomUV,
+            ));
+        }
+        Err(_) => {
+            info!("ERROR MAKING MESH!!");
+        }
+    }
+
+    *previous = Some(curve_select.clone());
 }
 
 fn brushes_to_mesh<'a>(brush: impl IntoIterator<Item = &'a Brush>) -> Mesh {
