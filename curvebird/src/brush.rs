@@ -178,10 +178,26 @@ fn brushes_to_mesh<'a>(brush: impl IntoIterator<Item = &'a Brush>) -> Mesh {
              mtrl: _,
          }| { triangle },
     ) {
-        // The order here is intentional - it must be counter-clockwise looking at the face.
+        // Swap the Y and Zs.
+        let p0 = DVec3 {
+            x: p0.x,
+            y: p0.z,
+            z: p0.y,
+        };
+        let p1 = DVec3 {
+            x: p1.x,
+            y: p1.z,
+            z: p1.y,
+        };
+        let p2 = DVec3 {
+            x: p2.x,
+            y: p2.z,
+            z: p2.y,
+        };
+
         vertices.push([p0.x as f32, p0.y as f32, p0.z as f32]);
-        vertices.push([p2.x as f32, p2.y as f32, p2.z as f32]);
         vertices.push([p1.x as f32, p1.y as f32, p1.z as f32]);
+        vertices.push([p2.x as f32, p2.y as f32, p2.z as f32]);
 
         let normal = ((p0 - p1).cross(p2 - p1)).normalize();
         let normal = [normal.x as f32, normal.y as f32, normal.z as f32];
