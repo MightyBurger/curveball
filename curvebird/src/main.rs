@@ -14,8 +14,12 @@ use bevy::{
 };
 
 use crate::brush::{BankArgs, CurveSelect, RaytoArgs};
+use crate::gui::ui;
+use crate::gui::OccupiedScreenSpace;
 
 use bevy_egui::{egui, EguiContexts, EguiPlugin};
+
+mod gui;
 
 mod brush;
 use brush::update_mesh;
@@ -39,7 +43,7 @@ fn main() {
         .add_plugins(EguiPlugin)
         .add_systems(Startup, setup)
         .add_systems(Update, input_handler)
-        .add_systems(Update, ui_example)
+        .add_systems(Update, ui)
         .add_systems(Update, update_mesh)
         .init_resource::<OccupiedScreenSpace>()
         .init_resource::<CurveSelect>()
@@ -73,37 +77,6 @@ fn setup(
 
     // Light up the scene.
     commands.spawn((PointLight::default(), camera_and_light_transform));
-}
-
-#[derive(Default, Debug, Resource)]
-struct OccupiedScreenSpace {
-    right: f32,
-}
-
-fn ui_example(
-    mut contexts: EguiContexts,
-    mut occupied_screen_space: ResMut<OccupiedScreenSpace>,
-    mut curve_select: ResMut<CurveSelect>,
-) {
-    let ctx = contexts.ctx_mut();
-    occupied_screen_space.right = egui::SidePanel::right("left_panel")
-        .resizable(true)
-        .show(ctx, |ui| {
-            ui.label("Right resizeable panel");
-            if ui.button("Here is a button").clicked() {
-                info!("clicked");
-                let next_curve = match *curve_select {
-                    CurveSelect::Rayto(_) => CurveSelect::Bank(BankArgs::default()),
-                    CurveSelect::Bank(_) => CurveSelect::Rayto(RaytoArgs::default()),
-                };
-                *curve_select = next_curve;
-            };
-            ui.label(format!("Selected curve is {:?}", *curve_select));
-            ui.allocate_rect(ui.available_rect_before_wrap(), egui::Sense::hover());
-        })
-        .response
-        .rect
-        .width();
 }
 
 // System to receive input from the user,
