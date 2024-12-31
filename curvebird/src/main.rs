@@ -36,6 +36,7 @@ fn main() {
         .add_systems(Startup, setup)
         .add_systems(Update, input_handler)
         .add_systems(Update, ui_example)
+        .add_systems(Update, update_mesh)
         .init_resource::<OccupiedScreenSpace>()
         .init_resource::<CurveSelect>()
         .run();
@@ -47,19 +48,19 @@ fn setup(
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut meshes: ResMut<Assets<Mesh>>,
 ) {
-    // Create and save a handle to the mesh.
-    let cube_mesh_handle: Handle<Mesh> = meshes.add(create_test_mesh());
-
-    // Render the mesh with the custom texture, and add the marker.
-    commands.spawn((
-        Mesh3d(cube_mesh_handle),
-        MeshMaterial3d(materials.add(StandardMaterial { ..default() })),
-        CustomUV,
-    ));
+    // // Create and save a handle to the mesh.
+    // let cube_mesh_handle: Handle<Mesh> = meshes.add(create_test_mesh());
+    //
+    // // Render the mesh with the custom texture, and add the marker.
+    // commands.spawn((
+    //     Mesh3d(cube_mesh_handle),
+    //     MeshMaterial3d(materials.add(StandardMaterial { ..default() })),
+    //     CustomUV,
+    // ));
 
     // Transform for the camera and lighting, looking at (0,0,0) (the position of the mesh).
     let camera_and_light_transform =
-        Transform::from_xyz(3.6, 3.6, 1.0).looking_at(Vec3::ZERO, Vec3::Y);
+        Transform::from_xyz(128.0, 128.0, 128.0).looking_at(Vec3::ZERO, Vec3::Y);
 
     let cc = CameraController { ..default() };
 
@@ -191,6 +192,7 @@ fn ui_example(
         .show(ctx, |ui| {
             ui.label("Right resizeable panel");
             if ui.button("Here is a button").clicked() {
+                info!("clicked");
                 let next_curve = match *curve_select {
                     CurveSelect::Rayto(_) => CurveSelect::Bank(BankArgs::default()),
                     CurveSelect::Bank(_) => CurveSelect::Rayto(RaytoArgs::default()),
@@ -205,8 +207,42 @@ fn ui_example(
         .width();
 }
 
-fn update_mesh(curve_select: Res<CurveSelect>) {
-    if curve_select.is_changed() {}
+fn update_mesh(
+    mut commands: Commands,
+    curve_select: Res<CurveSelect>,
+    mesh_query_1: Query<&Mesh3d, With<CustomUV>>,
+    mesh_query_2: Query<Entity, With<CustomUV>>,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+) {
+    if curve_select.is_changed() {
+        info!("mesh changed");
+        match curve_select.mesh() {
+            Ok(mesh) => {
+                info!("mesh made");
+
+                for mesh_handle in mesh_query_1.iter() {
+                    meshes.remove(mesh_handle);
+                }
+                for mesh_entity in mesh_query_2.iter() {
+                    commands.entity(mesh_entity).despawn();
+                }
+
+                // Create and save a handle to the mesh.
+                let cube_mesh_handle: Handle<Mesh> = meshes.add(mesh);
+
+                // Render the mesh with the custom texture, and add the marker.
+                commands.spawn((
+                    Mesh3d(cube_mesh_handle),
+                    MeshMaterial3d(materials.add(StandardMaterial { ..default() })),
+                    CustomUV,
+                ));
+            }
+            Err(_) => {
+                info!("ERROR MAKING MESH!!");
+            }
+        }
+    }
 }
 
 // System to receive input from the user,
