@@ -282,54 +282,58 @@ pub fn update_mesh(
     *previous = Some(curve_select.clone());
 }
 
-fn brushes_to_mesh<'a>(brush: impl IntoIterator<Item = &'a Brush>) -> Mesh {
+fn brushes_to_mesh<'a>(brushes: impl IntoIterator<Item = &'a Brush>) -> Mesh {
     let mut vertices = Vec::new();
     let mut normals = Vec::new();
     let mut colors = Vec::new();
 
-    for [p0, p1, p2] in brush.into_iter().flat_map(|brush| brush.triangles()).map(
-        |Side {
-             geom: SideGeom(triangle),
-             mtrl: _,
-         }| { triangle },
-    ) {
-        // Swap the Y and Zs.
-        let p0 = DVec3 {
-            x: p0.x,
-            y: p0.z,
-            z: p0.y,
-        };
-        let p1 = DVec3 {
-            x: p1.x,
-            y: p1.z,
-            z: p1.y,
-        };
-        let p2 = DVec3 {
-            x: p2.x,
-            y: p2.z,
-            z: p2.y,
-        };
+    for (i, brush) in brushes.into_iter().enumerate() {
+        for [p0, p1, p2] in brush.triangles().map(
+            |Side {
+                 geom: SideGeom(triangle),
+                 mtrl: _,
+             }| { triangle },
+        ) {
+            // Swap the Y and Zs.
+            let p0 = DVec3 {
+                x: p0.x,
+                y: p0.z,
+                z: p0.y,
+            };
+            let p1 = DVec3 {
+                x: p1.x,
+                y: p1.z,
+                z: p1.y,
+            };
+            let p2 = DVec3 {
+                x: p2.x,
+                y: p2.z,
+                z: p2.y,
+            };
 
-        vertices.push([p0.x as f32, p0.y as f32, p0.z as f32]);
-        vertices.push([p1.x as f32, p1.y as f32, p1.z as f32]);
-        vertices.push([p2.x as f32, p2.y as f32, p2.z as f32]);
+            vertices.push([p0.x as f32, p0.y as f32, p0.z as f32]);
+            vertices.push([p1.x as f32, p1.y as f32, p1.z as f32]);
+            vertices.push([p2.x as f32, p2.y as f32, p2.z as f32]);
 
-        let normal = ((p0 - p1).cross(p2 - p1)).normalize();
-        let normal = [normal.x as f32, normal.y as f32, normal.z as f32];
+            let normal = ((p0 - p1).cross(p2 - p1)).normalize();
+            let normal = [normal.x as f32, normal.y as f32, normal.z as f32];
 
-        normals.push(normal);
-        normals.push(normal);
-        normals.push(normal);
+            normals.push(normal);
+            normals.push(normal);
+            normals.push(normal);
 
-        let color = [
-            (1.0 - normal[0]) / 2.0,
-            (1.0 - normal[1]) / 2.0,
-            (1.0 - normal[2]) / 2.0,
-            1.0,
-        ];
-        colors.push(color);
-        colors.push(color);
-        colors.push(color);
+            let scale = if i % 2 == 0 { 1.0 } else { 0.8 };
+
+            let color = [
+                scale * (1.0 - normal[0]) / 2.0,
+                scale * (1.0 - normal[1]) / 2.0,
+                scale * (1.0 - normal[2]) / 2.0,
+                1.0,
+            ];
+            colors.push(color);
+            colors.push(color);
+            colors.push(color);
+        }
     }
 
     Mesh::new(
