@@ -51,22 +51,6 @@ pub fn ui(
     occupied_screen_space.right = egui::SidePanel::right("left_panel")
         .resizable(true)
         .show(ctx, |ui| {
-            // let top_layout = egui::Layout {
-            //     main_dir: egui::Direction::RightToLeft,
-            //     main_wrap: true,
-            //     main_align: egui::Align::Max,
-            //     main_justify: false,
-            //     cross_align: egui::Align::Min,
-            //     cross_justify: false,
-            // };
-            //
-            // ui.with_layout(top_layout, |ui| {
-            //     ui.label("?").on_hover_ui(|ui| {
-            //         ui.label("Help text.\nMore help text.");
-            //     });
-            // });
-
-
             ui.add_space(8.0);
 
             egui::ComboBox::from_id_salt("CurveSelect")
@@ -77,8 +61,8 @@ pub fn ui(
                     ui.selectable_value(&mut local.selected, Selected::Catenary, "Catenary");
                     ui.selectable_value(&mut local.selected, Selected::Serpentine, "Serpentine");
                 });
-            ui.separator();
 
+            ui.separator();
 
             match local.selected {
                 Selected::Rayto => {
@@ -237,29 +221,6 @@ pub fn ui(
                         ui.label("t");
                     });
 
-                    // It makes no sense to me to want to generate a serpentine curve with any
-                    // offset other than "Middle", but here's some code to make changing this
-                    // decision easier.
-
-                    // egui::ComboBox::from_label("Offset")
-                    //     .selected_text(format!("{:?}", local.serpentine_args.offset))
-                    //     .show_ui(ui, |ui| {
-                    //         ui.selectable_value(
-                    //             &mut local.serpentine_args.offset,
-                    //             SerpentineOffsetMode::Top,
-                    //             "top",
-                    //         );
-                    //         ui.selectable_value(
-                    //             &mut local.serpentine_args.offset,
-                    //             SerpentineOffsetMode::Middle,
-                    //             "middle",
-                    //         );
-                    //         ui.selectable_value(
-                    //             &mut local.serpentine_args.offset,
-                    //             SerpentineOffsetMode::Bottom,
-                    //             "bottom",
-                    //         );
-                    //     });
                 }
             }
 
@@ -318,6 +279,7 @@ pub fn ui(
         .response
         .rect
         .width();
+
     *curve_select = match local.selected {
         Selected::Rayto => CurveSelect::Rayto(local.rayto_args.clone()),
         Selected::Bank => CurveSelect::Bank(local.bank_args.clone()),

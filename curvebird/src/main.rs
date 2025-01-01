@@ -2,36 +2,21 @@
 //! assign a custom UV mapping for a custom texture,
 //! and how to change the UV mapping at run-time.
 
-#![allow(unused_imports)]
-
 use std::time::Duration;
 
-use bevy::{
-    prelude::*,
-    render::{
-        mesh::{Indices, VertexAttributeValues},
-        render_asset::RenderAssetUsages,
-        render_resource::PrimitiveTopology,
-    },
-    winit::WinitSettings,
-};
+use bevy::{prelude::*, winit::WinitSettings};
 
-use crate::brush::{BankArgs, CurveSelect, RaytoArgs};
-use crate::gui::ui;
-use crate::gui::OccupiedScreenSpace;
-
-use bevy_egui::{egui, EguiContexts, EguiPlugin};
-
-mod gui;
+use bevy_egui::EguiPlugin;
 
 mod brush;
-use brush::update_mesh;
+mod gui;
+use brush::{update_mesh, CurveSelect};
+use gui::{ui, OccupiedScreenSpace};
 mod camera_controller;
 use camera_controller::{CameraController, CameraControllerPlugin};
 
-use curveball_lib::curve::{Bank, Catenary, Curve, CurveResult, Rayto, Serpentine};
-use curveball_lib::map::{Brush, QEntity, QMap, Side, SideGeom, SimpleWorldspawn};
-use glam::DVec3;
+use curveball_lib::curve::CurveResult;
+use curveball_lib::map::Brush;
 
 #[derive(Component)]
 struct CustomUV;
@@ -60,7 +45,6 @@ fn main() {
         .add_plugins(EguiPlugin)
         .add_systems(Startup, setup)
         .add_systems(Update, draw_gizmos)
-        // .add_systems(Update, input_handler)
         .add_systems(Update, ui)
         .add_systems(Update, update_mesh)
         .init_resource::<OccupiedScreenSpace>()
