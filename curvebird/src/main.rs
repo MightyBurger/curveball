@@ -4,6 +4,8 @@
 
 #![allow(unused_imports)]
 
+use std::time::Duration;
+
 use bevy::{
     prelude::*,
     render::{
@@ -11,6 +13,7 @@ use bevy::{
         render_asset::RenderAssetUsages,
         render_resource::PrimitiveTopology,
     },
+    winit::WinitSettings,
 };
 
 use crate::brush::{BankArgs, CurveSelect, RaytoArgs};
@@ -45,6 +48,10 @@ fn main() {
         .insert_resource(AmbientLight {
             color: Color::default(),
             brightness: 2000.0,
+        })
+        .insert_resource(WinitSettings {
+            focused_mode: bevy::winit::UpdateMode::Continuous,
+            unfocused_mode: bevy::winit::UpdateMode::reactive_low_power(Duration::from_millis(10)),
         })
         .init_gizmo_group::<GridMinor>()
         .init_gizmo_group::<GridMajor>()
