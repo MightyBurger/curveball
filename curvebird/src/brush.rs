@@ -59,10 +59,8 @@ impl Default for RaytoArgs {
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub struct BankArgs {
     pub n: u32,
-    pub ri0: f64,
-    pub ro0: f64,
-    pub ri1: f64,
-    pub ro1: f64,
+    pub ri: f64,
+    pub ro: f64,
     pub theta0: f64,
     pub theta1: f64,
     pub h: f64,
@@ -74,10 +72,8 @@ impl Default for BankArgs {
     fn default() -> Self {
         Self {
             n: 8,
-            ri0: 64.0,
-            ro0: 128.0,
-            ri1: 64.0,
-            ro1: 128.0,
+            ri: 64.0,
+            ro: 128.0,
             theta0: 0.0,
             theta1: 90.0,
             h: 64.0,
@@ -184,10 +180,8 @@ impl CurveSelect {
             .bake()?,
             Self::Bank(args) => Bank {
                 n: args.n,
-                ri0: args.ri0,
-                ro0: args.ro0,
-                ri1: args.ri1,
-                ro1: args.ro1,
+                ri: args.ri,
+                ro: args.ro,
                 theta0: args.theta0,
                 theta1: args.theta1,
                 h: args.h,

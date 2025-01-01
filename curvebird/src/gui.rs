@@ -102,20 +102,12 @@ pub fn ui(
                         ui.label("n");
                     });
                     ui.horizontal(|ui| {
-                        ui.add(egui::DragValue::new(&mut local.bank_args.ri0).speed(0.1));
-                        ui.label("ri0");
+                        ui.add(egui::DragValue::new(&mut local.bank_args.ri).speed(0.1));
+                        ui.label("ri");
                     });
                     ui.horizontal(|ui| {
-                        ui.add(egui::DragValue::new(&mut local.bank_args.ro0).speed(0.1));
-                        ui.label("ro0");
-                    });
-                    ui.horizontal(|ui| {
-                        ui.add(egui::DragValue::new(&mut local.bank_args.ri1).speed(0.1));
-                        ui.label("ri1");
-                    });
-                    ui.horizontal(|ui| {
-                        ui.add(egui::DragValue::new(&mut local.bank_args.ro1).speed(0.1));
-                        ui.label("ro1");
+                        ui.add(egui::DragValue::new(&mut local.bank_args.ro).speed(0.1));
+                        ui.label("ro");
                     });
                     ui.horizontal(|ui| {
                         ui.add(egui::DragValue::new(&mut local.bank_args.theta0).speed(0.1));

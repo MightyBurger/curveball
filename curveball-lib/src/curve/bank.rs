@@ -8,10 +8,8 @@ use std::f64::consts::PI;
 #[derive(Debug, Default, Clone)]
 pub struct Bank {
     pub n: u32,
-    pub ri0: f64,
-    pub ro0: f64,
-    pub ri1: f64,
-    pub ro1: f64,
+    pub ri: f64,
+    pub ro: f64,
     pub theta0: f64,
     pub theta1: f64,
     pub h: f64,
@@ -29,9 +27,6 @@ impl Curve for Bank {
             return Err(BankError::NotEnoughSegments { n: self.n })?;
         }
 
-        // get delta values
-        let dri = (self.ri1 - self.ri0) / (self.n as f64);
-        let dro = (self.ro1 - self.ro0) / (self.n as f64);
         let dtheta = (self.theta1 - self.theta0) / (self.n as f64);
 
         let mut brushes = Vec::new();
@@ -40,10 +35,6 @@ impl Curve for Bank {
             // bounds for this differential segment
             // s = start, e = end
             // o = outer, i = inner
-            let ris = self.ri0 + dri * (i as f64);
-            let rie = self.ri0 + dri * (i as f64 + 1.0);
-            let ros = self.ro0 + dro * (i as f64);
-            let roe = self.ro0 + dro * (i as f64 + 1.0);
             let thetas = self.theta0 + dtheta * (i as f64);
             let thetae = self.theta0 + dtheta * (i as f64 + 1.0);
 
@@ -53,8 +44,8 @@ impl Curve for Bank {
             // ending with ph
 
             let pa = DVec3 {
-                x: ros * f64::cos(deg2rad(thetas)),
-                y: ros * f64::sin(deg2rad(thetas)),
+                x: self.ro * f64::cos(deg2rad(thetas)),
+                y: self.ro * f64::sin(deg2rad(thetas)),
                 z: {
                     if self.fill {
                         -self.t
@@ -65,8 +56,8 @@ impl Curve for Bank {
             };
 
             let pb = DVec3 {
-                x: roe * f64::cos(deg2rad(thetae)),
-                y: roe * f64::sin(deg2rad(thetae)),
+                x: self.ro * f64::cos(deg2rad(thetae)),
+                y: self.ro * f64::sin(deg2rad(thetae)),
                 z: {
                     if self.fill {
                         -self.t
@@ -77,38 +68,38 @@ impl Curve for Bank {
             };
 
             let pc = DVec3 {
-                x: rie * f64::cos(deg2rad(thetae)),
-                y: rie * f64::sin(deg2rad(thetae)),
+                x: self.ri * f64::cos(deg2rad(thetae)),
+                y: self.ri * f64::sin(deg2rad(thetae)),
                 z: -self.t,
             };
 
             let pd = DVec3 {
-                x: ris * f64::cos(deg2rad(thetas)),
-                y: ris * f64::sin(deg2rad(thetas)),
+                x: self.ri * f64::cos(deg2rad(thetas)),
+                y: self.ri * f64::sin(deg2rad(thetas)),
                 z: -self.t,
             };
 
             let pe = DVec3 {
-                x: ros * f64::cos(deg2rad(thetas)),
-                y: ros * f64::sin(deg2rad(thetas)),
+                x: self.ro * f64::cos(deg2rad(thetas)),
+                y: self.ro * f64::sin(deg2rad(thetas)),
                 z: self.h,
             };
 
             let pf = DVec3 {
-                x: roe * f64::cos(deg2rad(thetae)),
-                y: roe * f64::sin(deg2rad(thetae)),
+                x: self.ro * f64::cos(deg2rad(thetae)),
+                y: self.ro * f64::sin(deg2rad(thetae)),
                 z: self.h,
             };
 
             let pg = DVec3 {
-                x: rie * f64::cos(deg2rad(thetae)),
-                y: rie * f64::sin(deg2rad(thetae)),
+                x: self.ri * f64::cos(deg2rad(thetae)),
+                y: self.ri * f64::sin(deg2rad(thetae)),
                 z: 0.0,
             };
 
             let ph = DVec3 {
-                x: ris * f64::cos(deg2rad(thetas)),
-                y: ris * f64::sin(deg2rad(thetas)),
+                x: self.ri * f64::cos(deg2rad(thetas)),
+                y: self.ri * f64::sin(deg2rad(thetas)),
                 z: 0.0,
             };
 

@@ -52,14 +52,10 @@ struct RaytoArgs {
 pub struct BankArgs {
     #[arg(long, help = "Number of segments")]
     pub n: u32,
-    #[arg(long, help = "Starting inner radius")]
-    pub ri0: f64,
-    #[arg(long, help = "Starting outer radius")]
-    pub ro0: f64,
-    #[arg(long, help = "Ending inner radius")]
-    pub ri1: f64,
-    #[arg(long, help = "Ending outer radius")]
-    pub ro1: f64,
+    #[arg(long, help = "Inner radius")]
+    pub ri: f64,
+    #[arg(long, help = "Outer radius")]
+    pub ro: f64,
     #[arg(long, help = "Starting angle (deg)")]
     pub theta0: f64,
     #[arg(long, help = "Ending angle (deg)")]
@@ -167,10 +163,8 @@ fn map(command: Commands) -> CurveResult<QMap> {
         .bake()?,
         Commands::Bank(args) => Bank {
             n: args.n,
-            ri0: args.ri0,
-            ri1: args.ri1,
-            ro0: args.ro0,
-            ro1: args.ro1,
+            ro: args.ro,
+            ri: args.ri,
             theta0: args.theta0,
             theta1: args.theta1,
             h: args.h,
