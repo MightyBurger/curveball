@@ -10,12 +10,9 @@ use std::f64::consts::PI;
 
 #[derive(Debug, Default, Clone)]
 pub struct Serpentine {
-    pub n0: u32,
-    pub n1: u32,
+    pub n_each: u32,
     pub x: f64,
     pub z: f64,
-    pub xm: f64,
-    pub zm: f64,
     pub w: f64,
     pub t: f64,
     pub offset: SerpentineOffsetMode,
@@ -36,36 +33,32 @@ impl Default for SerpentineOffsetMode {
 
 impl Curve for Serpentine {
     fn bake(&self) -> CurveResult<Vec<Brush>> {
-        if self.n0 < 1 {
-            return Err(SerpentineError::NotEnoughSegments0 { n0: self.n0 })?;
+        if self.n_each < 1 {
+            return Err(SerpentineError::NotEnoughSegments {
+                n_each: self.n_each,
+            })?;
         }
-        if self.n1 < 1 {
-            return Err(SerpentineError::NotEnoughSegments1 { n1: self.n1 })?;
-        }
-        if self.z <= 0.0 {
-            return Err(SerpentineError::OrderedHeightStartEnd)?;
-        }
-        if self.zm <= 0.0 {
-            return Err(SerpentineError::OrderedHeightStartMid)?;
-        }
-        if self.z <= self.zm {
-            return Err(SerpentineError::OrderedHeightMidEnd)?;
-        }
+        // if self.z <= 0.0 {
+        //     return Err(SerpentineError::OrderedHeight)?;
+        // }
 
-        let r0 = ((self.zm * self.zm) + (self.xm * self.xm)) / (2.0 * self.zm);
+        let xm = self.x / 2.0;
+        let zm = self.z / 2.0;
 
-        let zd = self.z - self.zm;
-        let xd = self.x - self.xm;
+        let r0 = ((zm * zm) + (xm * xm)) / (2.0 * zm);
+
+        let zd = self.z - zm;
+        let xd = self.x - xm;
         let r1 = ((zd * zd) + (xd * xd)) / (2.0 * zd);
 
         let theta0_start = -PI / 2.0;
-        let theta0_end = f64::asin(self.xm / r0) - PI / 2.0;
+        let theta0_end = f64::asin(xm / r0) - PI / 2.0;
 
         let theta1_start = PI / 2.0 + f64::asin(xd / r1);
         let theta1_end = PI / 2.0;
 
-        let arc0_iter = theta0_start.lerp_iter_closed(theta0_end, self.n0 as usize + 1);
-        let arc1_iter = theta1_start.lerp_iter_closed(theta1_end, self.n1 as usize + 1);
+        let arc0_iter = theta0_start.lerp_iter_closed(theta0_end, self.n_each as usize + 1);
+        let arc1_iter = theta1_start.lerp_iter_closed(theta1_end, self.n_each as usize + 1);
 
         let brush_iter0 = arc0_iter
             .map(|dtheta| {
@@ -149,14 +142,8 @@ impl Curve for Serpentine {
 }
 #[derive(Error, Debug)]
 pub enum SerpentineError {
-    #[error("n0 = {n0}. Number of segments must be at least 1.")]
-    NotEnoughSegments0 { n0: u32 },
-    #[error("n1 = {n1}. Number of segments must be at least 1.")]
-    NotEnoughSegments1 { n1: u32 },
+    #[error("n_each = {n_each}. Number of segments in either side must be at least 1.")]
+    NotEnoughSegments { n_each: u32 },
     #[error("Ending height must be greater than the starting height.")]
-    OrderedHeightStartEnd,
-    #[error("Midpoint height must be greater than the starting height.")]
-    OrderedHeightStartMid,
-    #[error("Ending height must be greater than the midpoint height.")]
-    OrderedHeightMidEnd,
+    OrderedHeight,
 }

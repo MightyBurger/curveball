@@ -1,5 +1,5 @@
 use crate::{
-    brush::{BankArgs, CatenaryArgs, CurveSelect, EasySerpArgs, RaytoArgs, SerpentineArgs},
+    brush::{BankArgs, CatenaryArgs, CurveSelect, RaytoArgs, SerpentineArgs},
     MeshGen,
 };
 
@@ -24,7 +24,6 @@ pub struct GuiData {
     bank_args: BankArgs,
     catenary_args: CatenaryArgs,
     serpentine_args: SerpentineArgs,
-    easyserp_args: EasySerpArgs,
 }
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
@@ -33,7 +32,6 @@ pub enum Selected {
     Bank,
     Catenary,
     Serpentine,
-    EasySerp,
 }
 
 impl Default for Selected {
@@ -60,7 +58,6 @@ pub fn ui(
                     ui.selectable_value(&mut local.selected, Selected::Bank, "bank");
                     ui.selectable_value(&mut local.selected, Selected::Catenary, "catenary");
                     ui.selectable_value(&mut local.selected, Selected::Serpentine, "serpentine");
-                    ui.selectable_value(&mut local.selected, Selected::EasySerp, "easy-serp");
                 });
 
             match local.selected {
@@ -172,12 +169,8 @@ pub fn ui(
 
                 Selected::Serpentine => {
                     ui.horizontal(|ui| {
-                        ui.add(egui::DragValue::new(&mut local.serpentine_args.n0).speed(0.1));
-                        ui.label("n0");
-                    });
-                    ui.horizontal(|ui| {
-                        ui.add(egui::DragValue::new(&mut local.serpentine_args.n1).speed(0.1));
-                        ui.label("n1");
+                        ui.add(egui::DragValue::new(&mut local.serpentine_args.n).speed(0.1));
+                        ui.label("n");
                     });
                     ui.horizontal(|ui| {
                         ui.add(egui::DragValue::new(&mut local.serpentine_args.x).speed(0.1));
@@ -188,14 +181,6 @@ pub fn ui(
                         ui.label("z");
                     });
                     ui.horizontal(|ui| {
-                        ui.add(egui::DragValue::new(&mut local.serpentine_args.xm).speed(0.1));
-                        ui.label("xm");
-                    });
-                    ui.horizontal(|ui| {
-                        ui.add(egui::DragValue::new(&mut local.serpentine_args.zm).speed(0.1));
-                        ui.label("zm");
-                    });
-                    ui.horizontal(|ui| {
                         ui.add(egui::DragValue::new(&mut local.serpentine_args.w).speed(0.1));
                         ui.label("w");
                     });
@@ -203,66 +188,30 @@ pub fn ui(
                         ui.add(egui::DragValue::new(&mut local.serpentine_args.t).speed(0.1));
                         ui.label("t");
                     });
-                    egui::ComboBox::from_label("Offset")
-                        .selected_text(format!("{:?}", local.serpentine_args.offset))
-                        .show_ui(ui, |ui| {
-                            ui.selectable_value(
-                                &mut local.serpentine_args.offset,
-                                SerpentineOffsetMode::Top,
-                                "top",
-                            );
-                            ui.selectable_value(
-                                &mut local.serpentine_args.offset,
-                                SerpentineOffsetMode::Middle,
-                                "middle",
-                            );
-                            ui.selectable_value(
-                                &mut local.serpentine_args.offset,
-                                SerpentineOffsetMode::Bottom,
-                                "bottom",
-                            );
-                        });
-                }
-                Selected::EasySerp => {
-                    ui.horizontal(|ui| {
-                        ui.add(egui::DragValue::new(&mut local.easyserp_args.n).speed(0.1));
-                        ui.label("n");
-                    });
-                    ui.horizontal(|ui| {
-                        ui.add(egui::DragValue::new(&mut local.easyserp_args.x).speed(0.1));
-                        ui.label("x");
-                    });
-                    ui.horizontal(|ui| {
-                        ui.add(egui::DragValue::new(&mut local.easyserp_args.z).speed(0.1));
-                        ui.label("z");
-                    });
-                    ui.horizontal(|ui| {
-                        ui.add(egui::DragValue::new(&mut local.easyserp_args.w).speed(0.1));
-                        ui.label("w");
-                    });
-                    ui.horizontal(|ui| {
-                        ui.add(egui::DragValue::new(&mut local.easyserp_args.t).speed(0.1));
-                        ui.label("t");
-                    });
-                    egui::ComboBox::from_label("Offset")
-                        .selected_text(format!("{:?}", local.easyserp_args.offset))
-                        .show_ui(ui, |ui| {
-                            ui.selectable_value(
-                                &mut local.easyserp_args.offset,
-                                SerpentineOffsetMode::Top,
-                                "top",
-                            );
-                            ui.selectable_value(
-                                &mut local.easyserp_args.offset,
-                                SerpentineOffsetMode::Middle,
-                                "middle",
-                            );
-                            ui.selectable_value(
-                                &mut local.easyserp_args.offset,
-                                SerpentineOffsetMode::Bottom,
-                                "bottom",
-                            );
-                        });
+
+                    // It makes no sense to me to want to generate a serpentine curve with any
+                    // offset other than "Middle", but here's some code to make changing this
+                    // decision easier.
+
+                    // egui::ComboBox::from_label("Offset")
+                    //     .selected_text(format!("{:?}", local.serpentine_args.offset))
+                    //     .show_ui(ui, |ui| {
+                    //         ui.selectable_value(
+                    //             &mut local.serpentine_args.offset,
+                    //             SerpentineOffsetMode::Top,
+                    //             "top",
+                    //         );
+                    //         ui.selectable_value(
+                    //             &mut local.serpentine_args.offset,
+                    //             SerpentineOffsetMode::Middle,
+                    //             "middle",
+                    //         );
+                    //         ui.selectable_value(
+                    //             &mut local.serpentine_args.offset,
+                    //             SerpentineOffsetMode::Bottom,
+                    //             "bottom",
+                    //         );
+                    //     });
                 }
             }
 
@@ -272,7 +221,6 @@ pub fn ui(
                     Selected::Bank => local.bank_args = BankArgs::default(),
                     Selected::Catenary => local.catenary_args = CatenaryArgs::default(),
                     Selected::Serpentine => local.serpentine_args = SerpentineArgs::default(),
-                    Selected::EasySerp => local.easyserp_args = EasySerpArgs::default(),
                 }
             };
 
@@ -322,6 +270,5 @@ pub fn ui(
         Selected::Bank => CurveSelect::Bank(local.bank_args.clone()),
         Selected::Catenary => CurveSelect::Catenary(local.catenary_args.clone()),
         Selected::Serpentine => CurveSelect::Serpentine(local.serpentine_args.clone()),
-        Selected::EasySerp => CurveSelect::EasySerp(local.easyserp_args.clone()),
     };
 }

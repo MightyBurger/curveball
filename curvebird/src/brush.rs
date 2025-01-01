@@ -22,12 +22,11 @@ pub enum CurveSelect {
     Bank(BankArgs),
     Catenary(CatenaryArgs),
     Serpentine(SerpentineArgs),
-    EasySerp(EasySerpArgs),
 }
 
 impl Default for CurveSelect {
     fn default() -> Self {
-        Self::EasySerp(EasySerpArgs::default())
+        Self::Serpentine(SerpentineArgs::default())
     }
 }
 
@@ -116,52 +115,21 @@ impl Default for CatenaryArgs {
 
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub struct SerpentineArgs {
-    pub n0: u32,
-    pub n1: u32,
-    pub x: f64,
-    pub z: f64,
-    pub xm: f64,
-    pub zm: f64,
-    pub w: f64,
-    pub t: f64,
-    pub offset: SerpentineOffsetMode,
-}
-
-impl Default for SerpentineArgs {
-    fn default() -> Self {
-        Self {
-            n0: 4,
-            n1: 4,
-            x: 64.0,
-            z: 32.0,
-            xm: 32.0,
-            zm: 16.0,
-            w: 32.0,
-            t: 8.0,
-            offset: SerpentineOffsetMode::Middle,
-        }
-    }
-}
-
-#[derive(Debug, Clone, PartialEq, PartialOrd)]
-pub struct EasySerpArgs {
     pub n: u32,
     pub x: f64,
     pub z: f64,
     pub w: f64,
     pub t: f64,
-    pub offset: SerpentineOffsetMode,
 }
 
-impl Default for EasySerpArgs {
+impl Default for SerpentineArgs {
     fn default() -> Self {
         Self {
             n: 8,
-            x: 32.0,
-            z: 16.0,
-            w: 16.0,
+            x: 64.0,
+            z: 32.0,
+            w: 32.0,
             t: 8.0,
-            offset: SerpentineOffsetMode::Middle,
         }
     }
 }
@@ -208,27 +176,12 @@ impl CurveSelect {
             }
             .bake()?,
             Self::Serpentine(args) => Serpentine {
-                n0: args.n0,
-                n1: args.n1,
+                n_each: div_up(args.n, 2),
                 x: args.x,
                 z: args.z,
-                xm: args.xm,
-                zm: args.zm,
                 w: args.w,
                 t: args.t,
-                offset: args.offset,
-            }
-            .bake()?,
-            Self::EasySerp(args) => Serpentine {
-                n0: div_up(args.n, 2),
-                n1: div_up(args.n, 2),
-                x: args.x,
-                z: args.z,
-                xm: args.x / 2.0,
-                zm: args.z / 2.0,
-                w: args.w,
-                t: args.t,
-                offset: args.offset,
+                offset: SerpentineOffsetMode::Middle,
             }
             .bake()?,
         };
