@@ -106,11 +106,11 @@ impl Default for CatenaryArgs {
             n: 8,
             x0: 0.0,
             z0: 0.0,
-            x1: 32.0,
+            x1: 64.0,
             z1: 0.0,
-            s: 34.0,
+            s: 68.0,
             w: 16.0,
-            t: 8.0,
+            t: 4.0,
             initial_guess: None,
         }
     }
@@ -133,11 +133,11 @@ impl Default for SerpentineArgs {
         Self {
             n0: 4,
             n1: 4,
-            x: 32.0,
-            z: 16.0,
-            xm: 16.0,
-            zm: 8.0,
-            w: 16.0,
+            x: 64.0,
+            z: 32.0,
+            xm: 32.0,
+            zm: 16.0,
+            w: 32.0,
             t: 8.0,
         }
     }

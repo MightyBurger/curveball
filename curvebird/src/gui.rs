@@ -7,6 +7,8 @@ use bevy::prelude::*;
 use bevy_egui::{egui, EguiContexts, EguiPlugin};
 use curveball_lib::map::{QEntity, QMap, SimpleWorldspawn};
 
+use copypasta::{ClipboardContext, ClipboardProvider};
+
 #[derive(Default, Debug, Resource)]
 pub struct OccupiedScreenSpace {
     right: f32,
@@ -260,12 +262,16 @@ pub fn ui(
                             let entity = QEntity::from(simple_worldspawn);
                             let map = QMap::new(vec![entity]).with_tb_neverball_metadata();
                             let mapstr = map.to_string();
-                            info!("{}", mapstr);
+                            info!("Copied map to clipboard");
 
-                            //let mut clip_ctx: ClipboardContext = ClipboardProvider::new().unwrap();
-                            //clip_ctx.set_contents(mapstr).unwrapt ();
+                            let mut clip_ctx = ClipboardContext::new().unwrap();
+                            clip_ctx.set_contents(mapstr).unwrap();
+                            // Bizarrely, this is requird to copy to clipboard on Ubuntu.
+                            // Probably a bug with copypasta.
+                            let _ = clip_ctx.get_contents().unwrap();
                         };
-                        if ui.button("Save to File").clicked() {};
+                        // TODO: Implement Save to File
+                        //if ui.button("Save to File").clicked() {};
                     }
                     Some(Err(e)) => {
                         ui.label(format!("{}", e));

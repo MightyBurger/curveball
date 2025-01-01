@@ -6,6 +6,7 @@ edition = "2021"
 [dependencies]
 bevy = "0.15.0"
 bevy_egui = "0.31.1"
+copypasta = "0.10.1"
 curveball-lib = { path = "../curveball-lib" }
 glam = "0.29.2"
 

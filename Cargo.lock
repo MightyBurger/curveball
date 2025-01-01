@@ -240,7 +240,7 @@ version = "3.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "df099ccb16cd014ff054ac1bf392c67feeef57164b05c42f037cd40f5d4357f4"
 dependencies = [
- "clipboard-win",
+ "clipboard-win 5.4.0",
  "core-graphics",
  "image",
  "log",
@@ -1635,6 +1635,16 @@ checksum = "f46ad14479a25103f283c0f10005961cf086d8dc42205bb44c46ac563475dca6"
 
 [[package]]
 name = "clipboard-win"
+version = "3.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9fdf5e01086b6be750428ba4a40619f847eb2e95756eee84b18e06e5f0b50342"
+dependencies = [
+ "lazy-bytes-cast",
+ "winapi",
+]
+
+[[package]]
+name = "clipboard-win"
 version = "5.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "15efe7a882b08f34e38556b14f2fb3daa98769d06c7f0c1b076dfd0d983bc892"
@@ -1748,6 +1758,20 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e1aaf9b65849a68662ac6c0810c8893a765c960b907dd7cfab9c4a50bf764fbc"
 dependencies = [
  "const_soft_float",
+]
+
+[[package]]
+name = "copypasta"
+version = "0.10.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "deb85422867ca93da58b7f95fb5c0c10f6183ed6e1ef8841568968a896d3a858"
+dependencies = [
+ "clipboard-win 3.1.1",
+ "objc",
+ "objc-foundation",
+ "objc_id",
+ "smithay-clipboard",
+ "x11-clipboard",
 ]
 
 [[package]]
@@ -1957,6 +1981,7 @@ version = "0.1.0"
 dependencies = [
  "bevy",
  "bevy_egui",
+ "copypasta",
  "curveball-lib",
  "glam",
 ]
@@ -2919,6 +2944,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "lazy-bytes-cast"
+version = "5.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "10257499f089cd156ad82d0a9cd57d9501fa2c989068992a97eb3c27836f206b"
+
+[[package]]
 name = "lazy_static"
 version = "1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3314,6 +3345,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "objc-foundation"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1add1b659e36c9607c7aab864a76c7a4c2760cd0cd2e120f3fb8b952c7e22bf9"
+dependencies = [
+ "block",
+ "objc",
+ "objc_id",
+]
+
+[[package]]
 name = "objc-sys"
 version = "0.3.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3514,6 +3556,15 @@ dependencies = [
  "objc2",
  "objc2-core-location",
  "objc2-foundation",
+]
+
+[[package]]
+name = "objc_id"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c92d4ddb4bd7b50d730c215ff871754d0da6b2178849f8a2a2ab69712d0c073b"
+dependencies = [
+ "objc",
 ]
 
 [[package]]
@@ -4192,6 +4243,17 @@ dependencies = [
  "wayland-protocols-wlr",
  "wayland-scanner",
  "xkeysym",
+]
+
+[[package]]
+name = "smithay-clipboard"
+version = "0.7.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cc8216eec463674a0e90f29e0ae41a4db573ec5b56b1c6c1c71615d249b6d846"
+dependencies = [
+ "libc",
+ "smithay-client-toolkit",
+ "wayland-backend",
 ]
 
 [[package]]
@@ -5496,6 +5558,16 @@ name = "writeable"
 version = "0.5.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1e9df38ee2d2c3c5948ea468a8406ff0db0b29ae1ffde1bcf20ef305bcc95c51"
+
+[[package]]
+name = "x11-clipboard"
+version = "0.9.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "662d74b3d77e396b8e5beb00b9cad6a9eccf40b2ef68cc858784b14c41d535a3"
+dependencies = [
+ "libc",
+ "x11rb",
+]
 
 [[package]]
 name = "x11-dl"
