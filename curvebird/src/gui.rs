@@ -66,18 +66,19 @@ pub fn ui(
             //     });
             // });
 
+
             ui.add_space(8.0);
 
-            egui::ComboBox::from_label("Curve")
+            egui::ComboBox::from_id_salt("CurveSelect")
                 .selected_text(format!("{:?}", local.selected))
                 .show_ui(ui, |ui| {
-                    ui.selectable_value(&mut local.selected, Selected::Rayto, "rayto");
-                    ui.selectable_value(&mut local.selected, Selected::Bank, "bank");
-                    ui.selectable_value(&mut local.selected, Selected::Catenary, "catenary");
-                    ui.selectable_value(&mut local.selected, Selected::Serpentine, "serpentine");
+                    ui.selectable_value(&mut local.selected, Selected::Rayto, "Rayto");
+                    ui.selectable_value(&mut local.selected, Selected::Bank, "Bank");
+                    ui.selectable_value(&mut local.selected, Selected::Catenary, "Catenary");
+                    ui.selectable_value(&mut local.selected, Selected::Serpentine, "Serpentine");
                 });
+            ui.separator();
 
-            ui.add_space(8.0);
 
             match local.selected {
                 Selected::Rayto => {
@@ -272,6 +273,7 @@ pub fn ui(
                     Selected::Serpentine => local.serpentine_args = SerpentineArgs::default(),
                 }
             };
+            ui.separator();
 
             let bottom_panel_layout = egui::Layout {
                 main_dir: egui::Direction::BottomUp,
@@ -284,6 +286,8 @@ pub fn ui(
 
             ui.with_layout(bottom_panel_layout, |ui| {
                 ui.add_space(8.0);
+                ui.label("curvebird 1.0.0");
+                ui.separator();
                 match &meshgen.0 {
                     Some(Ok(brushes)) => {
                         if ui.button("Copy map to clipboard").on_hover_text("Copy the map to the clipboard. You can then paste the curve directly into your level in a program like Trenchbroom.").clicked() {
@@ -306,7 +310,7 @@ pub fn ui(
                         ui.label(format!("{}", e)).on_hover_text("An error is preventing the program from generating the curve.");
                     }
                     None => (),
-                }
+                };
             });
 
             ui.allocate_rect(ui.available_rect_before_wrap(), egui::Sense::hover());

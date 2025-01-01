@@ -47,7 +47,7 @@ fn main() {
         }))
         .insert_resource(AmbientLight {
             color: Color::default(),
-            brightness: 2000.0,
+            brightness: 200.0,
         })
         .insert_resource(WinitSettings {
             focused_mode: bevy::winit::UpdateMode::Continuous,
@@ -155,24 +155,34 @@ fn setup(mut commands: Commands, mut config_store: ResMut<GizmoConfigStore>) {
     let (grid_config, _) = config_store.config_mut::<GridMajor>();
     grid_config.line_width = 0.2;
     let (grid_config, _) = config_store.config_mut::<Axis>();
-    grid_config.line_width = 0.8;
+    grid_config.line_width = 0.4;
 
     // Transform for the camera and lighting, looking at (0,0,0) (the position of the mesh).
-    let camera_and_light_transform =
+    let camera_transform =
         Transform::from_xyz(256.0, 256.0, -384.0).looking_at(Vec3::ZERO, Vec3::Y);
 
     let cc = CameraController::default();
 
     // Camera in 3D space.
-    commands.spawn((Camera3d::default(), camera_and_light_transform, cc));
+    commands.spawn((Camera3d::default(), camera_transform, cc));
 
-    // Light up the scene.
+    // Key light
     commands.spawn((
-        PointLight {
-            intensity: 100_000_000.0,
-            range: 400.0,
+        DirectionalLight {
+            shadows_enabled: false,
+            illuminance: light_consts::lux::AMBIENT_DAYLIGHT,
             ..default()
         },
-        camera_and_light_transform,
+        Transform::from_xyz(512.0, 1024.0, 512.0).looking_at(Vec3::ZERO, Vec3::Y),
+    ));
+
+    // Fill light
+    commands.spawn((
+        DirectionalLight {
+            shadows_enabled: false,
+            illuminance: light_consts::lux::OVERCAST_DAY,
+            ..default()
+        },
+        Transform::from_xyz(-256.0, 256.0, -512.0).looking_at(Vec3::ZERO, Vec3::Y),
     ));
 }

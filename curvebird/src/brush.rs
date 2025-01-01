@@ -1,5 +1,6 @@
 use crate::{CustomUV, MeshGen};
 use bevy::{
+    color::palettes::tailwind,
     prelude::*,
     render::{
         mesh::{Indices, VertexAttributeValues},
@@ -45,7 +46,7 @@ pub struct RaytoArgs {
 impl Default for RaytoArgs {
     fn default() -> Self {
         Self {
-            n: 8,
+            n: 12,
             r0: 32.0,
             r1: 32.0,
             theta0: 0.0,
@@ -72,7 +73,7 @@ pub struct BankArgs {
 impl Default for BankArgs {
     fn default() -> Self {
         Self {
-            n: 8,
+            n: 24,
             ri: 64.0,
             ro: 128.0,
             theta0: 0.0,
@@ -100,7 +101,7 @@ pub struct CatenaryArgs {
 impl Default for CatenaryArgs {
     fn default() -> Self {
         Self {
-            n: 8,
+            n: 24,
             x0: 0.0,
             z0: 0.0,
             x1: 128.0,
@@ -125,7 +126,7 @@ pub struct SerpentineArgs {
 impl Default for SerpentineArgs {
     fn default() -> Self {
         Self {
-            n: 8,
+            n: 24,
             x: 128.0,
             z: 64.0,
             w: 32.0,
@@ -223,8 +224,25 @@ pub fn update_mesh(
         Ok(mesh) => {
             info!("Updated mesh");
 
+            // Choose a color!
+
+            let base_color = match *curve_select {
+                CurveSelect::Rayto { .. } => tailwind::ROSE_400,
+                CurveSelect::Bank { .. } => tailwind::ORANGE_400,
+                CurveSelect::Catenary { .. } => tailwind::TEAL_400,
+                CurveSelect::Serpentine { .. } => tailwind::LIME_400,
+            };
+
+            let base_color: LinearRgba = base_color.into();
+            let base_color = [
+                base_color.red,
+                base_color.green,
+                base_color.blue,
+                base_color.alpha,
+            ];
+
             // Create and save a handle to the mesh.
-            let cube_mesh_handle: Handle<Mesh> = meshes.add(brushes_to_mesh(&mesh));
+            let cube_mesh_handle: Handle<Mesh> = meshes.add(brushes_to_mesh(&mesh, base_color));
             *meshgen = MeshGen(Some(Ok(mesh)));
 
             // Render the mesh with the custom texture, and add the marker.
@@ -243,7 +261,7 @@ pub fn update_mesh(
     *previous = Some(curve_select.clone());
 }
 
-fn brushes_to_mesh<'a>(brushes: impl IntoIterator<Item = &'a Brush>) -> Mesh {
+fn brushes_to_mesh<'a>(brushes: impl IntoIterator<Item = &'a Brush>, base_color: [f32; 4]) -> Mesh {
     let mut vertices = Vec::new();
     let mut normals = Vec::new();
     let mut colors = Vec::new();
@@ -286,10 +304,10 @@ fn brushes_to_mesh<'a>(brushes: impl IntoIterator<Item = &'a Brush>) -> Mesh {
             let scale = if i % 2 == 0 { 1.0 } else { 0.8 };
 
             let color = [
-                scale * (1.0 - normal[0]) / 2.0,
-                scale * (1.0 - normal[1]) / 2.0,
-                scale * (1.0 - normal[2]) / 2.0,
-                1.0,
+                scale * base_color[0],
+                scale * base_color[1],
+                scale * base_color[2],
+                base_color[3],
             ];
             colors.push(color);
             colors.push(color);
