@@ -21,6 +21,9 @@ impl Curve for Catenary {
         if self.n < 1 {
             return Err(CatenaryError::NotEnoughSegments { n: self.n })?;
         }
+        if self.n > 4096 {
+            return Err(CatenaryError::TooManySegments { n: self.n })?;
+        }
 
         // get delta values
         let v = self.z1 - self.z0;
@@ -35,7 +38,7 @@ impl Curve for Catenary {
         };
 
         let min_s = f64::sqrt(f64::powi(self.z1 - self.z0, 2) + f64::powi(self.x1 - self.x0, 2));
-        if self.s < min_s {
+        if self.s <= min_s {
             return Err(CatenaryError::LengthTooShort {
                 given: self.s,
                 min: min_s,
@@ -127,7 +130,9 @@ impl Curve for Catenary {
 pub enum CatenaryError {
     #[error("n = {n}. Number of segments must be at least 1.")]
     NotEnoughSegments { n: u32 },
-    #[error("Given length {given} is too short; must be at least {min}.")]
+    #[error("n = {n}. Number of segments must be no greater than 4096.")]
+    TooManySegments { n: u32 },
+    #[error("Given length {given} is too short; must be greater than {min}.")]
     LengthTooShort { given: f64, min: f64 },
     #[error("Newton's method failed to converge to an accurate solution after {iterations} iterations. The initial guess was {initial}. Change the parameters to a less extreme catenary curve, or try again with a different initial guess.")]
     NewtonFail { iterations: i32, initial: f64 },

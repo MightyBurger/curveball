@@ -26,6 +26,9 @@ impl Curve for Bank {
         if self.n < 1 {
             return Err(BankError::NotEnoughSegments { n: self.n })?;
         }
+        if self.n > 4096 {
+            return Err(BankError::TooManySegments { n: self.n })?;
+        }
 
         let dtheta = (self.theta1 - self.theta0) / (self.n as f64);
 
@@ -116,4 +119,6 @@ impl Curve for Bank {
 pub enum BankError {
     #[error("n = {n}. Number of segments must be at least 1.")]
     NotEnoughSegments { n: u32 },
+    #[error("n = {n}. Number of segments must be no greater than 4096.")]
+    TooManySegments { n: u32 },
 }

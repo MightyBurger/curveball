@@ -46,7 +46,8 @@ fn main() {
             color: Color::default(),
             brightness: 2000.0,
         })
-        .init_gizmo_group::<Grid>()
+        .init_gizmo_group::<GridMinor>()
+        .init_gizmo_group::<GridMajor>()
         .init_gizmo_group::<Axis>()
         .add_plugins(CameraControllerPlugin)
         .add_plugins(EguiPlugin)
@@ -65,27 +66,46 @@ fn main() {
 struct MeshGen(Option<CurveResult<Vec<Brush>>>);
 
 #[derive(Default, Reflect, GizmoConfigGroup)]
-struct Grid {}
+struct GridMinor {}
+#[derive(Default, Reflect, GizmoConfigGroup)]
+struct GridMajor {}
 #[derive(Default, Reflect, GizmoConfigGroup)]
 struct Axis {}
 
-fn draw_gizmos(mut grid: Gizmos<Grid>, mut axis: Gizmos<Axis>) {
+fn draw_gizmos(
+    mut grid_minor: Gizmos<GridMinor>,
+    mut grid_major: Gizmos<GridMajor>,
+    mut axis: Gizmos<Axis>,
+) {
     const COUNT: u32 = 64;
-    const SPACING: f32 = 16.0;
+    const SPACING: f32 = 8.0;
     const AXIS_LEN: f32 = COUNT as f32 * SPACING;
     let grid_color = LinearRgba::gray(0.65);
 
     for i in (-(COUNT as i32)..=-1).chain(1..=(COUNT as i32)) {
-        grid.line(
-            Vec3::new(SPACING * i as f32, 0.0, AXIS_LEN),
-            Vec3::new(SPACING * i as f32, 0.0, -AXIS_LEN),
-            grid_color,
-        );
-        grid.line(
-            Vec3::new(AXIS_LEN, 0.0, SPACING * i as f32),
-            Vec3::new(-AXIS_LEN, 0.0, SPACING * i as f32),
-            grid_color,
-        );
+        if i % 4 == 0 {
+            grid_major.line(
+                Vec3::new(SPACING * i as f32, 0.0, AXIS_LEN),
+                Vec3::new(SPACING * i as f32, 0.0, -AXIS_LEN),
+                grid_color,
+            );
+            grid_major.line(
+                Vec3::new(AXIS_LEN, 0.0, SPACING * i as f32),
+                Vec3::new(-AXIS_LEN, 0.0, SPACING * i as f32),
+                grid_color,
+            );
+        } else {
+            grid_minor.line(
+                Vec3::new(SPACING * i as f32, 0.0, AXIS_LEN),
+                Vec3::new(SPACING * i as f32, 0.0, -AXIS_LEN),
+                grid_color,
+            );
+            grid_minor.line(
+                Vec3::new(AXIS_LEN, 0.0, SPACING * i as f32),
+                Vec3::new(-AXIS_LEN, 0.0, SPACING * i as f32),
+                grid_color,
+            );
+        }
     }
 
     // Trenchbroom axis, not Bevy axis.
@@ -123,7 +143,9 @@ fn draw_gizmos(mut grid: Gizmos<Grid>, mut axis: Gizmos<Axis>) {
 
 fn setup(mut commands: Commands, mut config_store: ResMut<GizmoConfigStore>) {
     // Configure gizmos
-    let (grid_config, _) = config_store.config_mut::<Grid>();
+    let (grid_config, _) = config_store.config_mut::<GridMinor>();
+    grid_config.line_width = 0.05;
+    let (grid_config, _) = config_store.config_mut::<GridMajor>();
     grid_config.line_width = 0.2;
     let (grid_config, _) = config_store.config_mut::<Axis>();
     grid_config.line_width = 0.8;

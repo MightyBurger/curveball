@@ -22,6 +22,9 @@ impl Curve for Rayto {
         if self.n < 1 {
             return Err(RaytoError::NotEnoughSegments { n: self.n })?;
         }
+        if self.n > 4096 {
+            return Err(RaytoError::TooManySegments { n: self.n })?;
+        }
         // get delta values
         let dr = (self.r1 - self.r0) / (self.n as f64);
         let dtheta = (self.theta1 - self.theta0) / (self.n as f64);
@@ -84,4 +87,6 @@ impl Curve for Rayto {
 pub enum RaytoError {
     #[error("n = {n}. Number of segments must be at least 1.")]
     NotEnoughSegments { n: u32 },
+    #[error("n = {n}. Number of segments must be no greater than 4096.")]
+    TooManySegments { n: u32 },
 }

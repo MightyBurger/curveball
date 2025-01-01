@@ -38,9 +38,17 @@ impl Curve for Serpentine {
                 n_each: self.n_each,
             })?;
         }
-        // if self.z <= 0.0 {
-        //     return Err(SerpentineError::OrderedHeight)?;
-        // }
+        if self.n_each > 2048 {
+            return Err(SerpentineError::TooManySegments {
+                n_each: self.n_each,
+            })?;
+        }
+        if !(self.z > 0.0) {
+            return Err(SerpentineError::OrderedHeight)?;
+        }
+        if self.z > self.x {
+            return Err(SerpentineError::TooTall)?;
+        }
 
         let xm = self.x / 2.0;
         let zm = self.z / 2.0;
@@ -144,6 +152,10 @@ impl Curve for Serpentine {
 pub enum SerpentineError {
     #[error("n_each = {n_each}. Number of segments in either side must be at least 1.")]
     NotEnoughSegments { n_each: u32 },
+    #[error("n_each = {n_each}. Number of segments in either side must be no greater than 2048.")]
+    TooManySegments { n_each: u32 },
     #[error("Ending height must be greater than the starting height.")]
     OrderedHeight,
+    #[error("Serpentine curve height cannot be greater than its length.")]
+    TooTall,
 }
