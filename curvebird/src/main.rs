@@ -130,7 +130,7 @@ fn setup(mut commands: Commands, mut config_store: ResMut<GizmoConfigStore>) {
 
     // Transform for the camera and lighting, looking at (0,0,0) (the position of the mesh).
     let camera_and_light_transform =
-        Transform::from_xyz(-128.0, 128.0, -128.0).looking_at(Vec3::ZERO, Vec3::Y);
+        Transform::from_xyz(256.0, 256.0, -384.0).looking_at(Vec3::ZERO, Vec3::Y);
 
     let cc = CameraController::default();
 
