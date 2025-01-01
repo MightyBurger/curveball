@@ -46,10 +46,12 @@ fn main() {
             color: Color::default(),
             brightness: 2000.0,
         })
+        .init_gizmo_group::<Grid>()
+        .init_gizmo_group::<Axis>()
         .add_plugins(CameraControllerPlugin)
         .add_plugins(EguiPlugin)
         .add_systems(Startup, setup)
-        .add_systems(Update, draw_grid)
+        .add_systems(Update, draw_gizmos)
         .add_systems(Update, input_handler)
         .add_systems(Update, ui)
         .add_systems(Update, update_mesh)
@@ -58,18 +60,70 @@ fn main() {
         .run();
 }
 
-fn draw_grid(mut gizmos: Gizmos) {
-    const COUNT: u32 = 200;
+#[derive(Default, Reflect, GizmoConfigGroup)]
+struct Grid {}
+#[derive(Default, Reflect, GizmoConfigGroup)]
+struct Axis {}
+
+fn draw_gizmos(mut grid: Gizmos<Grid>, mut axis: Gizmos<Axis>) {
+    const COUNT: u32 = 64;
     const SPACING: f32 = 16.0;
-    gizmos.grid(
-        Quat::from_rotation_x(std::f32::consts::PI / 2.0),
-        UVec2::splat(COUNT),
-        Vec2::new(SPACING, SPACING),
-        LinearRgba::gray(0.65),
-    );
+    const AXIS_LEN: f32 = COUNT as f32 * SPACING;
+    let grid_color = LinearRgba::gray(0.65);
+
+    for i in (-(COUNT as i32)..=-1).chain(1..=(COUNT as i32)) {
+        grid.line(
+            Vec3::new(SPACING * i as f32, 0.0, AXIS_LEN),
+            Vec3::new(SPACING * i as f32, 0.0, -AXIS_LEN),
+            grid_color,
+        );
+        grid.line(
+            Vec3::new(AXIS_LEN, 0.0, SPACING * i as f32),
+            Vec3::new(-AXIS_LEN, 0.0, SPACING * i as f32),
+            grid_color,
+        );
+    }
+
+    // Trenchbroom axis, not Bevy axis.
+
+    const X_POINT_1: Vec3 = Vec3::new(AXIS_LEN, 0.0, 0.0);
+    const X_POINT_2: Vec3 = Vec3::new(-AXIS_LEN, 0.0, 0.0);
+    const X_COLOR: LinearRgba = LinearRgba {
+        red: 1.0,
+        green: 0.0,
+        blue: 0.0,
+        alpha: 1.0,
+    };
+    axis.line(X_POINT_1, X_POINT_2, X_COLOR);
+
+    const Y_POINT_1: Vec3 = Vec3::new(0.0, 0.0, AXIS_LEN);
+    const Y_POINT_2: Vec3 = Vec3::new(0.0, 0.0, -AXIS_LEN);
+    const Y_COLOR: LinearRgba = LinearRgba {
+        red: 0.0,
+        green: 1.0,
+        blue: 0.0,
+        alpha: 1.0,
+    };
+    axis.line(Y_POINT_1, Y_POINT_2, Y_COLOR);
+
+    const Z_POINT_1: Vec3 = Vec3::new(0.0, AXIS_LEN, 0.0);
+    const Z_POINT_2: Vec3 = Vec3::new(0.0, -AXIS_LEN, 0.0);
+    const Z_COLOR: LinearRgba = LinearRgba {
+        red: 0.0,
+        green: 0.0,
+        blue: 1.0,
+        alpha: 1.0,
+    };
+    axis.line(Z_POINT_1, Z_POINT_2, Z_COLOR);
 }
 
-fn setup(mut commands: Commands) {
+fn setup(mut commands: Commands, mut config_store: ResMut<GizmoConfigStore>) {
+    // Configure gizmos
+    let (grid_config, _) = config_store.config_mut::<Grid>();
+    grid_config.line_width = 0.2;
+    let (grid_config, _) = config_store.config_mut::<Axis>();
+    grid_config.line_width = 0.8;
+
     // Transform for the camera and lighting, looking at (0,0,0) (the position of the mesh).
     let camera_and_light_transform =
         Transform::from_xyz(-128.0, 128.0, -128.0).looking_at(Vec3::ZERO, Vec3::Y);
