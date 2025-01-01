@@ -5,6 +5,7 @@ use crate::{
 
 use bevy::prelude::*;
 use bevy_egui::{egui, EguiContexts, EguiPlugin};
+use curveball_lib::map::{QEntity, QMap, SimpleWorldspawn};
 
 #[derive(Default, Debug, Resource)]
 pub struct OccupiedScreenSpace {
@@ -251,10 +252,25 @@ pub fn ui(
             };
 
             ui.with_layout(bottom_panel_layout, |ui| {
-                //ui.label(format!("Selected curve is {:?}", *curve_select));
-                ui.label("check123");
-                if let Some(Err(e)) = &meshgen.0 {
-                    ui.label(format!("{}", e));
+                ui.add_space(10.0);
+                match &meshgen.0 {
+                    Some(Ok(brushes)) => {
+                        if ui.button("Copy to Clipboard").clicked() {
+                            let simple_worldspawn = SimpleWorldspawn::new(brushes.clone());
+                            let entity = QEntity::from(simple_worldspawn);
+                            let map = QMap::new(vec![entity]).with_tb_neverball_metadata();
+                            let mapstr = map.to_string();
+                            info!("{}", mapstr);
+
+                            //let mut clip_ctx: ClipboardContext = ClipboardProvider::new().unwrap();
+                            //clip_ctx.set_contents(mapstr).unwrapt ();
+                        };
+                        if ui.button("Save to File").clicked() {};
+                    }
+                    Some(Err(e)) => {
+                        ui.label(format!("{}", e));
+                    }
+                    None => (),
                 }
             });
 
