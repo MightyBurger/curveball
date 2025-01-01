@@ -61,7 +61,7 @@ pub struct BankArgs {
     pub theta1: f64,
     #[arg(long, help = "Cone height")]
     pub h: f64,
-    #[arg(long, help = "Thickness")]
+    #[arg(long, help = "Thickness of the bank")]
     pub t: f64,
     #[arg(long, help = "Filled bank")]
     pub fill: bool,
@@ -71,13 +71,13 @@ pub struct BankArgs {
 pub struct CatenaryArgs {
     #[arg(long, help = "Number of segments")]
     pub n: u32,
-    #[arg(long, help = "Starting horizontal position of curve")]
+    #[arg(long, help = "Starting horizontal position of the curve")]
     pub x0: f64,
-    #[arg(long, help = "Starting height of curve")]
+    #[arg(long, help = "Starting height of the curve")]
     pub z0: f64,
-    #[arg(long, help = "Ending horizontal position of curve")]
+    #[arg(long, help = "Ending horizontal position of the curve")]
     pub x1: f64,
-    #[arg(long, help = "Ending height of curve")]
+    #[arg(long, help = "Ending height of the curve")]
     pub z1: f64,
     #[arg(long, help = "Length of the curve (i.e. how long your rope is)")]
     pub s: f64,
@@ -101,7 +101,7 @@ pub struct SerpentineArgs {
     pub n: u32,
     #[arg(long, help = "Ending horizontal position of curve")]
     pub x: f64,
-    #[arg(long, help = "Ending height of curve")]
+    #[arg(long, help = "Ending height of the curve")]
     pub z: f64,
     #[arg(long, help = "Width of the curve")]
     pub w: f64,
