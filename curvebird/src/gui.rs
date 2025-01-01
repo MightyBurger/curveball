@@ -5,7 +5,10 @@ use crate::{
 
 use bevy::prelude::*;
 use bevy_egui::{egui, EguiContexts, EguiPlugin};
-use curveball_lib::map::{QEntity, QMap, SimpleWorldspawn};
+use curveball_lib::{
+    curve::serpentine::SerpentineOffsetMode,
+    map::{QEntity, QMap, SimpleWorldspawn},
+};
 
 use copypasta::{ClipboardContext, ClipboardProvider};
 
@@ -200,8 +203,26 @@ pub fn ui(
                         ui.add(egui::DragValue::new(&mut local.serpentine_args.t).speed(0.1));
                         ui.label("t");
                     });
+                    egui::ComboBox::from_label("Offset")
+                        .selected_text(format!("{:?}", local.serpentine_args.offset))
+                        .show_ui(ui, |ui| {
+                            ui.selectable_value(
+                                &mut local.serpentine_args.offset,
+                                SerpentineOffsetMode::Top,
+                                "top",
+                            );
+                            ui.selectable_value(
+                                &mut local.serpentine_args.offset,
+                                SerpentineOffsetMode::Middle,
+                                "middle",
+                            );
+                            ui.selectable_value(
+                                &mut local.serpentine_args.offset,
+                                SerpentineOffsetMode::Bottom,
+                                "bottom",
+                            );
+                        });
                 }
-
                 Selected::EasySerp => {
                     ui.horizontal(|ui| {
                         ui.add(egui::DragValue::new(&mut local.easyserp_args.n).speed(0.1));
@@ -223,6 +244,25 @@ pub fn ui(
                         ui.add(egui::DragValue::new(&mut local.easyserp_args.t).speed(0.1));
                         ui.label("t");
                     });
+                    egui::ComboBox::from_label("Offset")
+                        .selected_text(format!("{:?}", local.easyserp_args.offset))
+                        .show_ui(ui, |ui| {
+                            ui.selectable_value(
+                                &mut local.easyserp_args.offset,
+                                SerpentineOffsetMode::Top,
+                                "top",
+                            );
+                            ui.selectable_value(
+                                &mut local.easyserp_args.offset,
+                                SerpentineOffsetMode::Middle,
+                                "middle",
+                            );
+                            ui.selectable_value(
+                                &mut local.easyserp_args.offset,
+                                SerpentineOffsetMode::Bottom,
+                                "bottom",
+                            );
+                        });
                 }
             }
 

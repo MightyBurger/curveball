@@ -10,7 +10,9 @@ use bevy::{
 
 use bevy_egui::{egui, EguiContexts, EguiPlugin};
 
-use curveball_lib::curve::{Bank, Catenary, Curve, CurveResult, Rayto, Serpentine};
+use curveball_lib::curve::{
+    serpentine::SerpentineOffsetMode, Bank, Catenary, Curve, CurveResult, Rayto, Serpentine,
+};
 use curveball_lib::map::{Brush, QEntity, QMap, Side, SideGeom, SimpleWorldspawn};
 use glam::DVec3;
 
@@ -122,6 +124,7 @@ pub struct SerpentineArgs {
     pub zm: f64,
     pub w: f64,
     pub t: f64,
+    pub offset: SerpentineOffsetMode,
 }
 
 impl Default for SerpentineArgs {
@@ -135,6 +138,7 @@ impl Default for SerpentineArgs {
             zm: 16.0,
             w: 32.0,
             t: 8.0,
+            offset: SerpentineOffsetMode::Middle,
         }
     }
 }
@@ -146,6 +150,7 @@ pub struct EasySerpArgs {
     pub z: f64,
     pub w: f64,
     pub t: f64,
+    pub offset: SerpentineOffsetMode,
 }
 
 impl Default for EasySerpArgs {
@@ -156,6 +161,7 @@ impl Default for EasySerpArgs {
             z: 16.0,
             w: 16.0,
             t: 8.0,
+            offset: SerpentineOffsetMode::Middle,
         }
     }
 }
@@ -210,6 +216,7 @@ impl CurveSelect {
                 zm: args.zm,
                 w: args.w,
                 t: args.t,
+                offset: args.offset,
             }
             .bake()?,
             Self::EasySerp(args) => Serpentine {
@@ -221,6 +228,7 @@ impl CurveSelect {
                 zm: args.z / 2.0,
                 w: args.w,
                 t: args.t,
+                offset: args.offset,
             }
             .bake()?,
         };
