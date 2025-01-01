@@ -1,4 +1,7 @@
-use crate::brush::{BankArgs, CatenaryArgs, CurveSelect, EasySerpArgs, RaytoArgs, SerpentineArgs};
+use crate::{
+    brush::{BankArgs, CatenaryArgs, CurveSelect, EasySerpArgs, RaytoArgs, SerpentineArgs},
+    MeshGen,
+};
 
 use bevy::prelude::*;
 use bevy_egui::{egui, EguiContexts, EguiPlugin};
@@ -38,6 +41,7 @@ pub fn ui(
     mut occupied_screen_space: ResMut<OccupiedScreenSpace>,
     mut curve_select: ResMut<CurveSelect>,
     mut local: Local<GuiData>,
+    meshgen: Res<MeshGen>,
 ) {
     let ctx = contexts.ctx_mut();
     occupied_screen_space.right = egui::SidePanel::right("left_panel")
@@ -88,6 +92,7 @@ pub fn ui(
                         ui.label("h");
                     });
                 }
+
                 Selected::Bank => {
                     ui.horizontal(|ui| {
                         ui.add(egui::DragValue::new(&mut local.bank_args.n).speed(0.1));
@@ -130,6 +135,7 @@ pub fn ui(
                         //ui.label("fill");
                     });
                 }
+
                 Selected::Catenary => {
                     ui.horizontal(|ui| {
                         ui.add(egui::DragValue::new(&mut local.catenary_args.n).speed(0.1));
@@ -165,6 +171,7 @@ pub fn ui(
                     });
                     // TODO: allow user to change initial guess
                 }
+
                 Selected::Serpentine => {
                     ui.horizontal(|ui| {
                         ui.add(egui::DragValue::new(&mut local.serpentine_args.n0).speed(0.1));
@@ -199,6 +206,7 @@ pub fn ui(
                         ui.label("t");
                     });
                 }
+
                 Selected::EasySerp => {
                     ui.horizontal(|ui| {
                         ui.add(egui::DragValue::new(&mut local.easyserp_args.n).speed(0.1));
@@ -243,8 +251,11 @@ pub fn ui(
             };
 
             ui.with_layout(bottom_panel_layout, |ui| {
-                ui.label(format!("Selected curve is {:?}", *curve_select));
+                //ui.label(format!("Selected curve is {:?}", *curve_select));
                 ui.label("check123");
+                if let Some(Err(e)) = &meshgen.0 {
+                    ui.label(format!("{}", e));
+                }
             });
 
             ui.allocate_rect(ui.available_rect_before_wrap(), egui::Sense::hover());

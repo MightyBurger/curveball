@@ -1,4 +1,4 @@
-use crate::CustomUV;
+use crate::{CustomUV, MeshGen};
 use bevy::{
     prelude::*,
     render::{
@@ -169,7 +169,7 @@ pub fn div_up(a: u32, b: u32) -> u32 {
 }
 
 impl CurveSelect {
-    fn mesh(&self) -> CurveResult<Mesh> {
+    fn mesh(&self) -> CurveResult<Vec<Brush>> {
         let brushes = match self {
             Self::Rayto(args) => Rayto {
                 n: args.n,
@@ -230,7 +230,7 @@ impl CurveSelect {
             }
             .bake()?,
         };
-        Ok(brushes_to_mesh(&brushes))
+        Ok(brushes)
     }
 }
 
@@ -242,6 +242,7 @@ pub fn update_mesh(
     mesh_query_2: Query<Entity, With<CustomUV>>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
+    mut meshgen: ResMut<MeshGen>,
 ) {
     // Check if mesh actually needs to update
     if !curve_select.is_changed() {
@@ -265,10 +266,11 @@ pub fn update_mesh(
     // Create the new mesh
     match curve_select.mesh() {
         Ok(mesh) => {
-            info!("mesh made");
+            info!("Updated mesh");
 
             // Create and save a handle to the mesh.
-            let cube_mesh_handle: Handle<Mesh> = meshes.add(mesh);
+            let cube_mesh_handle: Handle<Mesh> = meshes.add(brushes_to_mesh(&mesh));
+            *meshgen = MeshGen(Some(Ok(mesh)));
 
             // Render the mesh with the custom texture, and add the marker.
             commands.spawn((
@@ -278,7 +280,8 @@ pub fn update_mesh(
             ));
         }
         Err(e) => {
-            warn!("{}", e);
+            warn!("{}", &e);
+            *meshgen = MeshGen(Some(Err(e)));
         }
     }
 

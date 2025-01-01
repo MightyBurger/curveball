@@ -57,8 +57,12 @@ fn main() {
         .add_systems(Update, update_mesh)
         .init_resource::<OccupiedScreenSpace>()
         .init_resource::<CurveSelect>()
+        .init_resource::<MeshGen>()
         .run();
 }
+
+#[derive(Resource, Default)]
+struct MeshGen(Option<CurveResult<Vec<Brush>>>);
 
 #[derive(Default, Reflect, GizmoConfigGroup)]
 struct Grid {}
@@ -143,39 +147,3 @@ fn setup(mut commands: Commands, mut config_store: ResMut<GizmoConfigStore>) {
         camera_and_light_transform,
     ));
 }
-
-// // System to receive input from the user,
-// // check out examples/input/ for more examples about user input.
-// fn input_handler(
-//     keyboard_input: Res<ButtonInput<KeyCode>>,
-//     mesh_query: Query<&Mesh3d, With<CustomUV>>,
-//     mut meshes: ResMut<Assets<Mesh>>,
-//     mut query: Query<&mut Transform, With<CustomUV>>,
-//     time: Res<Time>,
-// ) {
-//     if keyboard_input.just_pressed(KeyCode::Space) {
-//         // let mesh_handle = mesh_query.get_single().expect("Query not successful");
-//         // let mesh = meshes.get_mut(mesh_handle).unwrap();
-//         // toggle_texture(mesh);
-//     }
-//     if keyboard_input.pressed(KeyCode::KeyX) {
-//         for mut transform in &mut query {
-//             transform.rotate_x(time.delta_secs() / 1.2);
-//         }
-//     }
-//     if keyboard_input.pressed(KeyCode::KeyY) {
-//         for mut transform in &mut query {
-//             transform.rotate_y(time.delta_secs() / 1.2);
-//         }
-//     }
-//     if keyboard_input.pressed(KeyCode::KeyZ) {
-//         for mut transform in &mut query {
-//             transform.rotate_z(time.delta_secs() / 1.2);
-//         }
-//     }
-//     if keyboard_input.pressed(KeyCode::KeyR) {
-//         for mut transform in &mut query {
-//             transform.look_to(Vec3::NEG_Z, Vec3::Y);
-//         }
-//     }
-// }
