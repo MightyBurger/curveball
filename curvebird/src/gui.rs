@@ -43,8 +43,6 @@ pub fn ui(
     occupied_screen_space.right = egui::SidePanel::right("left_panel")
         .resizable(true)
         .show(ctx, |ui| {
-            ui.label("Right resizeable panel");
-
             egui::ComboBox::from_label("Curve")
                 .selected_text(format!("{:?}", local.selected))
                 .show_ui(ui, |ui| {
@@ -225,7 +223,30 @@ pub fn ui(
                 }
             }
 
-            ui.label(format!("Selected curve is {:?}", *curve_select));
+            if ui.button("Reset").clicked() {
+                match local.selected {
+                    Selected::Rayto => local.rayto_args = RaytoArgs::default(),
+                    Selected::Bank => local.bank_args = BankArgs::default(),
+                    Selected::Catenary => local.catenary_args = CatenaryArgs::default(),
+                    Selected::Serpentine => local.serpentine_args = SerpentineArgs::default(),
+                    Selected::EasySerp => local.easyserp_args = EasySerpArgs::default(),
+                }
+            };
+
+            let bottom_panel_layout = egui::Layout {
+                main_dir: egui::Direction::BottomUp,
+                main_wrap: true,
+                main_align: egui::Align::Max,
+                main_justify: false,
+                cross_align: egui::Align::Min,
+                cross_justify: false,
+            };
+
+            ui.with_layout(bottom_panel_layout, |ui| {
+                ui.label(format!("Selected curve is {:?}", *curve_select));
+                ui.label("check123");
+            });
+
             ui.allocate_rect(ui.available_rect_before_wrap(), egui::Sense::hover());
         })
         .response
