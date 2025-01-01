@@ -1,7 +1,3 @@
-//! This example demonstrates how to create a custom mesh,
-//! assign a custom UV mapping for a custom texture,
-//! and how to change the UV mapping at run-time.
-
 use std::time::Duration;
 
 use bevy::{prelude::*, winit::WinitSettings};
@@ -100,7 +96,6 @@ fn draw_gizmos(
     }
 
     // Trenchbroom axis, not Bevy axis.
-
     const X_POINT_1: Vec3 = Vec3::new(AXIS_LEN, 0.0, 0.0);
     const X_POINT_2: Vec3 = Vec3::new(-AXIS_LEN, 0.0, 0.0);
     const X_COLOR: LinearRgba = LinearRgba {

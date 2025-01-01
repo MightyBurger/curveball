@@ -1,14 +1,9 @@
-use crate::{
-    brush::{BankArgs, CatenaryArgs, CurveSelect, RaytoArgs, SerpentineArgs},
-    MeshGen,
-};
+use crate::brush::{BankArgs, CatenaryArgs, CurveSelect, RaytoArgs, SerpentineArgs};
+use crate::MeshGen;
 
 use bevy::prelude::*;
-use bevy_egui::{egui, EguiContexts, EguiPlugin};
-use curveball_lib::{
-    curve::serpentine::SerpentineOffsetMode,
-    map::{QEntity, QMap, SimpleWorldspawn},
-};
+use bevy_egui::{egui, EguiContexts};
+use curveball_lib::map::{QEntity, QMap, SimpleWorldspawn};
 
 use copypasta::{ClipboardContext, ClipboardProvider};
 

@@ -1,20 +1,15 @@
 use crate::{CustomUV, MeshGen};
+
 use bevy::{
     color::palettes::tailwind,
     prelude::*,
-    render::{
-        mesh::{Indices, VertexAttributeValues},
-        render_asset::RenderAssetUsages,
-        render_resource::PrimitiveTopology,
-    },
+    render::{render_asset::RenderAssetUsages, render_resource::PrimitiveTopology},
 };
-
-use bevy_egui::{egui, EguiContexts, EguiPlugin};
 
 use curveball_lib::curve::{
     serpentine::SerpentineOffsetMode, Bank, Catenary, Curve, CurveResult, Rayto, Serpentine,
 };
-use curveball_lib::map::{Brush, QEntity, QMap, Side, SideGeom, SimpleWorldspawn};
+use curveball_lib::map::{Brush, Side, SideGeom};
 use glam::DVec3;
 
 #[derive(Resource, Debug, Clone, PartialEq, PartialOrd)]
