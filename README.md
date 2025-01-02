@@ -6,6 +6,8 @@ Curve generator for [Neverball] levels
 
 </div>
 
+Still in development! I'll publish sometime this week. Until then, don't trust this README.
+
 ![cuvebird logo](resources/curvebird.png)
 
 Curveball is a curve generator tool for [Neverball] level developers.
