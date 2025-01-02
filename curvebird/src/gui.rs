@@ -8,8 +8,6 @@ use bevy::prelude::*;
 use bevy_egui::{egui, EguiContexts};
 use curveball_lib::map::{QEntity, QMap, SimpleWorldspawn};
 
-use copypasta::{ClipboardContext, ClipboardProvider};
-
 #[derive(Default, Debug, Resource)]
 pub struct OccupiedScreenSpace {
     right: f32,
@@ -245,7 +243,7 @@ pub fn ui(
 
             ui.with_layout(bottom_panel_layout, |ui| {
                 ui.add_space(8.0);
-                ui.label("curvebird 1.0.0");
+                ui.label(format!("{} {}", env!("CARGO_PKG_NAME"), env!("CARGO_PKG_VERSION")));
                 ui.separator();
                 match &meshgen.0 {
                     Some(Ok(brushes)) => {
@@ -284,6 +282,7 @@ pub fn ui(
 fn write_to_clipboard(string: String) {
     #[cfg(not(target_arch = "wasm32"))]
     {
+        use copypasta::{ClipboardContext, ClipboardProvider};
         let mut clip_ctx = ClipboardContext::new().unwrap();
         clip_ctx.set_contents(string).unwrap();
         // Bizarrely, this is requird to copy to clipboard on Ubuntu.
