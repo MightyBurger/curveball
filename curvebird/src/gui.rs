@@ -256,8 +256,6 @@ pub fn ui(
                             let mapstr = map.to_string();
                             write_to_clipboard(mapstr);
                             info!("Copied map to clipboard");
-
-
                         };
                         // TODO: Implement Save to File
                         //if ui.button("Save to File").clicked() {};
@@ -295,14 +293,14 @@ fn write_to_clipboard(string: String) {
 
     #[cfg(target_arch = "wasm32")]
     {
-        use wasm_bindgen_futures::spawn_local;
-        let _task = spawn_local(async move {
-            let window = web_sys::window().expect("window"); // { obj: val };
+        let pool = bevy::tasks::TaskPool::new();
+        pool.spawn_local(async move {
+            let window = web_sys::window().expect("window");
             let nav = window.navigator().clipboard();
             let p = nav.write_text(&string);
-            let _result = wasm_bindgen_futures::JsFuture::from(p)
-                .await
-                .expect("clipboard populated");
+            if let Err(_e) = wasm_bindgen_futures::JsFuture::from(p).await {
+                warn!("error pasting to clipboard");
+            };
         });
     }
 }
