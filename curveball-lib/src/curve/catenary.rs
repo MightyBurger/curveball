@@ -1,3 +1,6 @@
+// Copyright 2025 Jordan Johnson
+// SPDX-License-Identifier: Apache-2.0 OR MIT
+
 use crate::curve::{Curve, CurveResult, MAX_HULL_ITER};
 use crate::map::Brush;
 use glam::DVec3;
@@ -117,7 +120,7 @@ impl Curve for Catenary {
             };
 
             brushes.push(Brush::try_from_vertices(
-                &vec![pa, pb, pc, pd, pe, pf, pg, ph],
+                &[pa, pb, pc, pd, pe, pf, pg, ph],
                 MAX_HULL_ITER,
             )?);
         }
@@ -144,6 +147,7 @@ fn catenary(x: f64, a: f64, k: f64, c: f64) -> f64 {
 }
 
 // Newton's method. Has the potential to fail to find a solution.
+#[allow(clippy::too_many_arguments)]
 fn newton_a(
     v: f64,
     h: f64,

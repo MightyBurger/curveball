@@ -1,3 +1,6 @@
+// Copyright 2025 Jordan Johnson
+// SPDX-License-Identifier: Apache-2.0 OR MIT
+
 use crate::{CustomUV, MeshGen};
 
 use bevy::{
@@ -130,10 +133,6 @@ impl Default for SerpentineArgs {
     }
 }
 
-pub fn div_up(a: u32, b: u32) -> u32 {
-    (a + (b - 1)) / b
-}
-
 impl CurveSelect {
     fn mesh(&self) -> CurveResult<Vec<Brush>> {
         let brushes = match self {
@@ -172,7 +171,7 @@ impl CurveSelect {
             }
             .bake()?,
             Self::Serpentine(args) => Serpentine {
-                n_each: div_up(args.n, 2),
+                n_each: args.n.div_ceil(2),
                 x: args.x,
                 z: args.z,
                 w: args.w,
@@ -185,6 +184,7 @@ impl CurveSelect {
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn update_mesh(
     mut commands: Commands,
     curve_select: Res<CurveSelect>,

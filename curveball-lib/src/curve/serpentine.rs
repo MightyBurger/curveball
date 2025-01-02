@@ -1,3 +1,6 @@
+// Copyright 2025 Jordan Johnson
+// SPDX-License-Identifier: Apache-2.0 OR MIT
+
 use crate::curve::{Curve, CurveError, CurveResult, MAX_HULL_ITER};
 use crate::map::Brush;
 use glam::DVec3;
@@ -43,7 +46,7 @@ impl Curve for Serpentine {
                 n_each: self.n_each,
             })?;
         }
-        if !(self.z > 0.0) {
+        if self.z <= 0.0 {
             return Err(SerpentineError::OrderedHeight)?;
         }
         if self.z > self.x {
@@ -101,7 +104,7 @@ impl Curve for Serpentine {
             })
             .tuple_windows()
             .map(|(f1, f2)| {
-                let vertices: Vec<DVec3> = f1.into_iter().chain(f2.into_iter()).collect();
+                let vertices: Vec<DVec3> = f1.into_iter().chain(f2).collect();
                 Brush::try_from_vertices(&vertices, MAX_HULL_ITER)
             });
 
@@ -138,13 +141,13 @@ impl Curve for Serpentine {
             })
             .tuple_windows()
             .map(|(f1, f2)| {
-                let vertices: Vec<DVec3> = f1.into_iter().chain(f2.into_iter()).collect();
+                let vertices: Vec<DVec3> = f1.into_iter().chain(f2).collect();
                 Brush::try_from_vertices(&vertices, MAX_HULL_ITER)
             });
 
         brush_iter0
             .chain(brush_iter1)
-            .map(|brush_result| brush_result.map_err(|err| CurveError::from(err)))
+            .map(|brush_result| brush_result.map_err(CurveError::from))
             .collect()
     }
 }

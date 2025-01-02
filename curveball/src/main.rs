@@ -1,3 +1,6 @@
+// Copyright 2025 Jordan Johnson
+// SPDX-License-Identifier: Apache-2.0 OR MIT
+
 use clap::{Args, Parser, Subcommand};
 use colored::Colorize;
 
@@ -48,65 +51,65 @@ struct RaytoArgs {
 }
 
 #[derive(Args)]
-pub struct BankArgs {
+struct BankArgs {
     #[arg(long, help = "Number of segments")]
-    pub n: u32,
+    n: u32,
     #[arg(long, help = "Inner radius")]
-    pub ri: f64,
+    ri: f64,
     #[arg(long, help = "Outer radius")]
-    pub ro: f64,
+    ro: f64,
     #[arg(long, help = "Starting angle (deg)")]
-    pub theta0: f64,
+    theta0: f64,
     #[arg(long, help = "Ending angle (deg)")]
-    pub theta1: f64,
+    theta1: f64,
     #[arg(long, help = "Cone height")]
-    pub h: f64,
+    h: f64,
     #[arg(long, help = "Thickness of the bank")]
-    pub t: f64,
+    t: f64,
     #[arg(long, help = "Filled bank")]
-    pub fill: bool,
+    fill: bool,
 }
 
 #[derive(Args)]
-pub struct CatenaryArgs {
+struct CatenaryArgs {
     #[arg(long, help = "Number of segments")]
-    pub n: u32,
+    n: u32,
     #[arg(long, help = "Starting horizontal position of the curve")]
-    pub x0: f64,
+    x0: f64,
     #[arg(long, help = "Starting height of the curve")]
-    pub z0: f64,
+    z0: f64,
     #[arg(long, help = "Ending horizontal position of the curve")]
-    pub x1: f64,
+    x1: f64,
     #[arg(long, help = "Ending height of the curve")]
-    pub z1: f64,
+    z1: f64,
     #[arg(long, help = "Length of the curve (i.e. how long your rope is)")]
-    pub s: f64,
+    s: f64,
     #[arg(long, help = "Width of the curve")]
-    pub w: f64,
+    w: f64,
     #[arg(long, help = "Thickness of the curve")]
-    pub t: f64,
+    t: f64,
     #[arg(
         long,
         help = "The initial guess for the catenary parameter 'a'; used for Newton's method"
     )]
-    pub initial_guess: Option<f64>,
+    initial_guess: Option<f64>,
 }
 
 #[derive(Args)]
-pub struct SerpentineArgs {
+struct SerpentineArgs {
     #[arg(
         long,
         help = "Number of segments; will be rounded up to the nearest multiple of 2"
     )]
-    pub n: u32,
+    n: u32,
     #[arg(long, help = "Ending horizontal position of curve")]
-    pub x: f64,
+    x: f64,
     #[arg(long, help = "Ending height of the curve")]
-    pub z: f64,
+    z: f64,
     #[arg(long, help = "Width of the curve")]
-    pub w: f64,
+    w: f64,
     #[arg(long, help = "Thickness of the curve")]
-    pub t: f64,
+    t: f64,
 }
 
 fn main() {
@@ -116,15 +119,12 @@ fn main() {
         std::process::exit(1);
     });
     match cli.file {
-        None => println!("{}", map.to_string()),
+        None => println!("{}", map),
         Some(filename) => std::fs::write(filename, map.to_string()).unwrap_or_else(|err| {
             eprintln!("{} {err}", "error:".red());
             std::process::exit(1);
         }),
     }
-}
-fn div_up(a: u32, b: u32) -> u32 {
-    (a + (b - 1)) / b
 }
 
 fn map(command: Commands) -> CurveResult<QMap> {
@@ -164,7 +164,7 @@ fn map(command: Commands) -> CurveResult<QMap> {
         }
         .bake()?,
         Commands::Serpentine(args) => Serpentine {
-            n_each: div_up(args.n, 2),
+            n_each: args.n.div_ceil(2),
             x: args.x,
             z: args.z,
             w: args.w,

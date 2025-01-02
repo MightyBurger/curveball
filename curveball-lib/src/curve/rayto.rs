@@ -1,3 +1,6 @@
+// Copyright 2025 Jordan Johnson
+// SPDX-License-Identifier: Apache-2.0 OR MIT
+
 use crate::curve::{Curve, CurveResult, MAX_HULL_ITER};
 use crate::map::Brush;
 use glam::DVec3;
@@ -74,7 +77,7 @@ impl Curve for Rayto {
             };
 
             brushes.push(Brush::try_from_vertices(
-                &vec![pa, pb, pc, pd, pe, pf],
+                &[pa, pb, pc, pd, pe, pf],
                 MAX_HULL_ITER,
             )?);
         }

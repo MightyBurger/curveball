@@ -1,3 +1,6 @@
+// Copyright 2025 Jordan Johnson
+// SPDX-License-Identifier: Apache-2.0 OR MIT
+
 use crate::map::geometry::Brush;
 use core::fmt;
 use std::fmt::{Display, Formatter};
@@ -55,11 +58,6 @@ impl QMap {
             .with_metadata("Format: Quake3".to_string())
     }
 
-    // When you have a QMap, call this to get something you can write to a file.
-    pub fn to_string(&self) -> String {
-        String::from(self)
-    }
-
     pub fn bake(&self) -> impl Display + use<'_> {
         struct QMapDisp<'a>(&'a QMap);
         impl Display for QMapDisp<'_> {
@@ -78,9 +76,9 @@ impl QMap {
     }
 }
 
-impl From<&QMap> for String {
-    fn from(map: &QMap) -> String {
-        format!("{}", map.bake())
+impl Display for QMap {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.bake())
     }
 }
 
@@ -107,7 +105,7 @@ mod tests {
         let entity: QEntity = worldspawn.into();
         let map: QMap = QMap::new(vec![entity]).with_tb_neverball_metadata();
 
-        println!("{}", String::from(&map));
+        println!("{}", map.to_string());
 
         let should_eq_str = r#"// Game: Neverball
 // Format: Quake3
@@ -131,6 +129,6 @@ mod tests {
 }
 "#;
         println!("{}", should_eq_str);
-        assert_eq!(format!("{}", String::from(&map)), should_eq_str);
+        assert_eq!(format!("{}", map.to_string()), should_eq_str);
     }
 }

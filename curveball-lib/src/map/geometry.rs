@@ -1,3 +1,6 @@
+// Copyright 2025 Jordan Johnson
+// SPDX-License-Identifier: Apache-2.0 OR MIT
+
 const TEX_DEFAULT: &str = "mtrl/invisible";
 const ALMOST_EQUAL_DELTA: f64 = 0.000000001;
 use core::fmt;
@@ -74,7 +77,7 @@ pub struct Brush {
 
 impl Brush {
     pub fn try_from_vertices(
-        vertices: &Vec<DVec3>,
+        vertices: &[DVec3],
         max_iter: Option<usize>,
     ) -> Result<Self, chull::convex::ErrorKind> {
         let vertices: Vec<Vec<f64>> = vertices
@@ -127,6 +130,7 @@ impl Brush {
     }
 }
 
+#[allow(clippy::get_first)]
 impl From<ConvexHullWrapper<f64>> for Brush {
     fn from(hull: ConvexHullWrapper<f64>) -> Self {
         let (vertices, side_indices) = hull.vertices_indices();
