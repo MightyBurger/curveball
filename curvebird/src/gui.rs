@@ -6,7 +6,7 @@ use crate::MeshGen;
 
 use bevy::prelude::*;
 use bevy_egui::{egui, EguiContexts};
-use curveball_lib::map::{QEntity, QMap, SimpleWorldspawn};
+use curveball::map::{QEntity, QMap, SimpleWorldspawn};
 
 #[derive(Default, Debug, Resource)]
 pub struct OccupiedScreenSpace {

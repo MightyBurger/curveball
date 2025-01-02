@@ -14,8 +14,8 @@ use gui::{ui, OccupiedScreenSpace};
 mod camera_controller;
 use camera_controller::{CameraController, CameraControllerPlugin};
 
-use curveball_lib::curve::CurveResult;
-use curveball_lib::map::Brush;
+use curveball::curve::CurveResult;
+use curveball::map::Brush;
 
 #[derive(Component)]
 struct CustomUV;

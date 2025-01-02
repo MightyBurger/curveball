@@ -4,6 +4,8 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-clap = { version = "4.5.23", features = ["derive"] }
-colored = "2.2.0"
-curveball-lib = { path = "../curveball-lib" }
+chull = "0.2.4"
+glam = { version = "0.29.2", features = ["debug-glam-assert"] }
+itertools = "0.13.0"
+lerp = "0.5.0"
+thiserror = "2.0.9"

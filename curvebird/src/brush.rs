@@ -9,10 +9,10 @@ use bevy::{
     render::{render_asset::RenderAssetUsages, render_resource::PrimitiveTopology},
 };
 
-use curveball_lib::curve::{
+use curveball::curve::{
     serpentine::SerpentineOffsetMode, Bank, Catenary, Curve, CurveResult, Rayto, Serpentine,
 };
-use curveball_lib::map::{Brush, Side, SideGeom};
+use curveball::map::{Brush, Side, SideGeom};
 use glam::DVec3;
 
 #[derive(Resource, Debug, Clone, PartialEq, PartialOrd)]

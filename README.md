@@ -6,6 +6,8 @@ Curve generator for [Neverball] levels
 
 </div>
 
+![cuvebird logo](resources/curvebird.png)
+
 Curveball is a curve generator tool for [Neverball] level developers.
 
 This repository contains the Curveball curve generator and two programs to access it:
@@ -28,7 +30,7 @@ Curveball currently supports generating these curves:
 - Rayto
 - Serpentine
 
-## Installation
+## Local Installation
 
 First, see if [curvebird on the web] meets your needs.
 
@@ -40,7 +42,7 @@ To install **curveball**, run `cargo install curveball`.
 
 To install **curvebird**, run `cargo install curvebird`.
 
-If you'd like to make changes, clone the repository and build locally.
+If you'd like to make changes, clone the repository.
 
 ## Project Structure
 

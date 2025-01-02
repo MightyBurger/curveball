@@ -3,7 +3,8 @@ resolver = "2"
 
 members = [
     "curveball",
-    "curveball-lib", "curvebird",
+    "curvecat",
+    "curvebird",
 ]
 
 # Enable a small amount of optimization in the dev profile.

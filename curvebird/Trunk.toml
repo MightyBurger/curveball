@@ -1,6 +1,6 @@
 [build]
 target = "trunk/index.html"
-dist = "dist/"
+dist = "../target/trunk/curvebird"
 public_url = "./"
 
 [serve]
