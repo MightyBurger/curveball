@@ -1,0 +1,12 @@
+[build]
+target = "trunk/index.html"
+dist = "dist/"
+public_url = "./"
+
+[serve]
+# Required in order to receive 404s for missing assets, which is what Bevy expects.
+no_spa = true
+# Open a browser tab once the initial build is complete.
+open = true
+# Use IPv4 first - prevents errors on Windows
+addresses = ["127.0.0.1", "::1"]

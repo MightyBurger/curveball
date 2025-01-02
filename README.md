@@ -43,7 +43,7 @@ Yes.
 
 Curveball is written in Rust.
 
-This repository is a Cargo workspace, and it contains the following crates:
+This repository is a Cargo workspace with the following crates:
 
 - `curveball` - Binary crate; compiles to the CLI tool.
 - `curvebird` - Binary crate; compiles to the GUI tool.
