@@ -1983,7 +1983,10 @@ dependencies = [
  "bevy_egui",
  "copypasta",
  "curveball-lib",
+ "futures-channel",
  "glam",
+ "wasm-bindgen-futures",
+ "web-sys",
 ]
 
 [[package]]

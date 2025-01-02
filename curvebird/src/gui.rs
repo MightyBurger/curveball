@@ -254,13 +254,10 @@ pub fn ui(
                             let entity = QEntity::from(simple_worldspawn);
                             let map = QMap::new(vec![entity]).with_tb_neverball_metadata();
                             let mapstr = map.to_string();
+                            write_to_clipboard(mapstr);
                             info!("Copied map to clipboard");
 
-                            let mut clip_ctx = ClipboardContext::new().unwrap();
-                            clip_ctx.set_contents(mapstr).unwrap();
-                            // Bizarrely, this is requird to copy to clipboard on Ubuntu.
-                            // Probably a bug with copypasta.
-                            let _ = clip_ctx.get_contents().unwrap();
+
                         };
                         // TODO: Implement Save to File
                         //if ui.button("Save to File").clicked() {};
@@ -284,4 +281,28 @@ pub fn ui(
         Selected::Catenary => CurveSelect::Catenary(local.catenary_args.clone()),
         Selected::Serpentine => CurveSelect::Serpentine(local.serpentine_args.clone()),
     };
+}
+
+fn write_to_clipboard(string: String) {
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        let mut clip_ctx = ClipboardContext::new().unwrap();
+        clip_ctx.set_contents(string).unwrap();
+        // Bizarrely, this is requird to copy to clipboard on Ubuntu.
+        // Probably a bug with copypasta.
+        let _ = clip_ctx.get_contents().unwrap();
+    }
+
+    #[cfg(target_arch = "wasm32")]
+    {
+        use wasm_bindgen_futures::spawn_local;
+        let _task = spawn_local(async move {
+            let window = web_sys::window().expect("window"); // { obj: val };
+            let nav = window.navigator().clipboard();
+            let p = nav.write_text(&string);
+            let _result = wasm_bindgen_futures::JsFuture::from(p)
+                .await
+                .expect("clipboard populated");
+        });
+    }
 }
