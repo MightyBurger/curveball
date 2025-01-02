@@ -46,6 +46,7 @@ fn main() {
         .add_plugins(CameraControllerPlugin)
         .add_plugins(EguiPlugin)
         .add_systems(Startup, setup)
+        .add_systems(Startup, set_window_icon)
         .add_systems(Update, draw_gizmos)
         .add_systems(Update, ui)
         .add_systems(Update, update_mesh)
@@ -53,6 +54,33 @@ fn main() {
         .init_resource::<CurveSelect>()
         .init_resource::<MeshGen>()
         .run();
+}
+
+use bevy::winit::WinitWindows;
+use winit::window::Icon;
+
+fn set_window_icon(
+    // we have to use `NonSend` here
+    windows: NonSend<WinitWindows>,
+) {
+    // here we use the `image` crate to load our icon data from a png file
+    // this is not a very bevy-native solution, but it will do
+    let (icon_rgba, icon_width, icon_height) = {
+        let Ok(image) = image::open("assets/icon/curvebird.png") else {
+            warn!("Failed to open icon path");
+            return;
+        };
+        let image = image.into_rgba8();
+        let (width, height) = image.dimensions();
+        let rgba = image.into_raw();
+        (rgba, width, height)
+    };
+    let icon = Icon::from_rgba(icon_rgba, icon_width, icon_height).unwrap();
+
+    // do it for all windows
+    for window in windows.windows.values() {
+        window.set_window_icon(Some(icon.clone()));
+    }
 }
 
 #[derive(Resource, Default)]

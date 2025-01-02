@@ -10,5 +10,7 @@ copypasta = "0.10.1"
 curveball = { path = "../curveball" }
 futures-channel = "0.3.31"
 glam = "0.29.2"
+image = "0.25.5"
 wasm-bindgen-futures = "0.4.49"
 web-sys = { version = "0.3.76", features = ["Clipboard", "Window", "Navigator"] }
+winit = "0.30.7"
