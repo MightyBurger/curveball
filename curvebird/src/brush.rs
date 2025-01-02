@@ -25,7 +25,7 @@ pub enum CurveSelect {
 
 impl Default for CurveSelect {
     fn default() -> Self {
-        Self::Serpentine(SerpentineArgs::default())
+        Self::Bank(BankArgs::default())
     }
 }
 
