@@ -2,7 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
 use crate::brush::{
-    BankArgs, CatenaryArgs, CurveClassicArgs, CurveSelect, RaytoArgs, SerpentineArgs,
+    BankArgs, CatenaryArgs, CurveClassicArgs, CurveSelect, CurveSlopeArgs, RaytoArgs,
+    SerpentineArgs,
 };
 use crate::MeshGen;
 
@@ -19,6 +20,7 @@ pub struct OccupiedScreenSpace {
 pub struct GuiData {
     selected: Selected,
     curveclassic_args: CurveClassicArgs,
+    curveslope_args: CurveSlopeArgs,
     rayto_args: RaytoArgs,
     bank_args: BankArgs,
     catenary_args: CatenaryArgs,
@@ -28,6 +30,7 @@ pub struct GuiData {
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum Selected {
     CurveClassic,
+    CurveSlope,
     Rayto,
     Bank,
     Catenary,
@@ -57,6 +60,7 @@ pub fn ui(
                 .selected_text(format!("{:?}", local.selected))
                 .show_ui(ui, |ui| {
                     ui.selectable_value(&mut local.selected, Selected::CurveClassic, "Curve Classic");
+                    ui.selectable_value(&mut local.selected, Selected::CurveSlope, "Curve Slope");
                     ui.selectable_value(&mut local.selected, Selected::Rayto, "Rayto");
                     ui.selectable_value(&mut local.selected, Selected::Bank, "Bank");
                     ui.selectable_value(&mut local.selected, Selected::Catenary, "Catenary");
@@ -108,6 +112,121 @@ pub fn ui(
                         ui.label("t");
                     });
                 }
+
+                Selected::CurveSlope => {
+                    ui.horizontal(|ui| {
+                        ui.add(egui::DragValue::new(&mut local.curveslope_args.n).speed(0.1))
+                            .on_hover_text("Number of segments");
+                        ui.label("n");
+                    });
+                    ui.horizontal(|ui| {
+                        ui.add(egui::DragValue::new(&mut local.curveslope_args.ri0).speed(0.1))
+                            .on_hover_text("Starting inner radius");
+                        ui.label("ri0");
+                    });
+                    ui.horizontal(|ui| {
+                        ui.add(egui::DragValue::new(&mut local.curveslope_args.ro0).speed(0.1))
+                            .on_hover_text("Starting outer raidus");
+                        ui.label("ro0");
+                    });
+                    ui.horizontal(|ui| {
+                        ui.add(egui::DragValue::new(&mut local.curveslope_args.ri1).speed(0.1))
+                            .on_hover_text("Ending inner radius");
+                        ui.label("ri1");
+                    });
+                    ui.horizontal(|ui| {
+                        ui.add(egui::DragValue::new(&mut local.curveslope_args.ro1).speed(0.1))
+                            .on_hover_text("Ending outer radius");
+                        ui.label("ro1");
+                    });
+                    ui.horizontal(|ui| {
+                        ui.add(egui::DragValue::new(&mut local.curveslope_args.theta0).speed(0.1))
+                            .on_hover_text("Starting angle (deg)");
+                        ui.label("theta0");
+                    });
+                    ui.horizontal(|ui| {
+                        ui.add(egui::DragValue::new(&mut local.curveslope_args.theta1).speed(0.1))
+                            .on_hover_text("Ending angle (deg)");
+                        ui.label("theta1");
+                    });
+                    ui.horizontal(|ui| {
+                        ui.add(egui::DragValue::new(&mut local.curveslope_args.t).speed(0.1))
+                            .on_hover_text("Thickness");
+                        ui.label("t");
+                    });
+                    ui.horizontal(|ui| {
+                        ui.add(egui::DragValue::new(&mut local.curveslope_args.slope).speed(0.1))
+                            .on_hover_text("Slope");
+                        ui.label("slope");
+                    });
+                    ui.horizontal(|ui| {
+                        ui.add(egui::DragValue::new(&mut local.curveslope_args.drop_inner_top_0).speed(0.1))
+                            .on_hover_text("Starting inner drop, top");
+                        ui.label("drop_inner_top_0");
+                    });
+                    ui.horizontal(|ui| {
+                        ui.add(egui::DragValue::new(&mut local.curveslope_args.drop_inner_bot_0).speed(0.1))
+                            .on_hover_text("Starting inner drop, bottom");
+                        ui.label("drop_inner_bot_0");
+                    });
+                    ui.horizontal(|ui| {
+                        ui.add(egui::DragValue::new(&mut local.curveslope_args.drop_outer_top_0).speed(0.1))
+                            .on_hover_text("Starting outer drop, top");
+                        ui.label("drop_outer_top_0");
+                    });
+                    ui.horizontal(|ui| {
+                        ui.add(egui::DragValue::new(&mut local.curveslope_args.drop_outer_bot_0).speed(0.1))
+                            .on_hover_text("Starting outer drop, bottom");
+                        ui.label("drop_outer_bot_0");
+                    });
+                    ui.horizontal(|ui| {
+                        ui.add(egui::DragValue::new(&mut local.curveslope_args.drop_inner_top_1).speed(0.1))
+                            .on_hover_text("Ending inner drop, top");
+                        ui.label("drop_inner_top_1");
+                    });
+                    ui.horizontal(|ui| {
+                        ui.add(egui::DragValue::new(&mut local.curveslope_args.drop_inner_bot_1).speed(0.1))
+                            .on_hover_text("Ending inner drop, bottom");
+                        ui.label("drop_inner_bot_1");
+                    });
+                    ui.horizontal(|ui| {
+                        ui.add(egui::DragValue::new(&mut local.curveslope_args.drop_outer_top_1).speed(0.1))
+                            .on_hover_text("Ending outer drop, top");
+                        ui.label("drop_outer_top_1");
+                    });
+                    ui.horizontal(|ui| {
+                        ui.add(egui::DragValue::new(&mut local.curveslope_args.drop_outer_bot_1).speed(0.1))
+                            .on_hover_text("Ending outer drop, bottom");
+                        ui.label("drop_outer_bot_1");
+                    });
+
+                    ui.horizontal(|ui| {
+                        ui.add(egui::DragValue::new(&mut local.curveslope_args.hill_inner_top).speed(0.1))
+                            .on_hover_text("Inner hill, top");
+                        ui.label("hill_inner_top");
+                    });
+
+                    ui.horizontal(|ui| {
+                        ui.add(egui::DragValue::new(&mut local.curveslope_args.hill_inner_bot).speed(0.1))
+                            .on_hover_text("Inner hill, bottom");
+                        ui.label("hill_inner_bot");
+                    });
+
+                    ui.horizontal(|ui| {
+                        ui.add(egui::DragValue::new(&mut local.curveslope_args.hill_outer_top).speed(0.1))
+                            .on_hover_text("Outer hill, top");
+                        ui.label("hill_outer_top");
+                    });
+
+                    ui.horizontal(|ui| {
+                        ui.add(egui::DragValue::new(&mut local.curveslope_args.hill_outer_bot).speed(0.1))
+                            .on_hover_text("Outer hill, bottom");
+                        ui.label("hill_outer_bot");
+                    });
+
+
+                }
+
                 Selected::Rayto => {
                     ui.horizontal(|ui| {
                         ui.add(egui::DragValue::new(&mut local.rayto_args.n).speed(0.1))
@@ -272,6 +391,7 @@ pub fn ui(
             if ui.button("Reset").on_hover_text("Reset the curve to default settings").clicked() {
                 match local.selected {
                     Selected::CurveClassic => local.curveclassic_args = CurveClassicArgs::default(),
+                    Selected::CurveSlope => local.curveslope_args = CurveSlopeArgs::default(),
                     Selected::Rayto => local.rayto_args = RaytoArgs::default(),
                     Selected::Bank => local.bank_args = BankArgs::default(),
                     Selected::Catenary => local.catenary_args = CatenaryArgs::default(),
@@ -321,6 +441,7 @@ pub fn ui(
 
     *curve_select = match local.selected {
         Selected::CurveClassic => CurveSelect::CurveClassic(local.curveclassic_args.clone()),
+        Selected::CurveSlope => CurveSelect::CurveSlope(local.curveslope_args.clone()),
         Selected::Rayto => CurveSelect::Rayto(local.rayto_args.clone()),
         Selected::Bank => CurveSelect::Bank(local.bank_args.clone()),
         Selected::Catenary => CurveSelect::Catenary(local.catenary_args.clone()),

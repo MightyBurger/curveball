@@ -4,8 +4,11 @@
 use crate::map::geometry::Brush;
 use thiserror::Error;
 
-pub mod curvec;
-pub use curvec::{CurveClassic, CurveClassicError};
+pub mod curve_classic;
+pub use curve_classic::{CurveClassic, CurveClassicError};
+
+pub mod curve_slope;
+pub use curve_slope::{CurveSlope, CurveSlopeError};
 
 pub mod rayto;
 pub use rayto::{Rayto, RaytoError};
@@ -28,7 +31,9 @@ pub trait Curve {
 #[derive(Error, Debug)]
 pub enum CurveError {
     #[error("{0}")]
-    CurveCError(#[from] CurveClassicError),
+    CurveClassicError(#[from] CurveClassicError),
+    #[error("{0}")]
+    CurveSlopeError(#[from] CurveSlopeError),
     #[error("Failed to find convex hull: {0}")]
     ConvexHullFail(#[from] chull::ErrorKind),
     #[error("{0}")]

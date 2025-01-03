@@ -10,8 +10,8 @@ use bevy::{
 };
 
 use curveball::curve::{
-    serpentine::SerpentineOffsetMode, Bank, Catenary, Curve, CurveClassic, CurveResult, Rayto,
-    Serpentine,
+    serpentine::SerpentineOffsetMode, Bank, Catenary, Curve, CurveClassic, CurveResult, CurveSlope,
+    Rayto, Serpentine,
 };
 use curveball::map::{Brush, Side, SideGeom};
 use glam::DVec3;
@@ -19,6 +19,7 @@ use glam::DVec3;
 #[derive(Resource, Debug, Clone, PartialEq, PartialOrd)]
 pub enum CurveSelect {
     CurveClassic(CurveClassicArgs),
+    CurveSlope(CurveSlopeArgs),
     Rayto(RaytoArgs),
     Bank(BankArgs),
     Catenary(CatenaryArgs),
@@ -54,6 +55,59 @@ impl Default for CurveClassicArgs {
             theta0: 0.0,
             theta1: 90.0,
             t: 8.0,
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, PartialOrd)]
+pub struct CurveSlopeArgs {
+    pub n: u32,
+    pub ri0: f64,
+    pub ro0: f64,
+    pub ri1: f64,
+    pub ro1: f64,
+    pub theta0: f64,
+    pub theta1: f64,
+    pub t: f64,
+    pub slope: f64,
+    pub drop_inner_top_0: f64,
+    pub drop_inner_bot_0: f64,
+    pub drop_outer_top_0: f64,
+    pub drop_outer_bot_0: f64,
+    pub drop_inner_top_1: f64,
+    pub drop_inner_bot_1: f64,
+    pub drop_outer_top_1: f64,
+    pub drop_outer_bot_1: f64,
+    pub hill_inner_top: f64,
+    pub hill_inner_bot: f64,
+    pub hill_outer_top: f64,
+    pub hill_outer_bot: f64,
+}
+
+impl Default for CurveSlopeArgs {
+    fn default() -> Self {
+        Self {
+            n: 24,
+            ri0: 8.0,
+            ro0: 32.0,
+            ri1: 8.0,
+            ro1: 32.0,
+            theta0: 0.0,
+            theta1: 180.0,
+            t: 8.0,
+            slope: 64.0,
+            drop_inner_top_0: 0.0,
+            drop_inner_bot_0: 0.0,
+            drop_outer_top_0: 0.0,
+            drop_outer_bot_0: 0.0,
+            drop_inner_top_1: 0.0,
+            drop_inner_bot_1: 0.0,
+            drop_outer_top_1: 0.0,
+            drop_outer_bot_1: 0.0,
+            hill_inner_top: 0.0,
+            hill_inner_bot: 0.0,
+            hill_outer_top: 0.0,
+            hill_outer_bot: 0.0,
         }
     }
 }
@@ -176,6 +230,30 @@ impl CurveSelect {
                 t: args.t,
             }
             .bake()?,
+            Self::CurveSlope(args) => CurveSlope {
+                n: args.n,
+                ri0: args.ri0,
+                ro0: args.ro0,
+                ri1: args.ri1,
+                ro1: args.ro1,
+                theta0: args.theta0,
+                theta1: args.theta1,
+                t: args.t,
+                slope: args.slope,
+                drop_inner_top_0: args.drop_inner_top_0,
+                drop_inner_bot_0: args.drop_inner_bot_0,
+                drop_outer_top_0: args.drop_outer_top_0,
+                drop_outer_bot_0: args.drop_outer_bot_0,
+                drop_inner_top_1: args.drop_inner_top_1,
+                drop_inner_bot_1: args.drop_inner_bot_1,
+                drop_outer_top_1: args.drop_outer_top_1,
+                drop_outer_bot_1: args.drop_outer_bot_1,
+                hill_inner_top: args.hill_inner_top,
+                hill_inner_bot: args.hill_inner_bot,
+                hill_outer_top: args.hill_outer_top,
+                hill_outer_bot: args.hill_outer_bot,
+            }
+            .bake()?,
             Self::Rayto(args) => Rayto {
                 n: args.n,
                 r0: args.r0,
@@ -261,6 +339,7 @@ pub fn update_mesh(
 
             let base_color = match *curve_select {
                 CurveSelect::CurveClassic { .. } => tailwind::STONE_400,
+                CurveSelect::CurveSlope { .. } => tailwind::SLATE_400,
                 CurveSelect::Rayto { .. } => tailwind::ROSE_400,
                 CurveSelect::Bank { .. } => tailwind::ORANGE_400,
                 CurveSelect::Catenary { .. } => tailwind::TEAL_400,
