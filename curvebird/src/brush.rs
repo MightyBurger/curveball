@@ -1,7 +1,7 @@
 // Copyright 2025 Jordan Johnson
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
-use crate::{CustomUV, MeshGen};
+use crate::{CustomUV, MeshGen, MeshGenError};
 
 use bevy::{
     color::palettes::tailwind,
@@ -10,13 +10,15 @@ use bevy::{
 };
 
 use curveball::curve::{
-    serpentine::SerpentineOffsetMode, Bank, Catenary, Curve, CurveResult, Rayto, Serpentine,
+    serpentine::SerpentineOffsetMode, Bank, Catenary, Curve, CurveClassic, CurveResult, Rayto,
+    Serpentine,
 };
 use curveball::map::{Brush, Side, SideGeom};
 use glam::DVec3;
 
 #[derive(Resource, Debug, Clone, PartialEq, PartialOrd)]
 pub enum CurveSelect {
+    CurveClassic(CurveClassicArgs),
     Rayto(RaytoArgs),
     Bank(BankArgs),
     Catenary(CatenaryArgs),
@@ -26,6 +28,33 @@ pub enum CurveSelect {
 impl Default for CurveSelect {
     fn default() -> Self {
         Self::Bank(BankArgs::default())
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, PartialOrd)]
+pub struct CurveClassicArgs {
+    pub n: u32,
+    pub ri0: f64,
+    pub ro0: f64,
+    pub ri1: f64,
+    pub ro1: f64,
+    pub theta0: f64,
+    pub theta1: f64,
+    pub t: f64,
+}
+
+impl Default for CurveClassicArgs {
+    fn default() -> Self {
+        Self {
+            n: 24,
+            ri0: 32.0,
+            ro0: 64.0,
+            ri1: 32.0,
+            ro1: 64.0,
+            theta0: 0.0,
+            theta1: 90.0,
+            t: 8.0,
+        }
     }
 }
 
@@ -134,8 +163,19 @@ impl Default for SerpentineArgs {
 }
 
 impl CurveSelect {
-    fn mesh(&self) -> CurveResult<Vec<Brush>> {
+    fn brushes(&self) -> CurveResult<Vec<Brush>> {
         let brushes = match self {
+            Self::CurveClassic(args) => CurveClassic {
+                n: args.n,
+                ri0: args.ri0,
+                ro0: args.ro0,
+                ri1: args.ri1,
+                ro1: args.ro1,
+                theta0: args.theta0,
+                theta1: args.theta1,
+                t: args.t,
+            }
+            .bake()?,
             Self::Rayto(args) => Rayto {
                 n: args.n,
                 r0: args.r0,
@@ -215,13 +255,12 @@ pub fn update_mesh(
     }
 
     // Create the new mesh
-    match curve_select.mesh() {
-        Ok(mesh) => {
-            info!("Updated mesh");
-
+    match curve_select.brushes() {
+        Ok(brushes) => {
             // Choose a color!
 
             let base_color = match *curve_select {
+                CurveSelect::CurveClassic { .. } => tailwind::STONE_400,
                 CurveSelect::Rayto { .. } => tailwind::ROSE_400,
                 CurveSelect::Bank { .. } => tailwind::ORANGE_400,
                 CurveSelect::Catenary { .. } => tailwind::TEAL_400,
@@ -236,19 +275,28 @@ pub fn update_mesh(
                 base_color.alpha,
             ];
 
-            // Create and save a handle to the mesh.
-            let cube_mesh_handle: Handle<Mesh> = meshes.add(brushes_to_mesh(&mesh, base_color));
-            *meshgen = MeshGen(Some(Ok(mesh)));
+            match brushes_to_mesh(&brushes, base_color) {
+                Ok(mesh) => {
+                    let cube_mesh_handle: Handle<Mesh> = meshes.add(mesh);
+                    *meshgen = MeshGen(Some(Ok(brushes)));
 
-            // Render the mesh with the custom texture, and add the marker.
-            commands.spawn((
-                Mesh3d(cube_mesh_handle),
-                MeshMaterial3d(materials.add(StandardMaterial { ..default() })),
-                CustomUV,
-            ));
+                    commands.spawn((
+                        Mesh3d(cube_mesh_handle),
+                        MeshMaterial3d(materials.add(StandardMaterial { ..default() })),
+                        CustomUV,
+                    ));
+                }
+                Err(e) => {
+                    warn!("{}", &e);
+                    *meshgen = MeshGen(Some(Err(e)));
+                }
+            }
+
+            // Create and save a handle to the mesh.
         }
         Err(e) => {
             warn!("{}", &e);
+            let e = MeshGenError::from(e);
             *meshgen = MeshGen(Some(Err(e)));
         }
     }
@@ -256,7 +304,10 @@ pub fn update_mesh(
     *previous = Some(curve_select.clone());
 }
 
-fn brushes_to_mesh<'a>(brushes: impl IntoIterator<Item = &'a Brush>, base_color: [f32; 4]) -> Mesh {
+fn brushes_to_mesh<'a>(
+    brushes: impl IntoIterator<Item = &'a Brush>,
+    base_color: [f32; 4],
+) -> Result<Mesh, MeshGenError> {
     let mut vertices = Vec::new();
     let mut normals = Vec::new();
     let mut colors = Vec::new();
@@ -289,7 +340,9 @@ fn brushes_to_mesh<'a>(brushes: impl IntoIterator<Item = &'a Brush>, base_color:
             vertices.push([p2.x as f32, p2.y as f32, p2.z as f32]);
             vertices.push([p1.x as f32, p1.y as f32, p1.z as f32]);
 
-            let normal = ((p0 - p1).cross(p2 - p1)).normalize();
+            let Some(normal) = ((p0 - p1).cross(p2 - p1)).try_normalize() else {
+                return Err(MeshGenError::NormalizeError);
+            };
             let normal = [normal.x as f32, normal.y as f32, normal.z as f32];
 
             normals.push(normal);
@@ -310,11 +363,11 @@ fn brushes_to_mesh<'a>(brushes: impl IntoIterator<Item = &'a Brush>, base_color:
         }
     }
 
-    Mesh::new(
+    Ok(Mesh::new(
         PrimitiveTopology::TriangleList,
         RenderAssetUsages::MAIN_WORLD | RenderAssetUsages::RENDER_WORLD,
     )
     .with_inserted_attribute(Mesh::ATTRIBUTE_POSITION, vertices)
     .with_inserted_attribute(Mesh::ATTRIBUTE_NORMAL, normals)
-    .with_inserted_attribute(Mesh::ATTRIBUTE_COLOR, colors)
+    .with_inserted_attribute(Mesh::ATTRIBUTE_COLOR, colors))
 }

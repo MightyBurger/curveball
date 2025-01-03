@@ -14,8 +14,9 @@ use gui::{ui, OccupiedScreenSpace};
 mod camera_controller;
 use camera_controller::{CameraController, CameraControllerPlugin};
 
-use curveball::curve::CurveResult;
+use curveball::curve::CurveError;
 use curveball::map::Brush;
+use thiserror::Error;
 
 #[derive(Component)]
 struct CustomUV;
@@ -85,7 +86,15 @@ fn set_window_icon(
 }
 
 #[derive(Resource, Default)]
-struct MeshGen(Option<CurveResult<Vec<Brush>>>);
+struct MeshGen(Option<Result<Vec<Brush>, MeshGenError>>);
+
+#[derive(Debug, Error)]
+pub enum MeshGenError {
+    #[error("{0}")]
+    CurveError(#[from] CurveError),
+    #[error("Could not find a normal vector for the face")]
+    NormalizeError,
+}
 
 #[derive(Default, Reflect, GizmoConfigGroup)]
 struct GridMinor {}

@@ -118,6 +118,7 @@ impl Curve for Bank {
         Ok(brushes)
     }
 }
+
 #[derive(Error, Debug)]
 pub enum BankError {
     #[error("n = {n}. Number of segments must be at least 1.")]

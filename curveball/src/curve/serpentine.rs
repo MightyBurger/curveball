@@ -5,9 +5,8 @@ use crate::curve::{Curve, CurveError, CurveResult, MAX_HULL_ITER};
 use crate::map::Brush;
 use glam::DVec3;
 use itertools::Itertools;
-use thiserror::Error;
-
 use lerp::LerpIter;
+use thiserror::Error;
 
 use std::f64::consts::PI;
 

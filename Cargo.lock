@@ -2063,6 +2063,7 @@ dependencies = [
  "futures-channel",
  "glam",
  "image",
+ "thiserror 2.0.9",
  "wasm-bindgen-futures",
  "web-sys",
  "winit",

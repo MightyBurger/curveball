@@ -1,6 +1,7 @@
 [build]
 target = "trunk/index.html"
 dist = "../target/trunk/curvebird"
+minify = "on_release"
 public_url = "./"
 
 [serve]

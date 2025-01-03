@@ -10,19 +10,32 @@ use std::fmt::{Display, Formatter};
 #[derive(Debug, Default, Clone, Copy, PartialEq)]
 pub struct SideGeom(pub [DVec3; 3]);
 impl SideGeom {
-    pub fn normal(self) -> DVec3 {
+    pub fn normal(self) -> Option<DVec3> {
         let Self([p0, p1, p2]) = self;
-        ((p0 - p1).cross(p2 - p1)).normalize()
+        ((p0 - p1).cross(p2 - p1)).try_normalize()
     }
-    pub fn dist(self) -> f64 {
+    pub fn dist(self) -> Option<f64> {
         let Self([_p0, p1, _p2]) = self;
-        self.normal().dot(p1)
+        Some(self.normal()?.dot(p1))
     }
     pub fn equivalent(self, other: SideGeom) -> bool {
-        if self.normal().dot(other.normal()) < 1.0 - ALMOST_EQUAL_DELTA {
+        let Some(normal) = self.normal() else {
+            return false;
+        };
+        let Some(other_normal) = other.normal() else {
+            return false;
+        };
+        if normal.dot(other_normal) < 1.0 - ALMOST_EQUAL_DELTA {
             return false;
         }
-        if (self.dist() - other.dist()) > ALMOST_EQUAL_DELTA {
+
+        let Some(dist) = self.dist() else {
+            return false;
+        };
+        let Some(other_dist) = other.dist() else {
+            return false;
+        };
+        if (dist - other_dist) > ALMOST_EQUAL_DELTA {
             return false;
         }
         true
