@@ -104,7 +104,7 @@ pub fn ui(
                     });
                     ui.horizontal(|ui| {
                         ui.add(egui::DragValue::new(&mut local.curveclassic_args.t).speed(0.1))
-                            .on_hover_text("Number of segments");
+                            .on_hover_text("Thickness");
                         ui.label("t");
                     });
                 }
