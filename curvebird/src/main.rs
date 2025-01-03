@@ -14,7 +14,7 @@ use gui::{ui, OccupiedScreenSpace};
 mod camera_controller;
 use camera_controller::{CameraController, CameraControllerPlugin};
 
-use curveball::curve::CurveError;
+use curveball::curve::{CurveError, CurveResult};
 use curveball::map::Brush;
 use thiserror::Error;
 
@@ -68,8 +68,9 @@ fn set_window_icon(
     // here we use the `image` crate to load our icon data from a png file
     // this is not a very bevy-native solution, but it will do
     let (icon_rgba, icon_width, icon_height) = {
-        let Ok(image) = image::open("assets/icon/icon256.png") else {
-            warn!("Failed to open icon path");
+        let path = "curvebird/icon/icon256.png";
+        let Ok(image) = image::open(path) else {
+            warn!("Failed to open icon path {path}");
             return;
         };
         let image = image.into_rgba8();

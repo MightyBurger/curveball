@@ -5,7 +5,9 @@ use clap::{Args, Parser, Subcommand};
 use colored::Colorize;
 
 use curveball::curve::serpentine::SerpentineOffsetMode;
-use curveball::curve::{Bank, Catenary, Curve, CurveClassic, CurveResult, Rayto, Serpentine};
+use curveball::curve::{
+    Bank, Catenary, Curve, CurveClassic, CurveResult, CurveSlope, Rayto, Serpentine,
+};
 use curveball::map::{Brush, QEntity, QMap, SimpleWorldspawn};
 
 #[derive(Parser)]
@@ -22,6 +24,8 @@ struct Cli {
 enum Commands {
     #[command(about = "Generate a circular arc with different starting and ending radii")]
     CurveClassic(CurveClassicArgs),
+    #[command(about = "Generate a curved slope; many options are available")]
+    CurveSlope(CurveSlopeArgs),
     #[command(about = "Generate a curve with rays from a circle segment to a single point")]
     Rayto(RaytoArgs),
     #[command(about = "Generate a banked curve")]
@@ -50,6 +54,52 @@ struct CurveClassicArgs {
     theta1: f64,
     #[arg(long, help = "Thickness")]
     t: f64,
+}
+
+#[derive(Args)]
+struct CurveSlopeArgs {
+    #[arg(long, help = "Number of segments")]
+    n: u32,
+    #[arg(long, help = "Starting inner radius")]
+    ri0: f64,
+    #[arg(long, help = "Starting outer raidus")]
+    ro0: f64,
+    #[arg(long, help = "Ending inner radius")]
+    ri1: f64,
+    #[arg(long, help = "Ending outer radius")]
+    ro1: f64,
+    #[arg(long, help = "Starting angle (deg)")]
+    theta0: f64,
+    #[arg(long, help = "Ending angle (deg)")]
+    theta1: f64,
+    #[arg(long, help = "Thickness")]
+    t: f64,
+    #[arg(long, help = "Slope")]
+    slope: f64,
+    #[arg(long, help = "Starting inner drop, top")]
+    drop_inner_top_0: f64,
+    #[arg(long, help = "Starting inner drop, bottom")]
+    drop_inner_bot_0: f64,
+    #[arg(long, help = "Starting outer drop, top")]
+    drop_outer_top_0: f64,
+    #[arg(long, help = "Starting outer drop, bottom")]
+    drop_outer_bot_0: f64,
+    #[arg(long, help = "Ending inner drop, top")]
+    drop_inner_top_1: f64,
+    #[arg(long, help = "Ending inner drop, bottom")]
+    drop_inner_bot_1: f64,
+    #[arg(long, help = "Ending outer drop, top")]
+    drop_outer_top_1: f64,
+    #[arg(long, help = "Ending outer drop, bottom")]
+    drop_outer_bot_1: f64,
+    #[arg(long, help = "Inner hill, top")]
+    hill_inner_top: f64,
+    #[arg(long, help = "Inner hill, bottom")]
+    hill_inner_bot: f64,
+    #[arg(long, help = "Outer hill, top")]
+    hill_outer_top: f64,
+    #[arg(long, help = "Outer hill, bottom")]
+    hill_outer_bot: f64,
 }
 
 #[derive(Args)]
@@ -160,6 +210,30 @@ fn map(command: Commands) -> CurveResult<QMap> {
             theta0: args.theta0,
             theta1: args.theta1,
             t: args.t,
+        }
+        .bake()?,
+        Commands::CurveSlope(args) => CurveSlope {
+            n: args.n,
+            ri0: args.ri0,
+            ro0: args.ro0,
+            ri1: args.ri1,
+            ro1: args.ro1,
+            theta0: args.theta0,
+            theta1: args.theta1,
+            t: args.t,
+            slope: args.slope,
+            drop_inner_top_0: args.drop_inner_top_0,
+            drop_inner_bot_0: args.drop_inner_bot_0,
+            drop_outer_top_0: args.drop_outer_top_0,
+            drop_outer_bot_0: args.drop_outer_bot_0,
+            drop_inner_top_1: args.drop_inner_top_1,
+            drop_inner_bot_1: args.drop_inner_bot_1,
+            drop_outer_top_1: args.drop_outer_top_1,
+            drop_outer_bot_1: args.drop_outer_bot_1,
+            hill_inner_top: args.hill_inner_top,
+            hill_inner_bot: args.hill_inner_bot,
+            hill_outer_top: args.hill_outer_top,
+            hill_outer_bot: args.hill_outer_bot,
         }
         .bake()?,
         Commands::Rayto(args) => Rayto {

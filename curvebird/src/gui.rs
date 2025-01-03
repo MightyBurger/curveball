@@ -114,11 +114,15 @@ pub fn ui(
                 }
 
                 Selected::CurveSlope => {
+                    ui.add_space(8.0);
+                    ui.label("General");
                     ui.horizontal(|ui| {
                         ui.add(egui::DragValue::new(&mut local.curveslope_args.n).speed(0.1))
                             .on_hover_text("Number of segments");
                         ui.label("n");
                     });
+                    ui.add_space(8.0);
+                    ui.label("Radii");
                     ui.horizontal(|ui| {
                         ui.add(egui::DragValue::new(&mut local.curveslope_args.ri0).speed(0.1))
                             .on_hover_text("Starting inner radius");
@@ -139,6 +143,8 @@ pub fn ui(
                             .on_hover_text("Ending outer radius");
                         ui.label("ro1");
                     });
+                    ui.add_space(8.0);
+                    ui.label("Angles");
                     ui.horizontal(|ui| {
                         ui.add(egui::DragValue::new(&mut local.curveslope_args.theta0).speed(0.1))
                             .on_hover_text("Starting angle (deg)");
@@ -149,6 +155,8 @@ pub fn ui(
                             .on_hover_text("Ending angle (deg)");
                         ui.label("theta1");
                     });
+                    ui.add_space(8.0);
+                    ui.label("Heights");
                     ui.horizontal(|ui| {
                         ui.add(egui::DragValue::new(&mut local.curveslope_args.t).speed(0.1))
                             .on_hover_text("Thickness");
@@ -159,6 +167,8 @@ pub fn ui(
                             .on_hover_text("Slope");
                         ui.label("slope");
                     });
+                    ui.add_space(8.0);
+                    ui.label("Drops");
                     ui.horizontal(|ui| {
                         ui.add(egui::DragValue::new(&mut local.curveslope_args.drop_inner_top_0).speed(0.1))
                             .on_hover_text("Starting inner drop, top");
@@ -199,32 +209,28 @@ pub fn ui(
                             .on_hover_text("Ending outer drop, bottom");
                         ui.label("drop_outer_bot_1");
                     });
-
+                    ui.add_space(8.0);
+                    ui.label("Hills");
                     ui.horizontal(|ui| {
                         ui.add(egui::DragValue::new(&mut local.curveslope_args.hill_inner_top).speed(0.1))
                             .on_hover_text("Inner hill, top");
                         ui.label("hill_inner_top");
                     });
-
                     ui.horizontal(|ui| {
                         ui.add(egui::DragValue::new(&mut local.curveslope_args.hill_inner_bot).speed(0.1))
                             .on_hover_text("Inner hill, bottom");
                         ui.label("hill_inner_bot");
                     });
-
                     ui.horizontal(|ui| {
                         ui.add(egui::DragValue::new(&mut local.curveslope_args.hill_outer_top).speed(0.1))
                             .on_hover_text("Outer hill, top");
                         ui.label("hill_outer_top");
                     });
-
                     ui.horizontal(|ui| {
                         ui.add(egui::DragValue::new(&mut local.curveslope_args.hill_outer_bot).speed(0.1))
                             .on_hover_text("Outer hill, bottom");
                         ui.label("hill_outer_bot");
                     });
-
-
                 }
 
                 Selected::Rayto => {
