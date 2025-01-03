@@ -52,7 +52,8 @@ pub fn ui(
 ) {
     let ctx = contexts.ctx_mut();
     occupied_screen_space.right = egui::SidePanel::right("left_panel")
-        .resizable(true)
+        .resizable(false)
+        .exact_width(200.0)
         .show(ctx, |ui| {
             ui.add_space(8.0);
 
