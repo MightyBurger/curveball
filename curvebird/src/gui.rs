@@ -74,32 +74,32 @@ pub fn ui(
                     });
                     ui.horizontal(|ui| {
                         ui.add(egui::DragValue::new(&mut local.curveclassic_args.ri0).speed(0.1))
-                            .on_hover_text("Number of segments");
+                            .on_hover_text("Starting inner radius");
                         ui.label("ri0");
                     });
                     ui.horizontal(|ui| {
                         ui.add(egui::DragValue::new(&mut local.curveclassic_args.ro0).speed(0.1))
-                            .on_hover_text("Number of segments");
+                            .on_hover_text("Starting outer raidus");
                         ui.label("ro0");
                     });
                     ui.horizontal(|ui| {
                         ui.add(egui::DragValue::new(&mut local.curveclassic_args.ri1).speed(0.1))
-                            .on_hover_text("Number of segments");
+                            .on_hover_text("Ending inner radius");
                         ui.label("ri1");
                     });
                     ui.horizontal(|ui| {
                         ui.add(egui::DragValue::new(&mut local.curveclassic_args.ro1).speed(0.1))
-                            .on_hover_text("Number of segments");
+                            .on_hover_text("Ending outer radius");
                         ui.label("ro1");
                     });
                     ui.horizontal(|ui| {
                         ui.add(egui::DragValue::new(&mut local.curveclassic_args.theta0).speed(0.1))
-                            .on_hover_text("Number of segments");
+                            .on_hover_text("Starting angle (deg)");
                         ui.label("theta0");
                     });
                     ui.horizontal(|ui| {
                         ui.add(egui::DragValue::new(&mut local.curveclassic_args.theta1).speed(0.1))
-                            .on_hover_text("Number of segments");
+                            .on_hover_text("Ending angle (deg)");
                         ui.label("theta1");
                     });
                     ui.horizontal(|ui| {

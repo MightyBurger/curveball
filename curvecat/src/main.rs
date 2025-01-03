@@ -5,7 +5,7 @@ use clap::{Args, Parser, Subcommand};
 use colored::Colorize;
 
 use curveball::curve::serpentine::SerpentineOffsetMode;
-use curveball::curve::{Bank, Catenary, Curve, CurveResult, Rayto, Serpentine};
+use curveball::curve::{Bank, Catenary, Curve, CurveClassic, CurveResult, Rayto, Serpentine};
 use curveball::map::{Brush, QEntity, QMap, SimpleWorldspawn};
 
 #[derive(Parser)]
@@ -20,6 +20,8 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
+    #[command(about = "Generate a circular arc with different starting and ending radii")]
+    CurveClassic(CurveClassicArgs),
     #[command(about = "Generate a curve with rays from a circle segment to a single point")]
     Rayto(RaytoArgs),
     #[command(about = "Generate a banked curve")]
@@ -28,6 +30,26 @@ enum Commands {
     Catenary(CatenaryArgs),
     #[command(about = "Generate a serpentine curve")]
     Serpentine(SerpentineArgs),
+}
+
+#[derive(Args)]
+struct CurveClassicArgs {
+    #[arg(long, help = "Number of segments")]
+    n: u32,
+    #[arg(long, help = "Starting inner radius")]
+    ri0: f64,
+    #[arg(long, help = "Starting outer radius")]
+    ro0: f64,
+    #[arg(long, help = "Ending inner radius")]
+    ri1: f64,
+    #[arg(long, help = "Ending outer radius")]
+    ro1: f64,
+    #[arg(long, help = "Starting angle (deg)")]
+    theta0: f64,
+    #[arg(long, help = "Ending angle (deg)")]
+    theta1: f64,
+    #[arg(long, help = "Thickness")]
+    t: f64,
 }
 
 #[derive(Args)]
@@ -129,6 +151,17 @@ fn main() {
 
 fn map(command: Commands) -> CurveResult<QMap> {
     let brushes: Vec<Brush> = match command {
+        Commands::CurveClassic(args) => CurveClassic {
+            n: args.n,
+            ri0: args.ri0,
+            ro0: args.ro0,
+            ri1: args.ri1,
+            ro1: args.ro1,
+            theta0: args.theta0,
+            theta1: args.theta1,
+            t: args.t,
+        }
+        .bake()?,
         Commands::Rayto(args) => Rayto {
             n: args.n,
             r0: args.r0,
