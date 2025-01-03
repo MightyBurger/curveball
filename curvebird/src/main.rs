@@ -14,7 +14,7 @@ use gui::{ui, OccupiedScreenSpace};
 mod camera_controller;
 use camera_controller::{CameraController, CameraControllerPlugin};
 
-use curveball::curve::{CurveError, CurveResult};
+use curveball::curve::CurveError;
 use curveball::map::Brush;
 use thiserror::Error;
 
