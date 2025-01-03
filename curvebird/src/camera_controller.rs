@@ -122,13 +122,15 @@ fn run_camera_controller(
         return;
     }
 
-    let scroll = match accumulated_mouse_scroll.unit {
-        MouseScrollUnit::Line => accumulated_mouse_scroll.delta.y,
-        MouseScrollUnit::Pixel => accumulated_mouse_scroll.delta.y / 16.0,
-    };
-    controller.walk_speed += scroll * controller.scroll_factor * controller.walk_speed;
-    controller.walk_speed = controller.walk_speed.clamp(10.0, 1500.0);
-    controller.run_speed = controller.walk_speed * 3.0;
+    if *mouse_cursor_grab {
+        let scroll = match accumulated_mouse_scroll.unit {
+            MouseScrollUnit::Line => accumulated_mouse_scroll.delta.y,
+            MouseScrollUnit::Pixel => accumulated_mouse_scroll.delta.y / 16.0,
+        };
+        controller.walk_speed += scroll * controller.scroll_factor * controller.walk_speed;
+        controller.walk_speed = controller.walk_speed.clamp(10.0, 1500.0);
+        controller.run_speed = controller.walk_speed * 3.0;
+    }
 
     // Handle key input
     let mut axis_input = Vec3::ZERO;
