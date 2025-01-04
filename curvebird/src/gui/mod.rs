@@ -58,10 +58,8 @@ pub fn ui(
         .resizable(false)
         .exact_width(200.0)
         .show(ctx, |ui| {
-
             egui::ScrollArea::vertical().show(ui, |ui| {
                 ui.add_space(8.0);
-
                 egui::ComboBox::from_id_salt("CurveSelect")
                     .selected_text(format!("{:?}", local.selected))
                     .show_ui(ui, |ui| {
@@ -76,29 +74,12 @@ pub fn ui(
                 ui.separator();
 
                 match local.selected {
-                    Selected::CurveClassic => {
-                        curveopts::curveclassic_ui(ui, &mut local.curveclassic_args);
-                    }
-
-                    Selected::CurveSlope => {
-                        curveopts::curveslope_ui(ui, &mut local.curveslope_args);
-                    }
-
-                    Selected::Rayto => {
-                        curveopts::rayto_ui(ui, &mut local.rayto_args);
-                    }
-
-                    Selected::Bank => {
-                        curveopts::bank_ui(ui, &mut local.bank_args);
-                    }
-
-                    Selected::Catenary => {
-                        curveopts::catenary_ui(ui, &mut local.catenary_args);
-                    }
-
-                    Selected::Serpentine => {
-                        curveopts::serpentine_ui(ui, &mut local.serpentine_args);
-                    }
+                    Selected::CurveClassic => curveopts::curveclassic_ui(ui, &mut local.curveclassic_args),
+                    Selected::CurveSlope => curveopts::curveslope_ui(ui, &mut local.curveslope_args),
+                    Selected::Rayto => curveopts::rayto_ui(ui, &mut local.rayto_args),
+                    Selected::Bank => curveopts::bank_ui(ui, &mut local.bank_args),
+                    Selected::Catenary => curveopts::catenary_ui(ui, &mut local.catenary_args),
+                    Selected::Serpentine => curveopts::serpentine_ui(ui, &mut local.serpentine_args),
                 }
 
                 ui.add_space(8.0);
@@ -114,7 +95,6 @@ pub fn ui(
                     }
                 };
                 ui.separator();
-
 
                 let bottom_panel_layout = egui::Layout {
                     main_dir: egui::Direction::BottomUp,
@@ -148,6 +128,7 @@ pub fn ui(
                         None => (),
                     };
                 });
+
             });
 
             ui.allocate_rect(ui.available_rect_before_wrap(), egui::Sense::hover());
