@@ -8,7 +8,6 @@ use crate::brush::{
 use crate::MeshGen;
 
 use bevy::prelude::*;
-use bevy_egui::egui::Ui;
 use bevy_egui::{egui, EguiContexts};
 use curveball::map::{QEntity, QMap, SimpleWorldspawn};
 
@@ -17,6 +16,7 @@ mod curveopts;
 #[derive(Default, Debug, Resource)]
 pub struct OccupiedScreenSpace {
     right: f32,
+    bottom: f32,
 }
 
 #[derive(Default, Resource, Debug)]
@@ -54,39 +54,139 @@ pub fn ui(
     meshgen: Res<MeshGen>,
 ) {
     let ctx = contexts.ctx_mut();
-    occupied_screen_space.right = egui::SidePanel::right("left_panel")
+    occupied_screen_space.bottom = egui::TopBottomPanel::bottom("bottom_panel")
+        .resizable(false)
+        .show(ctx, |ui| {
+            ui.horizontal(|ui| {
+                let bottom_panel_left_to_right = egui::Layout {
+                    main_dir: egui::Direction::LeftToRight,
+                    main_wrap: false,
+                    main_align: egui::Align::Max,
+                    main_justify: false,
+                    cross_align: egui::Align::Min,
+                    cross_justify: false,
+                };
+
+                ui.with_layout(bottom_panel_left_to_right, |ui| {
+                    match &meshgen.0 {
+                        Some(Ok(brushes)) => {
+                            let brushes_len = brushes.len();
+                            let brushes_text = if brushes_len == 1 { "brush" } else { "brushes" };
+                            let sides_len: usize = brushes
+                                .iter()
+                                .map(|brush| brush.to_sides_unique().len())
+                                .sum();
+                            let sides_text = if brushes_len == 1 { "side" } else { "sides" };
+                            ui.label(format!(
+                                "{brushes_len} {brushes_text} | {sides_len} {sides_text}"
+                            ));
+                        }
+                        Some(Err(e)) => {
+                            ui.label(format!("{}", e)).on_hover_text(
+                                "An error is preventing the program from generating the curve.",
+                            );
+                        }
+                        None => (),
+                    };
+                });
+                let bottom_panel_right_to_left = egui::Layout {
+                    main_dir: egui::Direction::RightToLeft,
+                    main_wrap: false,
+                    main_align: egui::Align::Max,
+                    main_justify: false,
+                    cross_align: egui::Align::Min,
+                    cross_justify: false,
+                };
+
+                ui.with_layout(bottom_panel_right_to_left, |ui| {
+                    ui.label(format!(
+                        "{} {}",
+                        env!("CARGO_PKG_NAME"),
+                        env!("CARGO_PKG_VERSION")
+                    ));
+                });
+            });
+        })
+        .response
+        .rect
+        .width();
+
+    occupied_screen_space.right = egui::SidePanel::right("right_panel")
         .resizable(false)
         .exact_width(200.0)
         .show(ctx, |ui| {
+            ui.add_space(8.0);
+            ui.label("Export map");
+            let clipboard_text = "Copy map to clipboard";
+            match &meshgen.0 {
+                Some(Ok(brushes)) => {
+                    if ui.button(clipboard_text).on_hover_text("Copy the map to the clipboard. You can then paste the curve directly into your level in a program like Trenchbroom.").clicked() {
+                        let simple_worldspawn = SimpleWorldspawn::new(brushes.clone());
+                        let entity = QEntity::from(simple_worldspawn);
+                        let map = QMap::new(vec![entity]).with_tb_neverball_metadata();
+                        let mapstr = map.to_string();
+                        write_to_clipboard(mapstr);
+                        info!("Copied map to clipboard");
+                    };
+                }
+                Some(Err(e)) => {
+                    ui.add_enabled_ui(false, |ui| ui.button(clipboard_text).on_hover_text(format!("An error is preventing the program from generating the curve.\n\n{e}")));
+                }
+                None => (),
+            };
+            ui.add_space(8.0);
+            ui.label("Curve");
+            egui::ComboBox::from_id_salt("CurveSelect")
+                .selected_text(format!("{:?}", local.selected))
+                .show_ui(ui, |ui| {
+                    ui.selectable_value(
+                        &mut local.selected,
+                        Selected::CurveClassic,
+                        "Curve Classic",
+                    );
+                    ui.selectable_value(
+                        &mut local.selected,
+                        Selected::CurveSlope,
+                        "Curve Slope",
+                    );
+                    ui.selectable_value(&mut local.selected, Selected::Rayto, "Rayto");
+                    ui.selectable_value(&mut local.selected, Selected::Bank, "Bank");
+                    ui.selectable_value(&mut local.selected, Selected::Catenary, "Catenary");
+                    ui.selectable_value(
+                        &mut local.selected,
+                        Selected::Serpentine,
+                        "Serpentine",
+                    );
+                });
+
+            ui.separator();
             egui::ScrollArea::vertical().show(ui, |ui| {
-                ui.add_space(8.0);
-                egui::ComboBox::from_id_salt("CurveSelect")
-                    .selected_text(format!("{:?}", local.selected))
-                    .show_ui(ui, |ui| {
-                        ui.selectable_value(&mut local.selected, Selected::CurveClassic, "Curve Classic");
-                        ui.selectable_value(&mut local.selected, Selected::CurveSlope, "Curve Slope");
-                        ui.selectable_value(&mut local.selected, Selected::Rayto, "Rayto");
-                        ui.selectable_value(&mut local.selected, Selected::Bank, "Bank");
-                        ui.selectable_value(&mut local.selected, Selected::Catenary, "Catenary");
-                        ui.selectable_value(&mut local.selected, Selected::Serpentine, "Serpentine");
-                    });
-
-                ui.separator();
-
                 match local.selected {
-                    Selected::CurveClassic => curveopts::curveclassic_ui(ui, &mut local.curveclassic_args),
-                    Selected::CurveSlope => curveopts::curveslope_ui(ui, &mut local.curveslope_args),
+                    Selected::CurveClassic => {
+                        curveopts::curveclassic_ui(ui, &mut local.curveclassic_args)
+                    }
+                    Selected::CurveSlope => {
+                        curveopts::curveslope_ui(ui, &mut local.curveslope_args)
+                    }
                     Selected::Rayto => curveopts::rayto_ui(ui, &mut local.rayto_args),
                     Selected::Bank => curveopts::bank_ui(ui, &mut local.bank_args),
                     Selected::Catenary => curveopts::catenary_ui(ui, &mut local.catenary_args),
-                    Selected::Serpentine => curveopts::serpentine_ui(ui, &mut local.serpentine_args),
+                    Selected::Serpentine => {
+                        curveopts::serpentine_ui(ui, &mut local.serpentine_args)
+                    }
                 }
 
                 ui.add_space(8.0);
 
-                if ui.button("Reset").on_hover_text("Reset the curve to default settings").clicked() {
+                if ui
+                    .button("Reset")
+                    .on_hover_text("Reset the curve to default settings")
+                    .clicked()
+                {
                     match local.selected {
-                        Selected::CurveClassic => local.curveclassic_args = CurveClassicArgs::default(),
+                        Selected::CurveClassic => {
+                            local.curveclassic_args = CurveClassicArgs::default()
+                        }
                         Selected::CurveSlope => local.curveslope_args = CurveSlopeArgs::default(),
                         Selected::Rayto => local.rayto_args = RaytoArgs::default(),
                         Selected::Bank => local.bank_args = BankArgs::default(),
@@ -94,41 +194,6 @@ pub fn ui(
                         Selected::Serpentine => local.serpentine_args = SerpentineArgs::default(),
                     }
                 };
-                ui.separator();
-
-                let bottom_panel_layout = egui::Layout {
-                    main_dir: egui::Direction::BottomUp,
-                    main_wrap: true,
-                    main_align: egui::Align::Max,
-                    main_justify: false,
-                    cross_align: egui::Align::Min,
-                    cross_justify: false,
-                };
-
-                ui.with_layout(bottom_panel_layout, |ui| {
-                    ui.add_space(8.0);
-                    ui.label(format!("{} {}", env!("CARGO_PKG_NAME"), env!("CARGO_PKG_VERSION")));
-                    ui.separator();
-                    match &meshgen.0 {
-                        Some(Ok(brushes)) => {
-                            if ui.button("Copy map to clipboard").on_hover_text("Copy the map to the clipboard. You can then paste the curve directly into your level in a program like Trenchbroom.").clicked() {
-                                let simple_worldspawn = SimpleWorldspawn::new(brushes.clone());
-                                let entity = QEntity::from(simple_worldspawn);
-                                let map = QMap::new(vec![entity]).with_tb_neverball_metadata();
-                                let mapstr = map.to_string();
-                                write_to_clipboard(mapstr);
-                                info!("Copied map to clipboard");
-                            };
-                            // TODO: Implement Save to File
-                            //if ui.button("Save to File").clicked() {};
-                        }
-                        Some(Err(e)) => {
-                            ui.label(format!("{}", e)).on_hover_text("An error is preventing the program from generating the curve.");
-                        }
-                        None => (),
-                    };
-                });
-
             });
 
             ui.allocate_rect(ui.available_rect_before_wrap(), egui::Sense::hover());

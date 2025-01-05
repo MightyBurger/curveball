@@ -6,7 +6,6 @@ use crate::brush::{
 };
 
 pub fn curveclassic_ui(ui: &mut Ui, args: &mut CurveClassicArgs) {
-    ui.add_space(8.0);
     ui.label("Segments");
     ui.horizontal(|ui| {
         ui.add(egui::DragValue::new(&mut args.n).speed(0.1))
@@ -59,7 +58,6 @@ pub fn curveclassic_ui(ui: &mut Ui, args: &mut CurveClassicArgs) {
 }
 
 pub fn curveslope_ui(ui: &mut Ui, args: &mut CurveSlopeArgs) {
-    ui.add_space(8.0);
     ui.label("Segments");
     ui.horizontal(|ui| {
         ui.add(egui::DragValue::new(&mut args.n).speed(0.1))
@@ -183,7 +181,6 @@ pub fn curveslope_ui(ui: &mut Ui, args: &mut CurveSlopeArgs) {
 }
 
 pub fn rayto_ui(ui: &mut Ui, args: &mut RaytoArgs) {
-    ui.add_space(8.0);
     ui.label("Segments");
     ui.horizontal(|ui| {
         ui.add(egui::DragValue::new(&mut args.n).speed(0.1))
@@ -236,7 +233,6 @@ pub fn rayto_ui(ui: &mut Ui, args: &mut RaytoArgs) {
 }
 
 pub fn bank_ui(ui: &mut Ui, args: &mut BankArgs) {
-    ui.add_space(8.0);
     ui.label("Segments");
     ui.horizontal(|ui| {
         ui.add(egui::DragValue::new(&mut args.n).speed(0.1))
@@ -285,7 +281,6 @@ pub fn bank_ui(ui: &mut Ui, args: &mut BankArgs) {
 }
 
 pub fn catenary_ui(ui: &mut Ui, args: &mut CatenaryArgs) {
-    ui.add_space(8.0);
     ui.label("Segments");
     ui.horizontal(|ui| {
         ui.add(egui::DragValue::new(&mut args.n).speed(0.1))
@@ -337,7 +332,6 @@ pub fn catenary_ui(ui: &mut Ui, args: &mut CatenaryArgs) {
 }
 
 pub fn serpentine_ui(ui: &mut Ui, args: &mut SerpentineArgs) {
-    ui.add_space(8.0);
     ui.label("Segments");
     ui.horizontal(|ui| {
         ui.add(egui::DragValue::new(&mut args.n).speed(0.1))
