@@ -62,6 +62,72 @@ pub fn ui(
     };
 
     let ctx = contexts.ctx_mut();
+
+    occupied_screen_space.right = egui::SidePanel::right("right_panel")
+        .resizable(false)
+        .exact_width(200.0)
+        .show(ctx, |ui| {
+            ui.add_space(8.0);
+            ui.label("Curve");
+            egui::ComboBox::from_id_salt("CurveSelect")
+                .selected_text(format!("{:?}", local.selected))
+                .show_ui(ui, |ui| {
+                    ui.selectable_value(
+                        &mut local.selected,
+                        Selected::CurveClassic,
+                        "Curve Classic",
+                    );
+                    ui.selectable_value(&mut local.selected, Selected::CurveSlope, "Curve Slope");
+                    ui.selectable_value(&mut local.selected, Selected::Rayto, "Rayto");
+                    ui.selectable_value(&mut local.selected, Selected::Bank, "Bank");
+                    ui.selectable_value(&mut local.selected, Selected::Catenary, "Catenary");
+                    ui.selectable_value(&mut local.selected, Selected::Serpentine, "Serpentine");
+                });
+
+            ui.separator();
+            egui::ScrollArea::vertical().show(ui, |ui| {
+                match local.selected {
+                    Selected::CurveClassic => {
+                        curveopts::curveclassic_ui(ui, &mut local.curveclassic_args)
+                    }
+                    Selected::CurveSlope => {
+                        curveopts::curveslope_ui(ui, &mut local.curveslope_args)
+                    }
+                    Selected::Rayto => curveopts::rayto_ui(ui, &mut local.rayto_args),
+                    Selected::Bank => curveopts::bank_ui(ui, &mut local.bank_args),
+                    Selected::Catenary => curveopts::catenary_ui(ui, &mut local.catenary_args),
+                    Selected::Serpentine => {
+                        curveopts::serpentine_ui(ui, &mut local.serpentine_args)
+                    }
+                }
+
+                ui.add_space(8.0);
+
+                if ui
+                    .button("Reset")
+                    .on_hover_text("Reset the curve to default settings")
+                    .clicked()
+                {
+                    match local.selected {
+                        Selected::CurveClassic => {
+                            local.curveclassic_args = CurveClassicArgs::default()
+                        }
+                        Selected::CurveSlope => local.curveslope_args = CurveSlopeArgs::default(),
+                        Selected::Rayto => local.rayto_args = RaytoArgs::default(),
+                        Selected::Bank => local.bank_args = BankArgs::default(),
+                        Selected::Catenary => local.catenary_args = CatenaryArgs::default(),
+                        Selected::Serpentine => local.serpentine_args = SerpentineArgs::default(),
+                    }
+                };
+                ui.add_space(8.0);
+            });
+
+            ui.allocate_rect(ui.available_rect_before_wrap(), egui::Sense::hover());
+        })
+        .response
+        .rect
+        .width();
+
     occupied_screen_space.top = egui::TopBottomPanel::top("top_panel")
         .resizable(false)
         .show(ctx, |ui| {
@@ -86,6 +152,13 @@ pub fn ui(
                     };
                 });
                 ui.menu_button("View", |ui| {
+                    let min_walkspeed = cam_controller.min_walkspeed;
+                    let max_walkspeed = cam_controller.max_walkspeed;
+                    ui.add(egui::Slider::new(&mut cam_controller.walk_speed, min_walkspeed..=max_walkspeed)
+                        .text("Speed")
+                        .logarithmic(true)
+                        .show_value(false));
+                    cam_controller.run_speed = cam_controller.walk_speed * cam_controller.run_factor;
                     if ui.button("Reset Camera").clicked() {
                         *cam_transform =
                             Transform::from_xyz(256.0, 256.0, -384.0).looking_at(Vec3::ZERO, Vec3::Y);
@@ -151,70 +224,6 @@ pub fn ui(
                     ));
                 });
             });
-        })
-        .response
-        .rect
-        .width();
-
-    occupied_screen_space.right = egui::SidePanel::right("right_panel")
-        .resizable(false)
-        .exact_width(200.0)
-        .show(ctx, |ui| {
-            ui.add_space(8.0);
-            ui.label("Curve");
-            egui::ComboBox::from_id_salt("CurveSelect")
-                .selected_text(format!("{:?}", local.selected))
-                .show_ui(ui, |ui| {
-                    ui.selectable_value(
-                        &mut local.selected,
-                        Selected::CurveClassic,
-                        "Curve Classic",
-                    );
-                    ui.selectable_value(&mut local.selected, Selected::CurveSlope, "Curve Slope");
-                    ui.selectable_value(&mut local.selected, Selected::Rayto, "Rayto");
-                    ui.selectable_value(&mut local.selected, Selected::Bank, "Bank");
-                    ui.selectable_value(&mut local.selected, Selected::Catenary, "Catenary");
-                    ui.selectable_value(&mut local.selected, Selected::Serpentine, "Serpentine");
-                });
-
-            ui.separator();
-            egui::ScrollArea::vertical().show(ui, |ui| {
-                match local.selected {
-                    Selected::CurveClassic => {
-                        curveopts::curveclassic_ui(ui, &mut local.curveclassic_args)
-                    }
-                    Selected::CurveSlope => {
-                        curveopts::curveslope_ui(ui, &mut local.curveslope_args)
-                    }
-                    Selected::Rayto => curveopts::rayto_ui(ui, &mut local.rayto_args),
-                    Selected::Bank => curveopts::bank_ui(ui, &mut local.bank_args),
-                    Selected::Catenary => curveopts::catenary_ui(ui, &mut local.catenary_args),
-                    Selected::Serpentine => {
-                        curveopts::serpentine_ui(ui, &mut local.serpentine_args)
-                    }
-                }
-
-                ui.add_space(8.0);
-
-                if ui
-                    .button("Reset")
-                    .on_hover_text("Reset the curve to default settings")
-                    .clicked()
-                {
-                    match local.selected {
-                        Selected::CurveClassic => {
-                            local.curveclassic_args = CurveClassicArgs::default()
-                        }
-                        Selected::CurveSlope => local.curveslope_args = CurveSlopeArgs::default(),
-                        Selected::Rayto => local.rayto_args = RaytoArgs::default(),
-                        Selected::Bank => local.bank_args = BankArgs::default(),
-                        Selected::Catenary => local.catenary_args = CatenaryArgs::default(),
-                        Selected::Serpentine => local.serpentine_args = SerpentineArgs::default(),
-                    }
-                };
-            });
-
-            ui.allocate_rect(ui.available_rect_before_wrap(), egui::Sense::hover());
         })
         .response
         .rect

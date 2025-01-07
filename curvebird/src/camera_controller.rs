@@ -38,6 +38,9 @@ pub struct CameraController {
     pub pitch: f32,
     pub yaw: f32,
     pub velocity: Vec3,
+    pub min_walkspeed: f32,
+    pub max_walkspeed: f32,
+    pub run_factor: f32,
 }
 
 impl Default for CameraController {
@@ -55,13 +58,16 @@ impl Default for CameraController {
             key_run: KeyCode::ShiftLeft,
             mouse_key_cursor_grab: MouseButton::Right,
             keyboard_key_toggle_cursor_grab: KeyCode::KeyM,
-            walk_speed: 256.0,
-            run_speed: 512.0,
+            walk_speed: 250.0,
+            run_speed: 250.0 * 3.0,
             scroll_factor: 0.2,
             friction: 0.5,
             pitch: 0.0,
             yaw: 0.0,
             velocity: Vec3::ZERO,
+            min_walkspeed: 12.5,
+            max_walkspeed: 5000.0,
+            run_factor: 3.0,
         }
     }
 }
@@ -128,8 +134,10 @@ fn run_camera_controller(
             MouseScrollUnit::Pixel => accumulated_mouse_scroll.delta.y / 16.0,
         };
         controller.walk_speed += scroll * controller.scroll_factor * controller.walk_speed;
-        controller.walk_speed = controller.walk_speed.clamp(10.0, 1500.0);
-        controller.run_speed = controller.walk_speed * 3.0;
+        controller.walk_speed = controller
+            .walk_speed
+            .clamp(controller.min_walkspeed, controller.max_walkspeed);
+        controller.run_speed = controller.walk_speed * controller.run_factor;
     }
 
     // Handle key input
