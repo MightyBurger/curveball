@@ -5,9 +5,11 @@ use crate::brush::{
     BankArgs, CatenaryArgs, CurveClassicArgs, CurveSelect, CurveSlopeArgs, RaytoArgs,
     SerpentineArgs,
 };
+use crate::camera_controller::CameraController;
 use crate::MeshGen;
 
 use bevy::prelude::*;
+use bevy_egui::egui::menu;
 use bevy_egui::{egui, EguiContexts};
 use curveball::map::{QEntity, QMap, SimpleWorldspawn};
 
@@ -15,6 +17,7 @@ mod curveopts;
 
 #[derive(Default, Debug, Resource)]
 pub struct OccupiedScreenSpace {
+    top: f32,
     right: f32,
     bottom: f32,
 }
@@ -52,8 +55,50 @@ pub fn ui(
     mut curve_select: ResMut<CurveSelect>,
     mut local: Local<GuiData>,
     meshgen: Res<MeshGen>,
+    mut query: Query<(&mut Transform, &mut CameraController), With<Camera>>,
 ) {
+    let Ok((mut cam_transform, mut cam_controller)) = query.get_single_mut() else {
+        return;
+    };
+
     let ctx = contexts.ctx_mut();
+    occupied_screen_space.top = egui::TopBottomPanel::top("top_panel")
+        .resizable(false)
+        .show(ctx, |ui| {
+            menu::bar(ui, |ui| {
+                ui.menu_button("File", |ui| {
+                    let clipboard_text = "Copy map to clipboard";
+                    match &meshgen.0 {
+                        Some(Ok(brushes)) => {
+                            if ui.button(clipboard_text).on_hover_text("Copy the map to the clipboard. You can then paste the curve directly into your level in a program like Trenchbroom.").clicked() {
+                                let simple_worldspawn = SimpleWorldspawn::new(brushes.clone());
+                                let entity = QEntity::from(simple_worldspawn);
+                                let map = QMap::new(vec![entity]).with_tb_neverball_metadata();
+                                let mapstr = map.to_string();
+                                write_to_clipboard(mapstr);
+                                info!("Copied map to clipboard");
+                                ui.close_menu();
+                            };
+                        }
+                        _ => {
+                            ui.add_enabled_ui(false, |ui| ui.button(clipboard_text));
+                        }
+                    };
+                });
+                ui.menu_button("View", |ui| {
+                    if ui.button("Reset Camera").clicked() {
+                        *cam_transform =
+                            Transform::from_xyz(256.0, 256.0, -384.0).looking_at(Vec3::ZERO, Vec3::Y);
+                        *cam_controller = CameraController::default();
+                        ui.close_menu();
+                    }
+                });
+            });
+        })
+        .response
+        .rect
+        .width();
+
     occupied_screen_space.bottom = egui::TopBottomPanel::bottom("bottom_panel")
         .resizable(false)
         .show(ctx, |ui| {
@@ -116,25 +161,6 @@ pub fn ui(
         .exact_width(200.0)
         .show(ctx, |ui| {
             ui.add_space(8.0);
-            ui.label("Export map");
-            let clipboard_text = "Copy map to clipboard";
-            match &meshgen.0 {
-                Some(Ok(brushes)) => {
-                    if ui.button(clipboard_text).on_hover_text("Copy the map to the clipboard. You can then paste the curve directly into your level in a program like Trenchbroom.").clicked() {
-                        let simple_worldspawn = SimpleWorldspawn::new(brushes.clone());
-                        let entity = QEntity::from(simple_worldspawn);
-                        let map = QMap::new(vec![entity]).with_tb_neverball_metadata();
-                        let mapstr = map.to_string();
-                        write_to_clipboard(mapstr);
-                        info!("Copied map to clipboard");
-                    };
-                }
-                Some(Err(e)) => {
-                    ui.add_enabled_ui(false, |ui| ui.button(clipboard_text).on_hover_text(format!("An error is preventing the program from generating the curve.\n\n{e}")));
-                }
-                None => (),
-            };
-            ui.add_space(8.0);
             ui.label("Curve");
             egui::ComboBox::from_id_salt("CurveSelect")
                 .selected_text(format!("{:?}", local.selected))
@@ -144,19 +170,11 @@ pub fn ui(
                         Selected::CurveClassic,
                         "Curve Classic",
                     );
-                    ui.selectable_value(
-                        &mut local.selected,
-                        Selected::CurveSlope,
-                        "Curve Slope",
-                    );
+                    ui.selectable_value(&mut local.selected, Selected::CurveSlope, "Curve Slope");
                     ui.selectable_value(&mut local.selected, Selected::Rayto, "Rayto");
                     ui.selectable_value(&mut local.selected, Selected::Bank, "Bank");
                     ui.selectable_value(&mut local.selected, Selected::Catenary, "Catenary");
-                    ui.selectable_value(
-                        &mut local.selected,
-                        Selected::Serpentine,
-                        "Serpentine",
-                    );
+                    ui.selectable_value(&mut local.selected, Selected::Serpentine, "Serpentine");
                 });
 
             ui.separator();
