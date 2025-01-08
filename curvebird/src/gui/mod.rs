@@ -14,6 +14,8 @@ use bevy_egui::egui::{menu, Id};
 use bevy_egui::{egui, EguiContexts};
 use curveball::map::{QEntity, QMap, SimpleWorldspawn};
 
+use egui_extras::{Column, TableBuilder};
+
 mod curveopts;
 
 #[derive(Default, Debug, Resource)]
@@ -26,6 +28,7 @@ pub struct OccupiedScreenSpace {
 #[derive(Default, Resource, Debug)]
 pub struct GuiData {
     guide_open: bool,
+    guide_example: f32,
     selected: Selected,
     curveclassic_args: CurveClassicArgs,
     curveslope_args: CurveSlopeArgs,
@@ -257,13 +260,108 @@ pub fn ui(
     if local.guide_open {
         let modal = Modal::new(Id::new("Guide Modal")).show(ctx, |ui| {
             ui.heading("Controls");
-            ui.label("Here's some help.");
+            ui.add_space(4.0);
+            TableBuilder::new(ui)
+                .id_salt("ControlsTable")
+                .striped(true)
+                .column(Column::auto().resizable(false))
+                .column(Column::remainder())
+                .body(|mut body| {
+                    let row_len = 20.0;
+                    body.row(row_len, |mut row| {
+                        row.col(|ui| {
+                            ui.label("W, A, S, D");
+                        });
+                        row.col(|ui| {
+                            ui.label("Navigate");
+                        });
+                    });
+                    body.row(row_len, |mut row| {
+                        row.col(|ui| {
+                            ui.label("Q, E");
+                        });
+                        row.col(|ui| {
+                            ui.label("Move up and down");
+                        });
+                    });
+                    body.row(row_len, |mut row| {
+                        row.col(|ui| {
+                            ui.label("Right Click + Drag");
+                        });
+                        row.col(|ui| {
+                            ui.label("Look around");
+                        });
+                    });
+                    body.row(row_len, |mut row| {
+                        row.col(|ui| {
+                            ui.label("Scroll up/down");
+                        });
+                        row.col(|ui| {
+                            ui.label("Change camera speed when moving");
+                        });
+                    });
+                    body.row(row_len, |mut row| {
+                        row.col(|ui| {
+                            ui.label("Shift");
+                        });
+                        row.col(|ui| {
+                            ui.label("Hold to move faster");
+                        });
+                    });
+                    body.row(row_len, |mut row| {
+                        row.col(|ui| {
+                            ui.label("M");
+                        });
+                        row.col(|ui| {
+                            ui.label("Toggle grabbing the mouse");
+                        });
+                    });
+                });
+
+            ui.add_space(4.0);
+            ui.separator();
+
+            ui.heading("Making the curve");
+            ui.add_space(4.0);
+            ui.label("Click on a number, then type in a new number to change it.");
+            ui.label("You can also Left Click + Drag. Try it out!");
+            ui.add_space(4.0);
+            ui.horizontal(|ui| {
+                ui.add(
+                    egui::DragValue::new(&mut local.guide_example)
+                        .speed(0.1)
+                        .range(-100.0..=100.0),
+                )
+                .on_hover_text("Be careful, time traveler.");
+                ui.label("Squimble");
+            });
+
+            ui.add_space(8.0);
+            ui.separator();
+
+            ui.heading("Status bar");
+            ui.add_space(4.0);
+            ui.label("The status bar is at the bottom of the screen.");
+            ui.label("If your curve disappears, look there to see why.");
+
+            ui.add_space(8.0);
+            ui.separator();
+
+            ui.heading("Putting the curve in your level");
+            ui.add_space(4.0);
+            ui.label("Go to File ➡ Copy map to clipboard.");
+            ui.label("Then, inside Trenchbroom, press Ctrl + V to paste in your curve.");
         });
 
         if modal.should_close() {
             local.guide_open = false;
         }
     }
+    // ui.horizontal(|ui| {
+    //     ui.add(egui::DragValue::new(&mut args.ri1).speed(0.1))
+    //         .on_hover_text("ri1");
+    //     ui.label("Inner radius");
+    // });
 
     *curve_select = match local.selected {
         Selected::CurveClassic => CurveSelect::CurveClassic(local.curveclassic_args.clone()),
