@@ -5,7 +5,7 @@ edition = "2021"
 
 [dependencies]
 bevy = "0.15.0"
-bevy_egui = { version = "0.31.1", default-features = false, features = [ "arboard", "bevy_asset", "bevy_image", "bevy_render", "bytemuck", "default_fonts", "encase", "open_url", "render", "thread_local", "webbrowser", "wgpu-types" ] }
+bevy_egui = { version = "0.32.0", default-features = false, features = [ "arboard", "bevy_asset", "bevy_image", "bevy_render", "bytemuck", "default_fonts", "encase", "open_url", "render", "thread_local", "webbrowser", "wgpu-types" ] }
 copypasta = "0.10.1"
 curveball = { path = "../curveball" }
 futures-channel = "0.3.31"

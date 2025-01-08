@@ -9,7 +9,8 @@ use crate::camera_controller::CameraController;
 use crate::{GizmoSettings, MeshGen};
 
 use bevy::prelude::*;
-use bevy_egui::egui::menu;
+use bevy_egui::egui::containers::modal::Modal;
+use bevy_egui::egui::{menu, Id};
 use bevy_egui::{egui, EguiContexts};
 use curveball::map::{QEntity, QMap, SimpleWorldspawn};
 
@@ -24,6 +25,7 @@ pub struct OccupiedScreenSpace {
 
 #[derive(Default, Resource, Debug)]
 pub struct GuiData {
+    guide_open: bool,
     selected: Selected,
     curveclassic_args: CurveClassicArgs,
     curveslope_args: CurveSlopeArgs,
@@ -183,6 +185,12 @@ pub fn ui(
                             ui.close_menu();
                         }
                 });
+
+                ui.menu_button("Help", |ui| {
+                    if ui.button("Guide").clicked() {
+                        local.guide_open = true;
+                    }
+                });
             });
         })
         .response
@@ -245,6 +253,17 @@ pub fn ui(
         .response
         .rect
         .width();
+
+    if local.guide_open {
+        let modal = Modal::new(Id::new("Guide Modal")).show(ctx, |ui| {
+            ui.heading("Controls");
+            ui.label("Here's some help.");
+        });
+
+        if modal.should_close() {
+            local.guide_open = false;
+        }
+    }
 
     *curve_select = match local.selected {
         Selected::CurveClassic => CurveSelect::CurveClassic(local.curveclassic_args.clone()),
