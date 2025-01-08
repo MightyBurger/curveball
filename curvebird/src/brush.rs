@@ -101,10 +101,10 @@ impl Default for CurveSlopeArgs {
     fn default() -> Self {
         Self {
             n: 24,
-            ri0: 8.0,
-            ro0: 32.0,
-            ri1: 8.0,
-            ro1: 32.0,
+            ri0: 32.0,
+            ro0: 64.0,
+            ri1: 32.0,
+            ro1: 64.0,
             theta0: 0.0,
             theta1: 180.0,
             t: 8.0,
