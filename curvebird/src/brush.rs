@@ -16,6 +16,19 @@ use curveball::curve::{
 use curveball::map::{Brush, Side, SideGeom};
 use glam::DVec3;
 
+#[derive(Resource, Debug, Clone)]
+pub struct MeshDisplaySettings {
+    pub alternating_colors: bool,
+}
+
+impl Default for MeshDisplaySettings {
+    fn default() -> Self {
+        Self {
+            alternating_colors: true,
+        }
+    }
+}
+
 #[derive(Resource, Debug, Clone, PartialEq, PartialOrd)]
 pub enum CurveSelect {
     CurveClassic(CurveClassicArgs),
@@ -312,14 +325,15 @@ pub fn update_mesh(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut meshgen: ResMut<MeshGen>,
+    meshdisp: Res<MeshDisplaySettings>,
 ) {
     // Check if mesh actually needs to update
-    if !curve_select.is_changed() {
+    if !(curve_select.is_changed() || meshdisp.is_changed()) {
         return;
     }
 
     if let Some(prev) = previous.clone() {
-        if prev == *curve_select {
+        if prev == *curve_select && !meshdisp.is_changed() {
             return;
         }
     }
@@ -354,7 +368,19 @@ pub fn update_mesh(
                 base_color.alpha,
             ];
 
-            match brushes_to_mesh(&brushes, base_color) {
+            let scale = 0.8;
+            let other_color = if !meshdisp.alternating_colors {
+                base_color
+            } else {
+                [
+                    base_color[0] * scale,
+                    base_color[1] * scale,
+                    base_color[2] * scale,
+                    base_color[3],
+                ]
+            };
+
+            match brushes_to_mesh(&brushes, base_color, other_color) {
                 Ok(mesh) => {
                     let cube_mesh_handle: Handle<Mesh> = meshes.add(mesh);
                     *meshgen = MeshGen(Some(Ok(brushes)));
@@ -385,7 +411,8 @@ pub fn update_mesh(
 
 fn brushes_to_mesh<'a>(
     brushes: impl IntoIterator<Item = &'a Brush>,
-    base_color: [f32; 4],
+    color1: [f32; 4],
+    color2: [f32; 4],
 ) -> Result<Mesh, MeshGenError> {
     let mut vertices = Vec::new();
     let mut normals = Vec::new();
@@ -415,27 +442,22 @@ fn brushes_to_mesh<'a>(
                 z: p2.y,
             };
 
+            let Some(normal) = ((p0 - p1).cross(p2 - p1)).try_normalize() else {
+                warn!("Not displaying a face: {}", MeshGenError::NormalizeError);
+                continue;
+            };
+            let normal = [normal.x as f32, normal.y as f32, normal.z as f32];
+
             vertices.push([p0.x as f32, p0.y as f32, p0.z as f32]);
             vertices.push([p2.x as f32, p2.y as f32, p2.z as f32]);
             vertices.push([p1.x as f32, p1.y as f32, p1.z as f32]);
 
-            let Some(normal) = ((p0 - p1).cross(p2 - p1)).try_normalize() else {
-                return Err(MeshGenError::NormalizeError);
-            };
-            let normal = [normal.x as f32, normal.y as f32, normal.z as f32];
-
             normals.push(normal);
             normals.push(normal);
             normals.push(normal);
 
-            let scale = if i % 2 == 0 { 1.0 } else { 0.8 };
+            let color = if i % 2 == 0 { color1 } else { color2 };
 
-            let color = [
-                scale * base_color[0],
-                scale * base_color[1],
-                scale * base_color[2],
-                base_color[3],
-            ];
             colors.push(color);
             colors.push(color);
             colors.push(color);

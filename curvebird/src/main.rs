@@ -9,7 +9,7 @@ use bevy_egui::EguiPlugin;
 
 mod brush;
 mod gui;
-use brush::{update_mesh, CurveSelect};
+use brush::{update_mesh, CurveSelect, MeshDisplaySettings};
 use gui::{ui, OccupiedScreenSpace};
 mod camera_controller;
 use camera_controller::{CameraController, CameraControllerPlugin};
@@ -54,6 +54,8 @@ fn main() {
         .init_resource::<OccupiedScreenSpace>()
         .init_resource::<CurveSelect>()
         .init_resource::<MeshGen>()
+        .init_resource::<MeshDisplaySettings>()
+        .init_resource::<GizmoSettings>()
         .run();
 }
 
@@ -97,6 +99,17 @@ pub enum MeshGenError {
     NormalizeError,
 }
 
+#[derive(Resource, Debug, Clone)]
+pub struct GizmoSettings {
+    pub show: bool,
+}
+
+impl Default for GizmoSettings {
+    fn default() -> Self {
+        Self { show: true }
+    }
+}
+
 #[derive(Default, Reflect, GizmoConfigGroup)]
 struct GridMinor {}
 #[derive(Default, Reflect, GizmoConfigGroup)]
@@ -108,68 +121,71 @@ fn draw_gizmos(
     mut grid_minor: Gizmos<GridMinor>,
     mut grid_major: Gizmos<GridMajor>,
     mut axis: Gizmos<Axis>,
+    settings: Res<GizmoSettings>,
 ) {
-    const COUNT: u32 = 64;
-    const SPACING: f32 = 8.0;
-    const AXIS_LEN: f32 = COUNT as f32 * SPACING;
-    let grid_color = LinearRgba::gray(0.65);
+    if settings.show {
+        const COUNT: u32 = 64;
+        const SPACING: f32 = 8.0;
+        const AXIS_LEN: f32 = COUNT as f32 * SPACING;
+        let grid_color = LinearRgba::gray(0.65);
 
-    for i in (-(COUNT as i32)..=-1).chain(1..=(COUNT as i32)) {
-        if i % 4 == 0 {
-            grid_major.line(
-                Vec3::new(SPACING * i as f32, 0.0, AXIS_LEN),
-                Vec3::new(SPACING * i as f32, 0.0, -AXIS_LEN),
-                grid_color,
-            );
-            grid_major.line(
-                Vec3::new(AXIS_LEN, 0.0, SPACING * i as f32),
-                Vec3::new(-AXIS_LEN, 0.0, SPACING * i as f32),
-                grid_color,
-            );
-        } else {
-            grid_minor.line(
-                Vec3::new(SPACING * i as f32, 0.0, AXIS_LEN),
-                Vec3::new(SPACING * i as f32, 0.0, -AXIS_LEN),
-                grid_color,
-            );
-            grid_minor.line(
-                Vec3::new(AXIS_LEN, 0.0, SPACING * i as f32),
-                Vec3::new(-AXIS_LEN, 0.0, SPACING * i as f32),
-                grid_color,
-            );
+        for i in (-(COUNT as i32)..=-1).chain(1..=(COUNT as i32)) {
+            if i % 4 == 0 {
+                grid_major.line(
+                    Vec3::new(SPACING * i as f32, 0.0, AXIS_LEN),
+                    Vec3::new(SPACING * i as f32, 0.0, -AXIS_LEN),
+                    grid_color,
+                );
+                grid_major.line(
+                    Vec3::new(AXIS_LEN, 0.0, SPACING * i as f32),
+                    Vec3::new(-AXIS_LEN, 0.0, SPACING * i as f32),
+                    grid_color,
+                );
+            } else {
+                grid_minor.line(
+                    Vec3::new(SPACING * i as f32, 0.0, AXIS_LEN),
+                    Vec3::new(SPACING * i as f32, 0.0, -AXIS_LEN),
+                    grid_color,
+                );
+                grid_minor.line(
+                    Vec3::new(AXIS_LEN, 0.0, SPACING * i as f32),
+                    Vec3::new(-AXIS_LEN, 0.0, SPACING * i as f32),
+                    grid_color,
+                );
+            }
         }
+
+        // Trenchbroom axis, not Bevy axis.
+        const X_POINT_1: Vec3 = Vec3::new(AXIS_LEN, 0.0, 0.0);
+        const X_POINT_2: Vec3 = Vec3::new(-AXIS_LEN, 0.0, 0.0);
+        const X_COLOR: LinearRgba = LinearRgba {
+            red: 1.0,
+            green: 0.0,
+            blue: 0.0,
+            alpha: 1.0,
+        };
+        axis.line(X_POINT_1, X_POINT_2, X_COLOR);
+
+        const Y_POINT_1: Vec3 = Vec3::new(0.0, 0.0, AXIS_LEN);
+        const Y_POINT_2: Vec3 = Vec3::new(0.0, 0.0, -AXIS_LEN);
+        const Y_COLOR: LinearRgba = LinearRgba {
+            red: 0.0,
+            green: 1.0,
+            blue: 0.0,
+            alpha: 1.0,
+        };
+        axis.line(Y_POINT_1, Y_POINT_2, Y_COLOR);
+
+        const Z_POINT_1: Vec3 = Vec3::new(0.0, AXIS_LEN, 0.0);
+        const Z_POINT_2: Vec3 = Vec3::new(0.0, -AXIS_LEN, 0.0);
+        const Z_COLOR: LinearRgba = LinearRgba {
+            red: 0.0,
+            green: 0.0,
+            blue: 1.0,
+            alpha: 1.0,
+        };
+        axis.line(Z_POINT_1, Z_POINT_2, Z_COLOR);
     }
-
-    // Trenchbroom axis, not Bevy axis.
-    const X_POINT_1: Vec3 = Vec3::new(AXIS_LEN, 0.0, 0.0);
-    const X_POINT_2: Vec3 = Vec3::new(-AXIS_LEN, 0.0, 0.0);
-    const X_COLOR: LinearRgba = LinearRgba {
-        red: 1.0,
-        green: 0.0,
-        blue: 0.0,
-        alpha: 1.0,
-    };
-    axis.line(X_POINT_1, X_POINT_2, X_COLOR);
-
-    const Y_POINT_1: Vec3 = Vec3::new(0.0, 0.0, AXIS_LEN);
-    const Y_POINT_2: Vec3 = Vec3::new(0.0, 0.0, -AXIS_LEN);
-    const Y_COLOR: LinearRgba = LinearRgba {
-        red: 0.0,
-        green: 1.0,
-        blue: 0.0,
-        alpha: 1.0,
-    };
-    axis.line(Y_POINT_1, Y_POINT_2, Y_COLOR);
-
-    const Z_POINT_1: Vec3 = Vec3::new(0.0, AXIS_LEN, 0.0);
-    const Z_POINT_2: Vec3 = Vec3::new(0.0, -AXIS_LEN, 0.0);
-    const Z_COLOR: LinearRgba = LinearRgba {
-        red: 0.0,
-        green: 0.0,
-        blue: 1.0,
-        alpha: 1.0,
-    };
-    axis.line(Z_POINT_1, Z_POINT_2, Z_COLOR);
 }
 
 fn setup(mut commands: Commands, mut config_store: ResMut<GizmoConfigStore>) {

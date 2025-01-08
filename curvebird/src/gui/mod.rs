@@ -2,11 +2,11 @@
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
 use crate::brush::{
-    BankArgs, CatenaryArgs, CurveClassicArgs, CurveSelect, CurveSlopeArgs, RaytoArgs,
-    SerpentineArgs,
+    BankArgs, CatenaryArgs, CurveClassicArgs, CurveSelect, CurveSlopeArgs, MeshDisplaySettings,
+    RaytoArgs, SerpentineArgs,
 };
 use crate::camera_controller::CameraController;
-use crate::MeshGen;
+use crate::{GizmoSettings, MeshGen};
 
 use bevy::prelude::*;
 use bevy_egui::egui::menu;
@@ -55,7 +55,9 @@ pub fn ui(
     mut curve_select: ResMut<CurveSelect>,
     mut local: Local<GuiData>,
     meshgen: Res<MeshGen>,
+    mut meshdisp: ResMut<MeshDisplaySettings>,
     mut query: Query<(&mut Transform, &mut CameraController), With<Camera>>,
+    mut gizmo_settings: ResMut<GizmoSettings>,
 ) {
     let Ok((mut cam_transform, mut cam_controller)) = query.get_single_mut() else {
         return;
@@ -152,6 +154,19 @@ pub fn ui(
                     };
                 });
                 ui.menu_button("View", |ui| {
+
+                    ui
+                        .checkbox(&mut gizmo_settings.show, "Show grid")
+                        .on_hover_text("Show the grid and axis.");
+
+                    ui.separator();
+
+                    ui
+                        .checkbox(&mut meshdisp.alternating_colors, "Alternating colors")
+                        .on_hover_text("Shade every other brush in the curve a darker color.");
+
+                    ui.separator();
+
                     let min_walkspeed = cam_controller.min_walkspeed;
                     let max_walkspeed = cam_controller.max_walkspeed;
                     ui.add(egui::Slider::new(&mut cam_controller.walk_speed, min_walkspeed..=max_walkspeed)
@@ -159,12 +174,14 @@ pub fn ui(
                         .logarithmic(true)
                         .show_value(false));
                     cam_controller.run_speed = cam_controller.walk_speed * cam_controller.run_factor;
-                    if ui.button("Reset Camera").clicked() {
-                        *cam_transform =
-                            Transform::from_xyz(256.0, 256.0, -384.0).looking_at(Vec3::ZERO, Vec3::Y);
-                        *cam_controller = CameraController::default();
-                        ui.close_menu();
-                    }
+                    if ui.button("Reset camera")
+                        .on_hover_text("Reset the camera to its default location and speed.")
+                        .clicked() {
+                            *cam_transform =
+                                Transform::from_xyz(256.0, 256.0, -384.0).looking_at(Vec3::ZERO, Vec3::Y);
+                            *cam_controller = CameraController::default();
+                            ui.close_menu();
+                        }
                 });
             });
         })
