@@ -15,7 +15,7 @@ Curveball is a curve generator tool for [Neverball] level developers.
 This repository contains the Curveball curve generator and two programs to access it:
 
 - **curveball** - a graphical tool
-- **curveball-tty** - a command-line tool
+- **curveball-cli** - a command-line tool
 
 Curveball produces Quake3 map data you can copy and paste into a program like [Trenchbroom].
 
@@ -38,13 +38,13 @@ Curveball currently supports generating these curves:
 
 First, see if [Curveball on the Web] meets your needs.
 
-Both **curveball** and **curveball-tty** are hosted on [crates.io], so you can easily compile the latest release from source to install the software.
+Both **curveball** and **curveball-cli** are hosted on [crates.io], so you can easily compile the latest release from source to install the software.
 
 First, install [Rust](https://www.rust-lang.org/).
 
 To install **curveball**, run `cargo install curveball`.
 
-To install **curveball-tty**, run `cargo install curveball-tty`.
+To install **curveball-cli**, run `cargo install curveball-cli`.
 
 You can also use Cargo to install directly from this repository.
 
@@ -55,10 +55,10 @@ Curveball is written in Rust.
 This repository is a Cargo workspace with the following crates:
 
 - `curveball` - Binary crate; compiles to the GUI tool.
-- `curveball-tty` - Binary crate; compiles to the CLI tool.
+- `curveball-cli` - Binary crate; compiles to the CLI tool.
 - `curveball-lib` - Library crate containing functions to generate the various curves.
 
-This organization makes `curveball-tty` faster to compile since Cargo does not include all the dependencies of the GUI application.
+This organization makes `curveball-cli` faster to compile since Cargo does not include all the dependencies of the GUI application.
 
 ## Is it any good?
 
