@@ -2060,6 +2060,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "curveball-cli"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "colored",
+ "curveball-lib",
+]
+
+[[package]]
 name = "curveball-lib"
 version = "0.1.0"
 dependencies = [
@@ -2068,15 +2077,6 @@ dependencies = [
  "itertools 0.13.0",
  "lerp",
  "thiserror 2.0.9",
-]
-
-[[package]]
-name = "curveball-tty"
-version = "0.1.0"
-dependencies = [
- "clap",
- "colored",
- "curveball-lib",
 ]
 
 [[package]]

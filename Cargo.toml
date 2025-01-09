@@ -3,7 +3,7 @@ resolver = "2"
 
 members = [
     "curveball",
-    "curveball-tty",
+    "curveball-cli",
     "curveball-lib",
 ]
 
