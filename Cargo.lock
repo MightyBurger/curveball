@@ -2043,23 +2043,12 @@ checksum = "96a6ac251f4a2aca6b3f91340350eab87ae57c3f127ffeb585e92bd336717991"
 
 [[package]]
 name = "curveball"
-version = "0.1.0"
-dependencies = [
- "chull",
- "glam",
- "itertools 0.13.0",
- "lerp",
- "thiserror 2.0.9",
-]
-
-[[package]]
-name = "curvebird"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "bevy",
  "bevy_egui",
  "copypasta",
- "curveball",
+ "curveball-lib",
  "egui_extras",
  "futures-channel",
  "glam",
@@ -2071,12 +2060,23 @@ dependencies = [
 ]
 
 [[package]]
-name = "curvecat"
+name = "curveball-lib"
+version = "0.1.0"
+dependencies = [
+ "chull",
+ "glam",
+ "itertools 0.13.0",
+ "lerp",
+ "thiserror 2.0.9",
+]
+
+[[package]]
+name = "curveball-tty"
 version = "0.1.0"
 dependencies = [
  "clap",
  "colored",
- "curveball",
+ "curveball-lib",
 ]
 
 [[package]]

@@ -12,7 +12,7 @@ use bevy::prelude::*;
 use bevy_egui::egui::containers::modal::Modal;
 use bevy_egui::egui::{menu, Id};
 use bevy_egui::{egui, EguiContexts};
-use curveball::map::{QEntity, QMap, SimpleWorldspawn};
+use curveball_lib::map::{QEntity, QMap, SimpleWorldspawn};
 
 use egui_extras::{Column, TableBuilder};
 
@@ -29,6 +29,7 @@ pub struct OccupiedScreenSpace {
 pub struct GuiData {
     guide_open: bool,
     guide_example: f32,
+    about_open: bool,
     selected: Selected,
     curveclassic_args: CurveClassicArgs,
     curveslope_args: CurveSlopeArgs,
@@ -192,6 +193,9 @@ pub fn ui(
                 ui.menu_button("Help", |ui| {
                     if ui.button("Guide").clicked() {
                         local.guide_open = true;
+                    }
+                    if ui.button("About Curveball").clicked() {
+                        local.about_open = true;
                     }
                 });
             });
@@ -357,11 +361,30 @@ pub fn ui(
             local.guide_open = false;
         }
     }
-    // ui.horizontal(|ui| {
-    //     ui.add(egui::DragValue::new(&mut args.ri1).speed(0.1))
-    //         .on_hover_text("ri1");
-    //     ui.label("Inner radius");
-    // });
+
+    if local.about_open {
+        let modal = Modal::new(Id::new("About Modal")).show(ctx, |ui| {
+            let version = env!("CARGO_PKG_VERSION");
+            ui.heading(format!("Curveball"));
+            ui.label(format!("{version}"));
+            ui.add_space(12.0);
+            ui.label("Curveball is a curve generator for Neverball levels.");
+            ui.add_space(12.0);
+            ui.label("Curveball is written in Rust. Curveball uses Bevy and egui for the user interface.");
+            ui.add_space(12.0);
+            ui.label("Curveball is free to use. The source code is available under a permissive license. See the repository for more information.");
+            ui.add_space(12.0);
+            use egui::special_emojis::GITHUB;
+            ui.hyperlink_to(
+                format!("{GITHUB} Curveball on Github"),
+                "https://github.com/MightyBurger/curveball",
+            );
+        });
+
+        if modal.should_close() {
+            local.about_open = false;
+        }
+    }
 
     *curve_select = match local.selected {
         Selected::CurveClassic => CurveSelect::CurveClassic(local.curveclassic_args.clone()),

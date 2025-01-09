@@ -4,11 +4,11 @@
 use clap::{Args, Parser, Subcommand};
 use colored::Colorize;
 
-use curveball::curve::serpentine::SerpentineOffsetMode;
-use curveball::curve::{
+use curveball_lib::curve::serpentine::SerpentineOffsetMode;
+use curveball_lib::curve::{
     Bank, Catenary, Curve, CurveClassic, CurveResult, CurveSlope, Rayto, Serpentine,
 };
-use curveball::map::{Brush, QEntity, QMap, SimpleWorldspawn};
+use curveball_lib::map::{Brush, QEntity, QMap, SimpleWorldspawn};
 
 #[derive(Parser)]
 #[command(version, about, long_about = None)]

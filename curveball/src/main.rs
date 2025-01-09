@@ -14,8 +14,8 @@ use gui::{ui, OccupiedScreenSpace};
 mod camera_controller;
 use camera_controller::{CameraController, CameraControllerPlugin};
 
-use curveball::curve::CurveError;
-use curveball::map::Brush;
+use curveball_lib::curve::CurveError;
+use curveball_lib::map::Brush;
 use thiserror::Error;
 
 #[derive(Component)]
@@ -25,7 +25,7 @@ fn main() {
     App::new()
         .add_plugins(DefaultPlugins.set(WindowPlugin {
             primary_window: Some(Window {
-                title: "curvebird".to_string(),
+                title: "Curveball".to_string(),
                 canvas: Some("#bevy".to_string()),
                 fit_canvas_to_parent: true,
                 prevent_default_event_handling: true,
@@ -70,7 +70,7 @@ fn set_window_icon(
     // here we use the `image` crate to load our icon data from a png file
     // this is not a very bevy-native solution, but it will do
     let (icon_rgba, icon_width, icon_height) = {
-        let path = "curvebird/icon/icon256.png";
+        let path = "curveball/icon/icon256.png";
         let Ok(image) = image::open(path) else {
             warn!("Failed to open icon path {path}");
             return;

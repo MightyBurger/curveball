@@ -6,20 +6,20 @@ Curve generator for [Neverball] levels
 
 </div>
 
-Still in development! I'll publish sometime this week. Until then, don't trust this README.
+## Still in development! I'll publish soon... Until then, don't trust the README.
 
-![cuvebird logo](resources/curvebird.png)
+![cuveball logo](resources/curveball.png)
 
 Curveball is a curve generator tool for [Neverball] level developers.
 
 This repository contains the Curveball curve generator and two programs to access it:
 
-- **curvecat** - a command-line tool
-- **curvebird** - a graphical tool
+- **curveball** - a graphical tool
+- **curveball-tty** - a command-line tool
 
 Curveball produces Quake3 map data you can copy and paste into a program like [Trenchbroom].
 
-You can use [curvebird on the web]!
+You can use [Curveball on the Web]!
 
 ## Features
 
@@ -27,24 +27,26 @@ Curveball generates a wider variety of curves than what is possible with [curve.
 
 Curveball currently supports generating these curves:
 
-- Catenary
-- Bank
-- Rayto
-- Serpentine
+- curve-classic
+- curve-slope
+- catenary
+- bank
+- rayto
+- serpentine
 
 ## Local Installation
 
-First, see if [curvebird on the web] meets your needs.
+First, see if [Curveball on the Web] meets your needs.
 
-Both **curvecat** and **curvebird** are hosted on [crates.io], so you can easily compile the latest release from source to install the software.
+Both **curveball** and **curveball-tty** are hosted on [crates.io], so you can easily compile the latest release from source to install the software.
 
 First, install [Rust](https://www.rust-lang.org/).
 
 To install **curveball**, run `cargo install curveball`.
 
-To install **curvebird**, run `cargo install curvebird`.
+To install **curveball-tty**, run `cargo install curveball-tty`.
 
-If you'd like to make changes, clone the repository.
+You can also use Cargo to install directly from this repository.
 
 ## Project Structure
 
@@ -52,11 +54,11 @@ Curveball is written in Rust.
 
 This repository is a Cargo workspace with the following crates:
 
-- `curvecat` - Binary crate; compiles to the CLI tool.
-- `curvebird` - Binary crate; compiles to the GUI tool.
-- `curveball` - Library crate containing functions to generate various curves.
+- `curveball` - Binary crate; compiles to the GUI tool.
+- `curveball-tty` - Binary crate; compiles to the CLI tool.
+- `curveball-lib` - Library crate containing functions to generate the various curves.
 
-This organization makes `curvecat` faster to compile, since Cargo does not include all the dependencies of `curvebird`.
+This organization makes `curveball-tty` faster to compile since Cargo does not include all the dependencies of the GUI application.
 
 ## Is it any good?
 
@@ -71,14 +73,14 @@ Licensed under either of
 
 at your option.
 
-[crates.io]: https://crates.io/
-[curve.c]: https://github.com/Neverball/neverball/blob/master/contrib/curve.c
-[curvebird on the web]: https://www.google.com
-[Neverball]: https://neverball.org/
-[Trenchbroom]: https://trenchbroom.github.io/
-
 ### Notice
 
 Future versions may be released under a different license. [Neverball] is licensed under the terms of GPLv2, so if Curveball ever makes use of [Neverball] assets or code, it will need to be released under a GPL license, too.
 
 A license change will result in a major version bump.
+
+[crates.io]: https://crates.io/
+[curve.c]: https://github.com/Neverball/neverball/blob/master/contrib/curve.c
+[Curveball on the Web]: https://www.google.com
+[Neverball]: https://neverball.org/
+[Trenchbroom]: https://trenchbroom.github.io/
