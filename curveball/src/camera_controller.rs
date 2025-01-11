@@ -130,18 +130,6 @@ fn run_camera_controller(
         return;
     }
 
-    if *mouse_cursor_grab {
-        let scroll = match accumulated_mouse_scroll.unit {
-            MouseScrollUnit::Line => accumulated_mouse_scroll.delta.y,
-            MouseScrollUnit::Pixel => accumulated_mouse_scroll.delta.y / 16.0,
-        };
-        controller.walk_speed += scroll * controller.scroll_factor * controller.walk_speed;
-        controller.walk_speed = controller
-            .walk_speed
-            .clamp(controller.min_walkspeed, controller.max_walkspeed);
-        controller.run_speed = controller.walk_speed * controller.run_factor;
-    }
-
     // Handle key input
     let mut axis_input = Vec3::ZERO;
     if key_input.pressed(controller.key_forward) {
@@ -181,6 +169,19 @@ fn run_camera_controller(
         cursor_grab_change = true;
     }
     let cursor_grab = *mouse_cursor_grab || *toggle_cursor_grab;
+
+    // Cursor update
+    if cursor_grab {
+        let scroll = match accumulated_mouse_scroll.unit {
+            MouseScrollUnit::Line => accumulated_mouse_scroll.delta.y,
+            MouseScrollUnit::Pixel => accumulated_mouse_scroll.delta.y / 16.0,
+        };
+        controller.walk_speed += scroll * controller.scroll_factor * controller.walk_speed;
+        controller.walk_speed = controller
+            .walk_speed
+            .clamp(controller.min_walkspeed, controller.max_walkspeed);
+        controller.run_speed = controller.walk_speed * controller.run_factor;
+    }
 
     // Apply movement update
     if axis_input != Vec3::ZERO {
