@@ -31,6 +31,7 @@ pub struct CameraController {
     pub key_run: KeyCode,
     pub mouse_key_cursor_grab: MouseButton,
     pub keyboard_key_toggle_cursor_grab: KeyCode,
+    pub keyboard_key_escape_cursor_grab: KeyCode,
     pub walk_speed: f32,
     pub run_speed: f32,
     pub scroll_factor: f32,
@@ -58,6 +59,7 @@ impl Default for CameraController {
             key_run: KeyCode::ShiftLeft,
             mouse_key_cursor_grab: MouseButton::Right,
             keyboard_key_toggle_cursor_grab: KeyCode::KeyM,
+            keyboard_key_escape_cursor_grab: KeyCode::Escape,
             walk_speed: 250.0,
             run_speed: 250.0 * 3.0,
             scroll_factor: 0.2,
@@ -164,6 +166,10 @@ fn run_camera_controller(
     let mut cursor_grab_change = false;
     if key_input.just_pressed(controller.keyboard_key_toggle_cursor_grab) {
         *toggle_cursor_grab = !*toggle_cursor_grab;
+        cursor_grab_change = true;
+    }
+    if key_input.just_pressed(controller.keyboard_key_escape_cursor_grab) {
+        *toggle_cursor_grab = false;
         cursor_grab_change = true;
     }
     if mouse_button_input.just_pressed(controller.mouse_key_cursor_grab) {
