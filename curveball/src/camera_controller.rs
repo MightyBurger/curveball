@@ -192,7 +192,7 @@ fn run_camera_controller(
         };
         controller.velocity = axis_input.normalize() * max_speed;
     } else {
-        let friction = controller.friction.clamp(0.0, 1.0);
+        let friction = controller.friction;
         controller.velocity *= 1.0 - friction;
         if controller.velocity.length_squared() < 1e-6 {
             controller.velocity = Vec3::ZERO;
