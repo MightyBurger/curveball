@@ -71,7 +71,6 @@ pub fn curveslope_ui(ui: &mut Ui, args: &mut CurveSlopeArgs) {
         "Link inner and outer height",
     );
     ui.checkbox(&mut args.hill_link_inner_outer, "Link inner and outer hill");
-    ui.add_space(8.0);
 
     ui.separator();
 
@@ -117,7 +116,6 @@ pub fn curveslope_ui(ui: &mut Ui, args: &mut CurveSlopeArgs) {
             .on_hover_text("theta1");
         ui.label("End angle (deg)");
     });
-    ui.add_space(8.0);
 
     ui.separator();
 
@@ -138,8 +136,6 @@ pub fn curveslope_ui(ui: &mut Ui, args: &mut CurveSlopeArgs) {
                     .on_hover_text("height_inner_top_1");
                 ui.label("Height");
             });
-
-            ui.add_space(8.0);
 
             args.height_outer_top_0 = args.height_inner_top_0;
             args.height_inner_bot_0 = args.height_inner_top_0 - args.t_const_thickness;
@@ -177,8 +173,6 @@ pub fn curveslope_ui(ui: &mut Ui, args: &mut CurveSlopeArgs) {
                     .on_hover_text("height_outer_top_1");
                 ui.label("Outer height");
             });
-
-            ui.add_space(8.0);
 
             args.height_inner_bot_0 = args.height_inner_top_0 - args.t_const_thickness;
             args.height_outer_bot_0 = args.height_outer_top_0 - args.t_const_thickness;
@@ -266,8 +260,6 @@ pub fn curveslope_ui(ui: &mut Ui, args: &mut CurveSlopeArgs) {
             });
         }
     }
-
-    ui.add_space(8.0);
 
     ui.separator();
 
@@ -447,31 +439,17 @@ pub fn catenary_ui(ui: &mut Ui, args: &mut CatenaryArgs) {
         ui.label("Number of segments");
     });
     ui.add_space(8.0);
-    ui.label("Start position");
-    ui.horizontal(|ui| {
-        ui.add(egui::DragValue::new(&mut args.x0).speed(0.1))
-            .on_hover_text("x0");
-        ui.label("x");
-    });
-    ui.horizontal(|ui| {
-        ui.add(egui::DragValue::new(&mut args.z0).speed(0.1))
-            .on_hover_text("z0");
-        ui.label("z");
-    });
-    ui.add_space(8.0);
-    ui.label("End position");
-    ui.horizontal(|ui| {
-        ui.add(egui::DragValue::new(&mut args.x1).speed(0.1))
-            .on_hover_text("x1");
-        ui.label("x");
-    });
-    ui.horizontal(|ui| {
-        ui.add(egui::DragValue::new(&mut args.z1).speed(0.1))
-            .on_hover_text("z1");
-        ui.label("z");
-    });
-    ui.add_space(8.0);
     ui.label("Dimensions");
+    ui.horizontal(|ui| {
+        ui.add(egui::DragValue::new(&mut args.span).speed(0.1))
+            .on_hover_text("span");
+        ui.label("Span");
+    });
+    ui.horizontal(|ui| {
+        ui.add(egui::DragValue::new(&mut args.height).speed(0.1))
+            .on_hover_text("height");
+        ui.label("Height");
+    });
     ui.horizontal(|ui| {
         ui.add(egui::DragValue::new(&mut args.s).speed(0.1))
             .on_hover_text("s");

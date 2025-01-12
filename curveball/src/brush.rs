@@ -188,10 +188,8 @@ impl Default for BankArgs {
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub struct CatenaryArgs {
     pub n: u32,
-    pub x0: f64,
-    pub z0: f64,
-    pub x1: f64,
-    pub z1: f64,
+    pub span: f64,
+    pub height: f64,
     pub s: f64,
     pub w: f64,
     pub t: f64,
@@ -202,10 +200,8 @@ impl Default for CatenaryArgs {
     fn default() -> Self {
         Self {
             n: 24,
-            x0: 0.0,
-            z0: 0.0,
-            x1: 128.0,
-            z1: 0.0,
+            span: 128.0,
+            height: 0.0,
             s: 132.0,
             w: 32.0,
             t: 4.0,
@@ -295,10 +291,8 @@ impl CurveSelect {
             .bake()?,
             Self::Catenary(args) => Catenary {
                 n: args.n,
-                x0: args.x0,
-                z0: args.z0,
-                x1: args.x1,
-                z1: args.z1,
+                span: args.span,
+                height: args.height,
                 s: args.s,
                 w: args.w,
                 t: args.t,

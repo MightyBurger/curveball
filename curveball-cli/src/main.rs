@@ -142,14 +142,10 @@ struct BankArgs {
 struct CatenaryArgs {
     #[arg(long, help = "Number of segments")]
     n: u32,
-    #[arg(long, help = "Starting horizontal position of the curve")]
-    x0: f64,
-    #[arg(long, help = "Starting height of the curve")]
-    z0: f64,
     #[arg(long, help = "Ending horizontal position of the curve")]
-    x1: f64,
+    span: f64,
     #[arg(long, help = "Ending height of the curve")]
-    z1: f64,
+    height: f64,
     #[arg(long, help = "Length of the curve (i.e. how long your rope is)")]
     s: f64,
     #[arg(long, help = "Width of the curve")]
@@ -254,10 +250,8 @@ fn map(command: Commands) -> CurveResult<QMap> {
         .bake()?,
         Commands::Catenary(args) => Catenary {
             n: args.n,
-            x0: args.x0,
-            z0: args.z0,
-            x1: args.x1,
-            z1: args.z1,
+            span: args.span,
+            height: args.height,
             s: args.s,
             w: args.w,
             t: args.t,

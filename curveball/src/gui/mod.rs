@@ -109,7 +109,7 @@ pub fn ui(
                     }
                 }
 
-                ui.add_space(8.0);
+                ui.separator();
 
                 if ui
                     .button("Reset")

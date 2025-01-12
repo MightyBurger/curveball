@@ -9,10 +9,8 @@ use thiserror::Error;
 #[derive(Debug, Default, Clone)]
 pub struct Catenary {
     pub n: u32,
-    pub x0: f64,
-    pub z0: f64,
-    pub x1: f64,
-    pub z1: f64,
+    pub span: f64,
+    pub height: f64,
     pub s: f64,
     pub w: f64,
     pub t: f64,
@@ -29,8 +27,8 @@ impl Curve for Catenary {
         }
 
         // get delta values
-        let v = self.z1 - self.z0;
-        let h = self.x1 - self.x0;
+        let v = self.height;
+        let h = self.span;
 
         let initial_guess = match self.initial_guess {
             Some(guess) => guess,
@@ -40,7 +38,7 @@ impl Curve for Catenary {
             }
         };
 
-        let min_s = f64::sqrt(f64::powi(self.z1 - self.z0, 2) + f64::powi(self.x1 - self.x0, 2));
+        let min_s = f64::sqrt(f64::powi(self.height, 2) + f64::powi(self.span, 2));
         if self.s <= min_s {
             return Err(CatenaryError::LengthTooShort {
                 given: self.s,
@@ -54,25 +52,25 @@ impl Curve for Catenary {
             v,
             h,
             self.s,
-            self.x0,
-            self.z0,
-            self.x1,
-            self.z1,
+            0.0,
+            0.0,
+            self.span,
+            self.height,
             initial_guess,
         )?;
 
         // Find the other catenary parameters. Thankfully these aren't as bad.
-        let k: f64 = self.x0 + 0.5 * (h - a * f64::ln((self.s + v) / (self.s - v)));
-        let c: f64 = self.z0 - a * f64::cosh((self.x0 - k) / a);
+        let k: f64 = 0.5 * (h - a * f64::ln((self.s + v) / (self.s - v)));
+        let c: f64 = -a * f64::cosh((-k) / a);
 
         // Split up into discrete segments.
-        let dx = (self.x1 - self.x0) / (self.n as f64);
+        let dx = self.span / (self.n as f64);
 
         for i in 0..self.n {
             // xs = x start, xe = x end
             // zs0/ze0 = z bottom, zs1/ze1 = z top
-            let xs = self.x0 + dx * (i as f64);
-            let xe = self.x0 + dx * (i as f64 + 1.0);
+            let xs = dx * (i as f64);
+            let xe = dx * (i as f64 + 1.0);
             let zs0 = catenary(xs, a, k, c) - self.t;
             let zs1 = catenary(xs, a, k, c);
             let ze0 = catenary(xe, a, k, c) - self.t;
