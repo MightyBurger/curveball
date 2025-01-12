@@ -81,6 +81,7 @@ pub struct CurveSlopeArgs {
     pub ro1: f64,
     pub theta0: f64,
     pub theta1: f64,
+    pub en_const_thickness: bool,
     pub t_const_thickness: f64,
     pub height_inner_top_0: f64,
     pub height_inner_bot_0: f64,
@@ -90,15 +91,13 @@ pub struct CurveSlopeArgs {
     pub height_inner_bot_1: f64,
     pub height_outer_top_1: f64,
     pub height_outer_bot_1: f64,
-    pub height_link_start_end: bool,
+    // pub height_link_start_end: bool, // TODO
     pub height_link_inner_outer: bool,
-    pub height_constant_thickness: bool,
     pub hill_inner_top: f64,
     pub hill_inner_bot: f64,
     pub hill_outer_top: f64,
     pub hill_outer_bot: f64,
     pub hill_link_inner_outer: bool,
-    pub hill_constant_thickness: bool,
 }
 
 impl Default for CurveSlopeArgs {
@@ -111,24 +110,23 @@ impl Default for CurveSlopeArgs {
             ro1: 64.0,
             theta0: 0.0,
             theta1: 180.0,
+            en_const_thickness: true,
             t_const_thickness: 8.0,
-            height_inner_top_0: 8.0,
+            height_inner_top_0: 0.0,
             height_inner_bot_0: 0.0,
-            height_outer_top_0: 8.0,
+            height_outer_top_0: 0.0,
             height_outer_bot_0: 0.0,
-            height_inner_top_1: 40.0,
-            height_inner_bot_1: 32.0,
-            height_outer_top_1: 40.0,
-            height_outer_bot_1: 32.0,
-            height_link_start_end: true,
+            height_inner_top_1: 32.0,
+            height_inner_bot_1: 24.0,
+            height_outer_top_1: 32.0,
+            height_outer_bot_1: 24.0,
+            // height_link_start_end: true, // TODO
             height_link_inner_outer: true,
-            height_constant_thickness: true,
             hill_inner_top: 0.0,
             hill_inner_bot: 0.0,
             hill_outer_top: 0.0,
             hill_outer_bot: 0.0,
             hill_link_inner_outer: true,
-            hill_constant_thickness: true,
         }
     }
 }
@@ -360,7 +358,7 @@ pub fn update_mesh(
             let base_color = match *curve_select {
                 CurveSelect::CurveClassic { .. } => tailwind::STONE_400,
                 CurveSelect::CurveSlope { .. } => tailwind::SLATE_400,
-                CurveSelect::Rayto { .. } => tailwind::ROSE_400,
+                CurveSelect::Rayto { .. } => tailwind::RED_400,
                 CurveSelect::Bank { .. } => tailwind::ORANGE_400,
                 CurveSelect::Catenary { .. } => tailwind::TEAL_400,
                 CurveSelect::Serpentine { .. } => tailwind::LIME_400,

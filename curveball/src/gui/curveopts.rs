@@ -58,6 +58,23 @@ pub fn curveclassic_ui(ui: &mut Ui, args: &mut CurveClassicArgs) {
 }
 
 pub fn curveslope_ui(ui: &mut Ui, args: &mut CurveSlopeArgs) {
+    ui.checkbox(&mut args.en_const_thickness, "Force constant thickness");
+    ui.horizontal(|ui| {
+        ui.add_enabled_ui(args.en_const_thickness, |ui| {
+            ui.add(egui::DragValue::new(&mut args.t_const_thickness).speed(0.1))
+                .on_hover_text("t_const_thickness");
+            ui.label("Thickness");
+        });
+    });
+    ui.checkbox(
+        &mut args.height_link_inner_outer,
+        "Link inner and outer height",
+    );
+    ui.checkbox(&mut args.hill_link_inner_outer, "Link inner and outer hill");
+    ui.add_space(8.0);
+
+    ui.separator();
+
     ui.label("Segments");
     ui.horizontal(|ui| {
         ui.add(egui::DragValue::new(&mut args.n).speed(0.1))
@@ -104,13 +121,7 @@ pub fn curveslope_ui(ui: &mut Ui, args: &mut CurveSlopeArgs) {
 
     ui.separator();
 
-    // ui.checkbox(&mut args.height_link_start_end, "Link start and end"); // TODO: implement
-    ui.checkbox(&mut args.height_link_inner_outer, "Link inner and outer");
-    ui.checkbox(&mut args.height_constant_thickness, "Constant thickness");
-
-    ui.add_space(8.0);
-
-    match (args.height_link_inner_outer, args.height_constant_thickness) {
+    match (args.height_link_inner_outer, args.en_const_thickness) {
         (true, true) => {
             ui.label("Start height");
             ui.horizontal(|ui| {
@@ -129,13 +140,6 @@ pub fn curveslope_ui(ui: &mut Ui, args: &mut CurveSlopeArgs) {
             });
 
             ui.add_space(8.0);
-
-            ui.label("Curve thickness");
-            ui.horizontal(|ui| {
-                ui.add(egui::DragValue::new(&mut args.t_const_thickness).speed(0.1))
-                    .on_hover_text("t_const_thickness");
-                ui.label("Thickness");
-            });
 
             args.height_outer_top_0 = args.height_inner_top_0;
             args.height_inner_bot_0 = args.height_inner_top_0 - args.t_const_thickness;
@@ -175,13 +179,6 @@ pub fn curveslope_ui(ui: &mut Ui, args: &mut CurveSlopeArgs) {
             });
 
             ui.add_space(8.0);
-
-            ui.label("Curve thickness");
-            ui.horizontal(|ui| {
-                ui.add(egui::DragValue::new(&mut args.t_const_thickness).speed(0.1))
-                    .on_hover_text("t_const_thickness");
-                ui.label("Thickness");
-            });
 
             args.height_inner_bot_0 = args.height_inner_top_0 - args.t_const_thickness;
             args.height_outer_bot_0 = args.height_outer_top_0 - args.t_const_thickness;
@@ -274,29 +271,72 @@ pub fn curveslope_ui(ui: &mut Ui, args: &mut CurveSlopeArgs) {
 
     ui.separator();
 
-    ui.label("Hills");
-    ui.horizontal(|ui| {
-        ui.add(egui::DragValue::new(&mut args.hill_inner_top).speed(0.1))
-            .on_hover_text("hill_inner_top");
-        ui.label("Inner hill, top");
-    });
-    ui.horizontal(|ui| {
-        ui.add(egui::DragValue::new(&mut args.hill_inner_bot).speed(0.1))
-            .on_hover_text("hill_inner_bot");
-        ui.label("Inner hill, bottom");
-    });
-    ui.horizontal(|ui| {
-        ui.add(egui::DragValue::new(&mut args.hill_outer_top).speed(0.1))
-            .on_hover_text("hill_outer_top");
-        ui.label("Outer hill, top");
-    });
-    ui.horizontal(|ui| {
-        ui.add(egui::DragValue::new(&mut args.hill_outer_bot).speed(0.1))
-            .on_hover_text("hill_outer_bot");
-        ui.label("Outer hill, bottom");
-    });
-    ui.checkbox(&mut args.hill_link_inner_outer, "Link inner and outer");
-    ui.checkbox(&mut args.hill_constant_thickness, "Constant thickness");
+    match (args.hill_link_inner_outer, args.en_const_thickness) {
+        (true, true) => {
+            ui.label("Hill");
+            ui.horizontal(|ui| {
+                ui.add(egui::DragValue::new(&mut args.hill_inner_top).speed(0.1))
+                    .on_hover_text("hill_inner_top");
+                ui.label("Hill");
+            });
+            args.hill_outer_top = args.hill_inner_top;
+            args.hill_inner_bot = args.hill_inner_top;
+            args.hill_outer_bot = args.hill_outer_top;
+        }
+        (false, true) => {
+            ui.label("Hills");
+            ui.horizontal(|ui| {
+                ui.add(egui::DragValue::new(&mut args.hill_inner_top).speed(0.1))
+                    .on_hover_text("hill_inner_top");
+                ui.label("Inner hill");
+            });
+            ui.horizontal(|ui| {
+                ui.add(egui::DragValue::new(&mut args.hill_outer_top).speed(0.1))
+                    .on_hover_text("hill_outer_top");
+                ui.label("Outer hill");
+            });
+            args.hill_inner_bot = args.hill_inner_top;
+            args.hill_outer_bot = args.hill_outer_top;
+        }
+        (true, false) => {
+            ui.label("Hills");
+            ui.horizontal(|ui| {
+                ui.add(egui::DragValue::new(&mut args.hill_inner_top).speed(0.1))
+                    .on_hover_text("hill_inner_top");
+                ui.label("Hill, top");
+            });
+            ui.horizontal(|ui| {
+                ui.add(egui::DragValue::new(&mut args.hill_inner_bot).speed(0.1))
+                    .on_hover_text("hill_inner_bot");
+                ui.label("Hill, bottom");
+            });
+            args.hill_outer_top = args.hill_inner_top;
+            args.hill_outer_bot = args.hill_inner_bot;
+        }
+        (false, false) => {
+            ui.label("Hills");
+            ui.horizontal(|ui| {
+                ui.add(egui::DragValue::new(&mut args.hill_inner_top).speed(0.1))
+                    .on_hover_text("hill_inner_top");
+                ui.label("Inner hill, top");
+            });
+            ui.horizontal(|ui| {
+                ui.add(egui::DragValue::new(&mut args.hill_inner_bot).speed(0.1))
+                    .on_hover_text("hill_inner_bot");
+                ui.label("Inner hill, bottom");
+            });
+            ui.horizontal(|ui| {
+                ui.add(egui::DragValue::new(&mut args.hill_outer_top).speed(0.1))
+                    .on_hover_text("hill_outer_top");
+                ui.label("Outer hill, top");
+            });
+            ui.horizontal(|ui| {
+                ui.add(egui::DragValue::new(&mut args.hill_outer_bot).speed(0.1))
+                    .on_hover_text("hill_outer_bot");
+                ui.label("Outer hill, bottom");
+            });
+        }
+    }
 }
 
 pub fn rayto_ui(ui: &mut Ui, args: &mut RaytoArgs) {
