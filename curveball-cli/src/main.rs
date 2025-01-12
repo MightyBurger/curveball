@@ -72,26 +72,22 @@ struct CurveSlopeArgs {
     theta0: f64,
     #[arg(long, help = "Ending angle (deg)")]
     theta1: f64,
-    #[arg(long, help = "Thickness")]
-    t: f64,
-    #[arg(long, help = "Slope")]
-    slope: f64,
-    #[arg(long, help = "Starting inner drop, top")]
-    drop_inner_top_0: f64,
-    #[arg(long, help = "Starting inner drop, bottom")]
-    drop_inner_bot_0: f64,
-    #[arg(long, help = "Starting outer drop, top")]
-    drop_outer_top_0: f64,
-    #[arg(long, help = "Starting outer drop, bottom")]
-    drop_outer_bot_0: f64,
-    #[arg(long, help = "Ending inner drop, top")]
-    drop_inner_top_1: f64,
-    #[arg(long, help = "Ending inner drop, bottom")]
-    drop_inner_bot_1: f64,
-    #[arg(long, help = "Ending outer drop, top")]
-    drop_outer_top_1: f64,
-    #[arg(long, help = "Ending outer drop, bottom")]
-    drop_outer_bot_1: f64,
+    #[arg(long, help = "Starting inner height, top")]
+    height_inner_top_0: f64,
+    #[arg(long, help = "Starting inner height, bottom")]
+    height_inner_bot_0: f64,
+    #[arg(long, help = "Starting outer height, top")]
+    height_outer_top_0: f64,
+    #[arg(long, help = "Starting outer height, bottom")]
+    height_outer_bot_0: f64,
+    #[arg(long, help = "Ending inner height, top")]
+    height_inner_top_1: f64,
+    #[arg(long, help = "Ending inner height, bottom")]
+    height_inner_bot_1: f64,
+    #[arg(long, help = "Ending outer height, top")]
+    height_outer_top_1: f64,
+    #[arg(long, help = "Ending outer height, bottom")]
+    height_outer_bot_1: f64,
     #[arg(long, help = "Inner hill, top")]
     hill_inner_top: f64,
     #[arg(long, help = "Inner hill, bottom")]
@@ -220,16 +216,14 @@ fn map(command: Commands) -> CurveResult<QMap> {
             ro1: args.ro1,
             theta0: args.theta0,
             theta1: args.theta1,
-            t: args.t,
-            slope: args.slope,
-            drop_inner_top_0: args.drop_inner_top_0,
-            drop_inner_bot_0: args.drop_inner_bot_0,
-            drop_outer_top_0: args.drop_outer_top_0,
-            drop_outer_bot_0: args.drop_outer_bot_0,
-            drop_inner_top_1: args.drop_inner_top_1,
-            drop_inner_bot_1: args.drop_inner_bot_1,
-            drop_outer_top_1: args.drop_outer_top_1,
-            drop_outer_bot_1: args.drop_outer_bot_1,
+            height_inner_top_0: args.height_inner_top_0,
+            height_inner_bot_0: args.height_inner_bot_0,
+            height_outer_top_0: args.height_outer_top_0,
+            height_outer_bot_0: args.height_outer_bot_0,
+            height_inner_top_1: args.height_inner_top_1,
+            height_inner_bot_1: args.height_inner_bot_1,
+            height_outer_top_1: args.height_outer_top_1,
+            height_outer_bot_1: args.height_outer_bot_1,
             hill_inner_top: args.hill_inner_top,
             hill_inner_bot: args.hill_inner_bot,
             hill_outer_top: args.hill_outer_top,

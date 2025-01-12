@@ -101,62 +101,179 @@ pub fn curveslope_ui(ui: &mut Ui, args: &mut CurveSlopeArgs) {
         ui.label("End angle (deg)");
     });
     ui.add_space(8.0);
-    ui.label("Heights");
-    ui.horizontal(|ui| {
-        ui.add(egui::DragValue::new(&mut args.t).speed(0.1))
-            .on_hover_text("t");
-        ui.label("Thickness");
-    });
-    ui.horizontal(|ui| {
-        ui.add(egui::DragValue::new(&mut args.slope).speed(0.1))
-            .on_hover_text("slope");
-        ui.label("Slope");
-    });
+
+    ui.separator();
+
+    // ui.checkbox(&mut args.height_link_start_end, "Link start and end"); // TODO: implement
+    ui.checkbox(&mut args.height_link_inner_outer, "Link inner and outer");
+    ui.checkbox(&mut args.height_constant_thickness, "Constant thickness");
+
     ui.add_space(8.0);
-    ui.label("Start drops");
-    ui.horizontal(|ui| {
-        ui.add(egui::DragValue::new(&mut args.drop_inner_top_0).speed(0.1))
-            .on_hover_text("drop_inner_top_0");
-        ui.label("Inner drop, top");
-    });
-    ui.horizontal(|ui| {
-        ui.add(egui::DragValue::new(&mut args.drop_inner_bot_0).speed(0.1))
-            .on_hover_text("drop_inner_bot_0");
-        ui.label("Inner drop, bottom");
-    });
-    ui.horizontal(|ui| {
-        ui.add(egui::DragValue::new(&mut args.drop_outer_top_0).speed(0.1))
-            .on_hover_text("drop_outer_top_0");
-        ui.label("Outer drop, top");
-    });
-    ui.horizontal(|ui| {
-        ui.add(egui::DragValue::new(&mut args.drop_outer_bot_0).speed(0.1))
-            .on_hover_text("drop_outer_bot_0");
-        ui.label("Outer drop, bottom");
-    });
+
+    match (args.height_link_inner_outer, args.height_constant_thickness) {
+        (true, true) => {
+            ui.label("Start height");
+            ui.horizontal(|ui| {
+                ui.add(egui::DragValue::new(&mut args.height_inner_top_0).speed(0.1))
+                    .on_hover_text("height_inner_top_0");
+                ui.label("Height");
+            });
+
+            ui.add_space(8.0);
+
+            ui.label("End height");
+            ui.horizontal(|ui| {
+                ui.add(egui::DragValue::new(&mut args.height_inner_top_1).speed(0.1))
+                    .on_hover_text("height_inner_top_1");
+                ui.label("Height");
+            });
+
+            ui.add_space(8.0);
+
+            ui.label("Curve thickness");
+            ui.horizontal(|ui| {
+                ui.add(egui::DragValue::new(&mut args.t_const_thickness).speed(0.1))
+                    .on_hover_text("t_const_thickness");
+                ui.label("Thickness");
+            });
+
+            args.height_outer_top_0 = args.height_inner_top_0;
+            args.height_inner_bot_0 = args.height_inner_top_0 - args.t_const_thickness;
+            args.height_outer_bot_0 = args.height_inner_bot_0;
+            args.height_outer_bot_0 = args.height_outer_top_0 - args.t_const_thickness;
+
+            args.height_outer_top_1 = args.height_inner_top_1;
+            args.height_inner_bot_1 = args.height_inner_top_1 - args.t_const_thickness;
+            args.height_outer_bot_1 = args.height_inner_bot_1;
+            args.height_outer_bot_1 = args.height_outer_top_1 - args.t_const_thickness;
+        }
+        (false, true) => {
+            ui.label("Start heights");
+            ui.horizontal(|ui| {
+                ui.add(egui::DragValue::new(&mut args.height_inner_top_0).speed(0.1))
+                    .on_hover_text("height_inner_top_0");
+                ui.label("Inner height");
+            });
+            ui.horizontal(|ui| {
+                ui.add(egui::DragValue::new(&mut args.height_outer_top_0).speed(0.1))
+                    .on_hover_text("height_outer_top_0");
+                ui.label("Outer height");
+            });
+
+            ui.add_space(8.0);
+
+            ui.label("End heights");
+            ui.horizontal(|ui| {
+                ui.add(egui::DragValue::new(&mut args.height_inner_top_1).speed(0.1))
+                    .on_hover_text("height_inner_top_1");
+                ui.label("Inner height");
+            });
+            ui.horizontal(|ui| {
+                ui.add(egui::DragValue::new(&mut args.height_outer_top_1).speed(0.1))
+                    .on_hover_text("height_outer_top_1");
+                ui.label("Outer height");
+            });
+
+            ui.add_space(8.0);
+
+            ui.label("Curve thickness");
+            ui.horizontal(|ui| {
+                ui.add(egui::DragValue::new(&mut args.t_const_thickness).speed(0.1))
+                    .on_hover_text("t_const_thickness");
+                ui.label("Thickness");
+            });
+
+            args.height_inner_bot_0 = args.height_inner_top_0 - args.t_const_thickness;
+            args.height_outer_bot_0 = args.height_outer_top_0 - args.t_const_thickness;
+            args.height_inner_bot_1 = args.height_inner_top_1 - args.t_const_thickness;
+            args.height_outer_bot_1 = args.height_outer_top_1 - args.t_const_thickness;
+        }
+
+        (true, false) => {
+            ui.label("Start heights");
+            ui.horizontal(|ui| {
+                ui.add(egui::DragValue::new(&mut args.height_inner_top_0).speed(0.1))
+                    .on_hover_text("height_inner_top_0");
+                ui.label("Height, top");
+            });
+            ui.horizontal(|ui| {
+                ui.add(egui::DragValue::new(&mut args.height_inner_bot_0).speed(0.1))
+                    .on_hover_text("height_inner_bot_0");
+                ui.label("Height, bottom");
+            });
+            args.height_outer_top_0 = args.height_inner_top_0;
+            args.height_outer_bot_0 = args.height_inner_bot_0;
+
+            ui.add_space(8.0);
+
+            ui.label("End heights");
+            ui.horizontal(|ui| {
+                ui.add(egui::DragValue::new(&mut args.height_inner_top_1).speed(0.1))
+                    .on_hover_text("height_inner_top_1");
+                ui.label("Height, top");
+            });
+            ui.horizontal(|ui| {
+                ui.add(egui::DragValue::new(&mut args.height_inner_bot_1).speed(0.1))
+                    .on_hover_text("height_inner_bot_1");
+                ui.label("Height, bottom");
+            });
+            args.height_outer_top_1 = args.height_inner_top_1;
+            args.height_outer_bot_1 = args.height_inner_bot_1;
+        }
+
+        (false, false) => {
+            ui.label("Start heights");
+            ui.horizontal(|ui| {
+                ui.add(egui::DragValue::new(&mut args.height_inner_top_0).speed(0.1))
+                    .on_hover_text("height_inner_top_0");
+                ui.label("Inner height, top");
+            });
+            ui.horizontal(|ui| {
+                ui.add(egui::DragValue::new(&mut args.height_inner_bot_0).speed(0.1))
+                    .on_hover_text("height_inner_bot_0");
+                ui.label("Inner height, bottom");
+            });
+            ui.horizontal(|ui| {
+                ui.add(egui::DragValue::new(&mut args.height_outer_top_0).speed(0.1))
+                    .on_hover_text("height_outer_top_0");
+                ui.label("Outer height, top");
+            });
+            ui.horizontal(|ui| {
+                ui.add(egui::DragValue::new(&mut args.height_outer_bot_0).speed(0.1))
+                    .on_hover_text("height_outer_bot_0");
+                ui.label("Outer height, bottom");
+            });
+
+            ui.add_space(8.0);
+
+            ui.label("End heights");
+            ui.horizontal(|ui| {
+                ui.add(egui::DragValue::new(&mut args.height_inner_top_1).speed(0.1))
+                    .on_hover_text("height_inner_top_1");
+                ui.label("Inner height, top");
+            });
+            ui.horizontal(|ui| {
+                ui.add(egui::DragValue::new(&mut args.height_inner_bot_1).speed(0.1))
+                    .on_hover_text("height_inner_bot_1");
+                ui.label("Inner height, bottom");
+            });
+            ui.horizontal(|ui| {
+                ui.add(egui::DragValue::new(&mut args.height_outer_top_1).speed(0.1))
+                    .on_hover_text("height_outer_top_1");
+                ui.label("Outer height, top");
+            });
+            ui.horizontal(|ui| {
+                ui.add(egui::DragValue::new(&mut args.height_outer_bot_1).speed(0.1))
+                    .on_hover_text("height_outer_bot_1");
+                ui.label("Outer height, bottom");
+            });
+        }
+    }
+
     ui.add_space(8.0);
-    ui.label("End drops");
-    ui.horizontal(|ui| {
-        ui.add(egui::DragValue::new(&mut args.drop_inner_top_1).speed(0.1))
-            .on_hover_text("drop_inner_top_1");
-        ui.label("Inner drop, top");
-    });
-    ui.horizontal(|ui| {
-        ui.add(egui::DragValue::new(&mut args.drop_inner_bot_1).speed(0.1))
-            .on_hover_text("drop_inner_bot_1");
-        ui.label("Inner drop, bottom");
-    });
-    ui.horizontal(|ui| {
-        ui.add(egui::DragValue::new(&mut args.drop_outer_top_1).speed(0.1))
-            .on_hover_text("drop_outer_top_1");
-        ui.label("Outer drop, top");
-    });
-    ui.horizontal(|ui| {
-        ui.add(egui::DragValue::new(&mut args.drop_outer_bot_1).speed(0.1))
-            .on_hover_text("drop_outer_bot_1");
-        ui.label("Outer drop, bottom");
-    });
-    ui.add_space(8.0);
+
+    ui.separator();
+
     ui.label("Hills");
     ui.horizontal(|ui| {
         ui.add(egui::DragValue::new(&mut args.hill_inner_top).speed(0.1))
@@ -178,6 +295,8 @@ pub fn curveslope_ui(ui: &mut Ui, args: &mut CurveSlopeArgs) {
             .on_hover_text("hill_outer_bot");
         ui.label("Outer hill, bottom");
     });
+    ui.checkbox(&mut args.hill_link_inner_outer, "Link inner and outer");
+    ui.checkbox(&mut args.hill_constant_thickness, "Constant thickness");
 }
 
 pub fn rayto_ui(ui: &mut Ui, args: &mut RaytoArgs) {

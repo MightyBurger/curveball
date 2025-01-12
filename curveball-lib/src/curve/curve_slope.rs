@@ -21,16 +21,14 @@ pub struct CurveSlope {
     pub ro1: f64,
     pub theta0: f64,
     pub theta1: f64,
-    pub t: f64,
-    pub slope: f64,
-    pub drop_inner_top_0: f64,
-    pub drop_inner_bot_0: f64,
-    pub drop_outer_top_0: f64,
-    pub drop_outer_bot_0: f64,
-    pub drop_inner_top_1: f64,
-    pub drop_inner_bot_1: f64,
-    pub drop_outer_top_1: f64,
-    pub drop_outer_bot_1: f64,
+    pub height_inner_top_0: f64,
+    pub height_inner_bot_0: f64,
+    pub height_outer_top_0: f64,
+    pub height_outer_bot_0: f64,
+    pub height_inner_top_1: f64,
+    pub height_inner_bot_1: f64,
+    pub height_outer_top_1: f64,
+    pub height_outer_bot_1: f64,
     pub hill_inner_top: f64,
     pub hill_inner_bot: f64,
     pub hill_outer_top: f64,
@@ -55,30 +53,28 @@ impl Curve for CurveSlope {
         let ri_iter = self.ri0.lerp_iter_closed(self.ri1, n_iter);
         let ro_iter = self.ro0.lerp_iter_closed(self.ro1, n_iter);
         let theta_iter = self.theta0.lerp_iter_closed(self.theta1, n_iter);
-        let slope_iter = 0.0.lerp_iter_closed(self.slope, n_iter);
-        let drop_inner_top_iter = self
-            .drop_inner_top_0
-            .lerp_iter_closed(self.drop_inner_top_1, n_iter);
-        let drop_inner_bot_iter = self
-            .drop_inner_bot_0
-            .lerp_iter_closed(self.drop_inner_bot_1, n_iter);
-        let drop_outer_top_iter = self
-            .drop_outer_top_0
-            .lerp_iter_closed(self.drop_outer_top_1, n_iter);
-        let drop_outer_bot_iter = self
-            .drop_outer_bot_0
-            .lerp_iter_closed(self.drop_outer_bot_1, n_iter);
+        let height_inner_top_iter = self
+            .height_inner_top_0
+            .lerp_iter_closed(self.height_inner_top_1, n_iter);
+        let height_inner_bot_iter = self
+            .height_inner_bot_0
+            .lerp_iter_closed(self.height_inner_bot_1, n_iter);
+        let height_outer_top_iter = self
+            .height_outer_top_0
+            .lerp_iter_closed(self.height_outer_top_1, n_iter);
+        let height_outer_bot_iter = self
+            .height_outer_bot_0
+            .lerp_iter_closed(self.height_outer_bot_1, n_iter);
         let hill_iter = (-PI).lerp_iter_closed(PI, n_iter);
 
         izip!(
             ri_iter,
             ro_iter,
             theta_iter,
-            slope_iter,
-            drop_inner_top_iter,
-            drop_inner_bot_iter,
-            drop_outer_top_iter,
-            drop_outer_bot_iter,
+            height_inner_top_iter,
+            height_inner_bot_iter,
+            height_outer_top_iter,
+            height_outer_bot_iter,
             hill_iter
         )
         .map(
@@ -86,11 +82,10 @@ impl Curve for CurveSlope {
                 i_ri,
                 i_ro,
                 i_theta,
-                i_slope,
-                i_drop_inner_top,
-                i_drop_inner_bot,
-                i_drop_outer_top,
-                i_drop_outer_bot,
+                i_height_inner_top,
+                i_height_inner_bot,
+                i_height_outer_top,
+                i_height_outer_bot,
                 i_hill,
             )| {
                 let i_hill_inner_top = self.hill_inner_top * (1.0 + i_hill.cos()) / 2.0;
@@ -101,25 +96,25 @@ impl Curve for CurveSlope {
                 let p_ri_top = DVec3 {
                     x: i_ri * deg2rad(i_theta).cos(),
                     y: i_ri * deg2rad(i_theta).sin(),
-                    z: i_slope + self.t - i_drop_inner_top + i_hill_inner_top,
+                    z: i_height_inner_top + i_hill_inner_top,
                 };
 
                 let p_ri_bot = DVec3 {
                     x: i_ri * deg2rad(i_theta).cos(),
                     y: i_ri * deg2rad(i_theta).sin(),
-                    z: i_slope - i_drop_inner_bot + i_hill_inner_bot,
+                    z: i_height_inner_bot + i_hill_inner_bot,
                 };
 
                 let p_ro_top = DVec3 {
                     x: i_ro * deg2rad(i_theta).cos(),
                     y: i_ro * deg2rad(i_theta).sin(),
-                    z: i_slope + self.t - i_drop_outer_top + i_hill_outer_top,
+                    z: i_height_outer_top + i_hill_outer_top,
                 };
 
                 let p_ro_bot = DVec3 {
                     x: i_ro * deg2rad(i_theta).cos(),
                     y: i_ro * deg2rad(i_theta).sin(),
-                    z: i_slope - i_drop_outer_bot + i_hill_outer_bot,
+                    z: i_height_outer_bot + i_hill_outer_bot,
                 };
 
                 [p_ri_top, p_ri_bot, p_ro_top, p_ro_bot]

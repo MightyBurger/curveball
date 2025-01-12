@@ -73,7 +73,7 @@ pub fn ui(
 
     occupied_screen_space.right = egui::SidePanel::right("right_panel")
         .resizable(false)
-        .exact_width(200.0)
+        //.exact_width(200.0)
         .show(ctx, |ui| {
             ui.add_space(8.0);
             ui.label("Curve");
@@ -173,13 +173,13 @@ pub fn ui(
 
                     ui.separator();
 
-                    let min_walkspeed = cam_controller.min_walkspeed;
-                    let max_walkspeed = cam_controller.max_walkspeed;
+                    let min_walkspeed = cam_controller.settings.min_walkspeed;
+                    let max_walkspeed = cam_controller.settings.max_walkspeed;
                     ui.add(egui::Slider::new(&mut cam_controller.walk_speed, min_walkspeed..=max_walkspeed)
                         .text("Speed")
                         .logarithmic(true)
                         .show_value(false));
-                    cam_controller.run_speed = cam_controller.walk_speed * cam_controller.run_factor;
+                    cam_controller.run_speed = cam_controller.walk_speed * cam_controller.settings.run_factor;
                     if ui.button("Reset camera")
                         .on_hover_text("Reset the camera to its default location and speed.")
                         .clicked() {
@@ -314,7 +314,7 @@ pub fn ui(
                     });
                     body.row(row_len, |mut row| {
                         row.col(|ui| {
-                            ui.label("M");
+                            ui.label("C");
                         });
                         row.col(|ui| {
                             ui.label("Toggle grabbing the mouse");
