@@ -28,6 +28,7 @@ pub struct UiScreenState {
 
 #[derive(Default, Resource, Debug)]
 pub struct GuiData {
+    controls_open: bool,
     guide_open: bool,
     guide_example: f32,
     about_open: bool,
@@ -191,6 +192,9 @@ pub fn ui(
                 });
 
                 ui.menu_button("Help", |ui| {
+                    if ui.button("Controls").clicked() {
+                        local.controls_open = true;
+                    }
                     if ui.button("Guide").clicked() {
                         local.guide_open = true;
                     }
@@ -261,8 +265,8 @@ pub fn ui(
         .rect
         .height();
 
-    if local.guide_open {
-        let modal = Modal::new(Id::new("Guide Modal")).show(ctx, |ui| {
+    if local.controls_open {
+        let modal = Modal::new(Id::new("Controls Modal")).show(ctx, |ui| {
             ui.heading("Controls");
             ui.add_space(4.0);
             TableBuilder::new(ui)
@@ -337,10 +341,15 @@ pub fn ui(
                         });
                     });
                 });
+        });
 
-            ui.add_space(4.0);
-            ui.separator();
+        if modal.should_close() {
+            local.controls_open = false;
+        }
+    }
 
+    if local.guide_open {
+        let modal = Modal::new(Id::new("Guide Modal")).show(ctx, |ui| {
             ui.heading("Making the curve");
             ui.add_space(4.0);
             ui.label("Click on a number, then type in a new number to change it.");
