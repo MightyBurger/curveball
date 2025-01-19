@@ -1,8 +1,8 @@
 // Copyright 2025 Jordan Johnson
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
+use ansi_colors::ColouredStr;
 use clap::{Args, Parser, Subcommand};
-use colored::Colorize;
 
 use curveball_lib::curve::serpentine::SerpentineOffsetMode;
 use curveball_lib::curve::{
@@ -179,13 +179,19 @@ struct SerpentineArgs {
 fn main() {
     let cli = Cli::parse();
     let map = map(cli.command).unwrap_or_else(|err| {
-        eprintln!("{} {err}", "error:".red());
+        let mut err_str = ColouredStr::new("error:");
+        err_str.red();
+        err_str.bold();
+        eprintln!("{} {err}", err_str);
         std::process::exit(1);
     });
     match cli.file {
         None => println!("{}", map),
         Some(filename) => std::fs::write(filename, map.to_string()).unwrap_or_else(|err| {
-            eprintln!("{} {err}", "error:".red());
+            let mut err_str = ColouredStr::new("error:");
+            err_str.red();
+            err_str.bold();
+            eprintln!("{} {err}", err_str);
             std::process::exit(1);
         }),
     }
