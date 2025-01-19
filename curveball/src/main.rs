@@ -10,7 +10,8 @@ use bevy_egui::EguiPlugin;
 mod brush;
 mod gui;
 use brush::{update_mesh, CurveSelect, MeshDisplaySettings};
-use gui::{ui, OccupiedScreenSpace};
+use gui::egui_blocking_plugin::EguiBlockingPlugin;
+use gui::{ui, UiScreenState};
 mod camera_controller;
 use camera_controller::{CameraController, CameraControllerPlugin};
 
@@ -33,6 +34,7 @@ fn main() {
             }),
             ..default()
         }))
+        .add_plugins(EguiBlockingPlugin)
         .insert_resource(AmbientLight {
             color: Color::default(),
             brightness: 200.0,
@@ -51,7 +53,7 @@ fn main() {
         .add_systems(Update, draw_gizmos)
         .add_systems(Update, ui)
         .add_systems(Update, update_mesh)
-        .init_resource::<OccupiedScreenSpace>()
+        .init_resource::<UiScreenState>()
         .init_resource::<CurveSelect>()
         .init_resource::<MeshGen>()
         .init_resource::<MeshDisplaySettings>()

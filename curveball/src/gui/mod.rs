@@ -17,12 +17,13 @@ use curveball_lib::map::{QEntity, QMap, SimpleWorldspawn};
 use egui_extras::{Column, TableBuilder};
 
 mod curveopts;
+pub mod egui_blocking_plugin;
 
 #[derive(Default, Debug, Resource)]
-pub struct OccupiedScreenSpace {
-    top: f32,
-    right: f32,
-    bottom: f32,
+pub struct UiScreenState {
+    pub top_panel_height: f32,
+    pub right_panel_width: f32,
+    pub bottom_panel_height: f32,
 }
 
 #[derive(Default, Resource, Debug)]
@@ -57,7 +58,7 @@ impl Default for Selected {
 
 pub fn ui(
     mut contexts: EguiContexts,
-    mut occupied_screen_space: ResMut<OccupiedScreenSpace>,
+    mut ui_screen_state: ResMut<UiScreenState>,
     mut curve_select: ResMut<CurveSelect>,
     mut local: Local<GuiData>,
     meshgen: Res<MeshGen>,
@@ -71,7 +72,7 @@ pub fn ui(
 
     let ctx = contexts.ctx_mut();
 
-    occupied_screen_space.right = egui::SidePanel::right("right_panel")
+    ui_screen_state.right_panel_width = egui::SidePanel::right("right_panel")
         .resizable(false)
         //.exact_width(200.0)
         .show(ctx, |ui| {
@@ -136,7 +137,7 @@ pub fn ui(
         .rect
         .width();
 
-    occupied_screen_space.top = egui::TopBottomPanel::top("top_panel")
+    ui_screen_state.top_panel_height = egui::TopBottomPanel::top("top_panel")
         .resizable(false)
         .show(ctx, |ui| {
             menu::bar(ui, |ui| {
@@ -179,7 +180,6 @@ pub fn ui(
                         .text("Speed")
                         .logarithmic(true)
                         .show_value(false));
-                    cam_controller.run_speed = cam_controller.walk_speed * cam_controller.settings.run_factor;
                     if ui.button("Reset camera")
                         .on_hover_text("Reset the camera to its default location and speed.")
                         .clicked() {
@@ -202,9 +202,9 @@ pub fn ui(
         })
         .response
         .rect
-        .width();
+        .height();
 
-    occupied_screen_space.bottom = egui::TopBottomPanel::bottom("bottom_panel")
+    ui_screen_state.bottom_panel_height = egui::TopBottomPanel::bottom("bottom_panel")
         .resizable(false)
         .show(ctx, |ui| {
             ui.horizontal(|ui| {
@@ -259,7 +259,7 @@ pub fn ui(
         })
         .response
         .rect
-        .width();
+        .height();
 
     if local.guide_open {
         let modal = Modal::new(Id::new("Guide Modal")).show(ctx, |ui| {
@@ -268,24 +268,16 @@ pub fn ui(
             TableBuilder::new(ui)
                 .id_salt("ControlsTable")
                 .striped(true)
-                .column(Column::auto().resizable(false))
+                .column(Column::exact(120.0).resizable(false))
                 .column(Column::remainder())
                 .body(|mut body| {
                     let row_len = 20.0;
                     body.row(row_len, |mut row| {
                         row.col(|ui| {
-                            ui.label("W, A, S, D");
+                            ui.label("Left Click + Drag");
                         });
                         row.col(|ui| {
-                            ui.label("Navigate");
-                        });
-                    });
-                    body.row(row_len, |mut row| {
-                        row.col(|ui| {
-                            ui.label("Q, E");
-                        });
-                        row.col(|ui| {
-                            ui.label("Move up and down");
+                            ui.label("Orbit");
                         });
                     });
                     body.row(row_len, |mut row| {
@@ -298,10 +290,34 @@ pub fn ui(
                     });
                     body.row(row_len, |mut row| {
                         row.col(|ui| {
-                            ui.label("Scroll up/down");
+                            ui.label("Scroll");
                         });
                         row.col(|ui| {
-                            ui.label("Change camera speed when moving");
+                            ui.label("Zoom in/out");
+                        });
+                    });
+                    body.row(row_len, |mut row| {
+                        row.col(|ui| {
+                            ui.label("Scroll while moving");
+                        });
+                        row.col(|ui| {
+                            ui.label("Change movement speed");
+                        });
+                    });
+                    body.row(row_len, |mut row| {
+                        row.col(|ui| {
+                            ui.label("W, A, S, D");
+                        });
+                        row.col(|ui| {
+                            ui.label("Move around");
+                        });
+                    });
+                    body.row(row_len, |mut row| {
+                        row.col(|ui| {
+                            ui.label("Q, E");
+                        });
+                        row.col(|ui| {
+                            ui.label("Move up and down");
                         });
                     });
                     body.row(row_len, |mut row| {

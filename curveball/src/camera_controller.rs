@@ -3,9 +3,11 @@
 use bevy::{
     input::mouse::{AccumulatedMouseMotion, AccumulatedMouseScroll, MouseScrollUnit},
     prelude::*,
-    window::CursorGrabMode,
+    window::{CursorGrabMode, PrimaryWindow},
 };
 use std::{f32::consts::*, fmt};
+
+use crate::gui::egui_blocking_plugin::EguiBlockInputState;
 
 pub struct CameraControllerPlugin;
 
@@ -23,7 +25,6 @@ pub struct CameraController {
     pub initialized: bool,
     pub settings: CameraControllerSettings,
     pub walk_speed: f32,
-    pub run_speed: f32,
     pub pitch: f32,
     pub yaw: f32,
     pub velocity: Vec3,
@@ -36,7 +37,6 @@ impl Default for CameraController {
             initialized: false,
             settings: CameraControllerSettings::default(),
             walk_speed: 250.0,
-            run_speed: 250.0 * 3.0,
             pitch: 0.0,
             yaw: 0.0,
             velocity: Vec3::ZERO,
@@ -53,8 +53,8 @@ pub struct CameraControllerSettings {
     pub key_up: KeyCode,
     pub key_down: KeyCode,
     pub key_run: KeyCode,
-    pub key_orbit: KeyCode,
-    pub mouse_key_cursor_grab: MouseButton,
+    pub mouse_key_navigate: MouseButton,
+    pub mouse_key_orbit: MouseButton,
     pub keyboard_key_toggle_cursor_grab: KeyCode,
     pub keyboard_key_escape_cursor_grab: KeyCode,
     pub scroll_factor: f32,
@@ -62,6 +62,7 @@ pub struct CameraControllerSettings {
     pub min_walkspeed: f32,
     pub max_walkspeed: f32,
     pub run_factor: f32,
+    pub zoom_speed: f32,
 }
 
 impl Default for CameraControllerSettings {
@@ -75,8 +76,8 @@ impl Default for CameraControllerSettings {
             key_up: KeyCode::KeyQ,
             key_down: KeyCode::KeyX,
             key_run: KeyCode::ShiftLeft,
-            key_orbit: KeyCode::AltLeft,
-            mouse_key_cursor_grab: MouseButton::Right,
+            mouse_key_navigate: MouseButton::Right,
+            mouse_key_orbit: MouseButton::Left,
             keyboard_key_toggle_cursor_grab: KeyCode::KeyC,
             keyboard_key_escape_cursor_grab: KeyCode::Escape,
             scroll_factor: 0.2,
@@ -84,6 +85,7 @@ impl Default for CameraControllerSettings {
             min_walkspeed: 12.5,
             max_walkspeed: 5000.0,
             run_factor: 3.0,
+            zoom_speed: 16.0,
         }
     }
 }
@@ -102,7 +104,7 @@ Freecam Controls:
     {:?} & {:?}\t- Fly sideways left & right
     {:?} & {:?}\t- Fly up & down
     {:?}\t- Fly faster while held",
-            self.settings.mouse_key_cursor_grab,
+            self.settings.mouse_key_navigate,
             self.settings.keyboard_key_toggle_cursor_grab,
             self.settings.key_forward,
             self.settings.key_back,
@@ -115,17 +117,25 @@ Freecam Controls:
     }
 }
 
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+enum CursorGrabState {
+    #[default]
+    NoGrab,
+    Orbit,
+    Navigate,
+}
+
 #[allow(clippy::too_many_arguments)]
 fn run_camera_controller(
     time: Res<Time>,
-    mut windows: Query<&mut Window>,
+    mut windows: Query<&mut Window, With<PrimaryWindow>>,
     accumulated_mouse_motion: Res<AccumulatedMouseMotion>,
     accumulated_mouse_scroll: Res<AccumulatedMouseScroll>,
     mouse_button_input: Res<ButtonInput<MouseButton>>,
     key_input: Res<ButtonInput<KeyCode>>,
-    mut toggle_cursor_grab: Local<bool>,
-    mut mouse_cursor_grab: Local<bool>,
+    mut cursor_grab_state: Local<CursorGrabState>,
     mut query: Query<(&mut Transform, &mut CameraController), With<Camera>>,
+    egui_block_input_state: Res<EguiBlockInputState>,
 ) {
     let dt = time.delta_secs();
 
@@ -144,64 +154,72 @@ fn run_camera_controller(
         return;
     }
 
-    // Handle key input
-    let mut axis_input = Vec3::ZERO;
-    if key_input.pressed(controller.settings.key_forward) {
-        axis_input.z += 1.0;
-    }
-    if key_input.pressed(controller.settings.key_back) {
-        axis_input.z -= 1.0;
-    }
-    if key_input.pressed(controller.settings.key_right) {
-        axis_input.x += 1.0;
-    }
-    if key_input.pressed(controller.settings.key_left) {
-        axis_input.x -= 1.0;
-    }
-    if key_input.pressed(controller.settings.key_up) {
-        axis_input.y += 1.0;
-    }
-    if key_input.pressed(controller.settings.key_down) {
-        axis_input.y -= 1.0;
-    }
+    let mut window = windows.single_mut();
 
-    let mut cursor_grab_change = false;
-    if key_input.just_pressed(controller.settings.keyboard_key_toggle_cursor_grab) {
-        *toggle_cursor_grab = !*toggle_cursor_grab;
-        cursor_grab_change = true;
-    }
-    if key_input.just_pressed(controller.settings.keyboard_key_escape_cursor_grab) {
-        *toggle_cursor_grab = false;
-        cursor_grab_change = true;
-    }
-    if mouse_button_input.just_pressed(controller.settings.mouse_key_cursor_grab) {
-        *mouse_cursor_grab = true;
-        cursor_grab_change = true;
-    }
-    if mouse_button_input.just_released(controller.settings.mouse_key_cursor_grab) {
-        *mouse_cursor_grab = false;
-        cursor_grab_change = true;
-    }
-    let cursor_grab = *mouse_cursor_grab || *toggle_cursor_grab;
-
-    // Cursor update
-    if cursor_grab {
-        let scroll = match accumulated_mouse_scroll.unit {
-            MouseScrollUnit::Line => accumulated_mouse_scroll.delta.y,
-            MouseScrollUnit::Pixel => accumulated_mouse_scroll.delta.y / 16.0,
+    // Determine grab state
+    let old_grab_state = *cursor_grab_state;
+    if !egui_block_input_state.wants_keyboard_input {
+        if key_input.just_pressed(controller.settings.keyboard_key_toggle_cursor_grab) {
+            *cursor_grab_state = match *cursor_grab_state {
+                CursorGrabState::NoGrab => CursorGrabState::Navigate,
+                CursorGrabState::Orbit => CursorGrabState::NoGrab,
+                CursorGrabState::Navigate => CursorGrabState::NoGrab,
+            }
         };
-        controller.walk_speed += scroll * controller.settings.scroll_factor * controller.walk_speed;
-        controller.walk_speed = controller.walk_speed.clamp(
-            controller.settings.min_walkspeed,
-            controller.settings.max_walkspeed,
-        );
-        controller.run_speed = controller.walk_speed * controller.settings.run_factor;
+        if key_input.just_pressed(controller.settings.keyboard_key_escape_cursor_grab) {
+            *cursor_grab_state = CursorGrabState::NoGrab;
+        }
+    }
+    if !egui_block_input_state.wants_pointer_input {
+        if mouse_button_input.just_pressed(controller.settings.mouse_key_navigate)
+            && !egui_block_input_state.wants_pointer_input
+        {
+            *cursor_grab_state = CursorGrabState::Navigate;
+        }
+        if mouse_button_input.just_pressed(controller.settings.mouse_key_orbit)
+            && !egui_block_input_state.wants_pointer_input
+        {
+            *cursor_grab_state = CursorGrabState::Orbit;
+        }
+    }
+    if mouse_button_input.just_released(controller.settings.mouse_key_navigate) {
+        *cursor_grab_state = CursorGrabState::NoGrab;
+    }
+    if mouse_button_input.just_released(controller.settings.mouse_key_orbit) {
+        *cursor_grab_state = CursorGrabState::NoGrab;
+    }
+    let cursor_grab_change = if *cursor_grab_state == old_grab_state {
+        false
+    } else {
+        true
+    };
+
+    // Keyboard navigation
+    let mut axis_input = Vec3::ZERO;
+    if !egui_block_input_state.wants_keyboard_input {
+        if key_input.pressed(controller.settings.key_forward) {
+            axis_input.z += 1.0;
+        }
+        if key_input.pressed(controller.settings.key_back) {
+            axis_input.z -= 1.0;
+        }
+        if key_input.pressed(controller.settings.key_right) {
+            axis_input.x += 1.0;
+        }
+        if key_input.pressed(controller.settings.key_left) {
+            axis_input.x -= 1.0;
+        }
+        if key_input.pressed(controller.settings.key_up) {
+            axis_input.y += 1.0;
+        }
+        if key_input.pressed(controller.settings.key_down) {
+            axis_input.y -= 1.0;
+        }
     }
 
-    // Apply movement update
     if axis_input != Vec3::ZERO {
         let max_speed = if key_input.pressed(controller.settings.key_run) {
-            controller.run_speed
+            controller.walk_speed * controller.settings.run_factor
         } else {
             controller.walk_speed
         };
@@ -219,19 +237,38 @@ fn run_camera_controller(
         + controller.velocity.y * dt * Vec3::Y
         + controller.velocity.z * dt * forward;
 
+    // Handle scroll
+    if !egui_block_input_state.wants_pointer_input {
+        let scroll = match accumulated_mouse_scroll.unit {
+            MouseScrollUnit::Line => accumulated_mouse_scroll.delta.y,
+            MouseScrollUnit::Pixel => accumulated_mouse_scroll.delta.y / 16.0,
+        };
+        match *cursor_grab_state {
+            CursorGrabState::NoGrab | CursorGrabState::Orbit => {
+                let forward = *transform.forward();
+                transform.translation += scroll * forward * controller.settings.zoom_speed;
+            }
+            CursorGrabState::Navigate => {
+                controller.walk_speed +=
+                    scroll * controller.settings.scroll_factor * controller.walk_speed;
+                controller.walk_speed = controller.walk_speed.clamp(
+                    controller.settings.min_walkspeed,
+                    controller.settings.max_walkspeed,
+                );
+            }
+        }
+    }
+
     // Handle cursor grab
     if cursor_grab_change {
-        if cursor_grab {
-            for mut window in &mut windows {
-                if !window.focused {
-                    continue;
+        match *cursor_grab_state {
+            CursorGrabState::Orbit | CursorGrabState::Navigate => {
+                if window.focused {
+                    window.cursor_options.grab_mode = CursorGrabMode::Locked;
+                    window.cursor_options.visible = false;
                 }
-
-                window.cursor_options.grab_mode = CursorGrabMode::Locked;
-                window.cursor_options.visible = false;
             }
-        } else {
-            for mut window in &mut windows {
+            CursorGrabState::NoGrab => {
                 window.cursor_options.grab_mode = CursorGrabMode::None;
                 window.cursor_options.visible = true;
             }
@@ -239,9 +276,24 @@ fn run_camera_controller(
     }
 
     // Handle mouse input
-    if cursor_grab {
-        if key_input.pressed(controller.settings.key_orbit) {
-            // Orbit
+    match *cursor_grab_state {
+        CursorGrabState::Navigate => {
+            if accumulated_mouse_motion.delta != Vec2::ZERO {
+                // Regular mechanics
+                // Apply look update
+                controller.pitch = (controller.pitch
+                    - accumulated_mouse_motion.delta.y
+                        * RADIANS_PER_DOT
+                        * controller.settings.sensitivity)
+                    .clamp(-PI / 2., PI / 2.);
+                controller.yaw -= accumulated_mouse_motion.delta.x
+                    * RADIANS_PER_DOT
+                    * controller.settings.sensitivity;
+                transform.rotation =
+                    Quat::from_euler(EulerRot::ZYX, 0.0, controller.yaw, controller.pitch);
+            }
+        }
+        CursorGrabState::Orbit => {
             if accumulated_mouse_motion.delta != Vec2::ZERO {
                 // Current position in spherical coordinates
                 let [r, mut theta, mut phi]: [f32; 3] =
@@ -261,20 +313,8 @@ fn run_camera_controller(
             let (yaw, pitch, _roll) = transform.rotation.to_euler(EulerRot::YXZ);
             controller.yaw = yaw;
             controller.pitch = pitch;
-        } else if accumulated_mouse_motion.delta != Vec2::ZERO {
-            // Regular mechanics
-            // Apply look update
-            controller.pitch = (controller.pitch
-                - accumulated_mouse_motion.delta.y
-                    * RADIANS_PER_DOT
-                    * controller.settings.sensitivity)
-                .clamp(-PI / 2., PI / 2.);
-            controller.yaw -= accumulated_mouse_motion.delta.x
-                * RADIANS_PER_DOT
-                * controller.settings.sensitivity;
-            transform.rotation =
-                Quat::from_euler(EulerRot::ZYX, 0.0, controller.yaw, controller.pitch);
         }
+        CursorGrabState::NoGrab => {}
     }
 }
 
