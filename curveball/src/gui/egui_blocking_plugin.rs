@@ -1,3 +1,6 @@
+// Copyright 2025 Jordan Johnson
+// SPDX-License-Identifier: Apache-2.0 OR MIT
+
 // Thanks to an anonymous Reddit user (they deleted their account) for this block of code to
 // work around a Bevy egui problem where clicks would register both for the UI and the
 // main screen. I've made a small change to avoid panics on program close.

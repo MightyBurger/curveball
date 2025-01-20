@@ -1,4 +1,7 @@
-// This example was copied-and-pasted from the Bevy example directory with minimal changes.
+// Copyright 2025 Jordan Johnson
+// SPDX-License-Identifier: Apache-2.0 OR MIT
+
+// Includes example code from Bevy
 
 use bevy::{
     input::mouse::{AccumulatedMouseMotion, AccumulatedMouseScroll, MouseScrollUnit},
