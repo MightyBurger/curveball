@@ -270,7 +270,7 @@ pub fn ui(
             ui.heading("Controls");
             ui.add_space(4.0);
             TableBuilder::new(ui)
-                .id_salt("ControlsTable")
+                .id_salt("MouseControlsTable")
                 .striped(true)
                 .column(Column::exact(120.0).resizable(false))
                 .column(Column::remainder())
@@ -278,7 +278,7 @@ pub fn ui(
                     let row_len = 20.0;
                     body.row(row_len, |mut row| {
                         row.col(|ui| {
-                            ui.label("Left Click + Drag");
+                            ui.label("Left click + Drag");
                         });
                         row.col(|ui| {
                             ui.label("Orbit");
@@ -286,7 +286,15 @@ pub fn ui(
                     });
                     body.row(row_len, |mut row| {
                         row.col(|ui| {
-                            ui.label("Right Click + Drag");
+                            ui.label("Middle click + Drag");
+                        });
+                        row.col(|ui| {
+                            ui.label("Pan");
+                        });
+                    });
+                    body.row(row_len, |mut row| {
+                        row.col(|ui| {
+                            ui.label("Right click + Drag");
                         });
                         row.col(|ui| {
                             ui.label("Look around");
@@ -297,7 +305,7 @@ pub fn ui(
                             ui.label("Scroll");
                         });
                         row.col(|ui| {
-                            ui.label("Zoom in/out");
+                            ui.label("Zoom");
                         });
                     });
                     body.row(row_len, |mut row| {
@@ -308,6 +316,16 @@ pub fn ui(
                             ui.label("Change movement speed");
                         });
                     });
+                });
+            ui.separator();
+            ui.add_space(4.0);
+            TableBuilder::new(ui)
+                .id_salt("KeyboardControlsTable")
+                .striped(true)
+                .column(Column::exact(120.0).resizable(false))
+                .column(Column::remainder())
+                .body(|mut body| {
+                    let row_len = 20.0;
                     body.row(row_len, |mut row| {
                         row.col(|ui| {
                             ui.label("W, A, S, D");
