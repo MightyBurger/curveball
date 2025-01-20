@@ -4,11 +4,11 @@
 
 Curve generator for [Neverball] levels
 
-</div>
-
 ![cuveball logo](resources/curveball.png)
 
 👉 [Click to run the web tool][Curveball on the Web] 👈
+
+</div>
 
 Curveball is a curve generator tool for [Neverball] level developers.
 
