@@ -7,7 +7,6 @@ use crate::brush::{
 };
 use crate::camera_controller::CameraController;
 use crate::{GizmoSettings, MeshGen};
-
 use bevy::prelude::*;
 use bevy_egui::egui::containers::modal::Modal;
 use bevy_egui::egui::{menu, Id};
@@ -278,15 +277,15 @@ pub fn ui(
                     let row_len = 20.0;
                     body.row(row_len, |mut row| {
                         row.col(|ui| {
-                            ui.label("Left click + Drag");
+                            ui.label("Left click");
                         });
                         row.col(|ui| {
-                            ui.label("Orbit");
+                            ui.label("Orbit around origin");
                         });
                     });
                     body.row(row_len, |mut row| {
                         row.col(|ui| {
-                            ui.label("Middle click + Drag");
+                            ui.label("Middle click");
                         });
                         row.col(|ui| {
                             ui.label("Pan");
@@ -294,10 +293,18 @@ pub fn ui(
                     });
                     body.row(row_len, |mut row| {
                         row.col(|ui| {
-                            ui.label("Right click + Drag");
+                            ui.label("Right click");
                         });
                         row.col(|ui| {
                             ui.label("Look around");
+                        });
+                    });
+                    body.row(row_len, |mut row| {
+                        row.col(|ui| {
+                            ui.label("Alt + Right click");
+                        });
+                        row.col(|ui| {
+                            ui.label("Orbit around point");
                         });
                     });
                     body.row(row_len, |mut row| {

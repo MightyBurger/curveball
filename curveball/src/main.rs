@@ -48,6 +48,7 @@ fn main() {
         .init_gizmo_group::<Axis>()
         .add_plugins(CameraControllerPlugin)
         .add_plugins(EguiPlugin)
+        .add_plugins(MeshPickingPlugin)
         .add_systems(Startup, setup)
         .add_systems(Startup, set_window_icon)
         .add_systems(Update, draw_gizmos)

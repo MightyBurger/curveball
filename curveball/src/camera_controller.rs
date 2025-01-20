@@ -5,6 +5,7 @@
 
 use bevy::{
     input::mouse::{AccumulatedMouseMotion, AccumulatedMouseScroll, MouseScrollUnit},
+    picking::pointer::PointerInteraction,
     prelude::*,
     window::{CursorGrabMode, PrimaryWindow},
 };
@@ -61,6 +62,7 @@ pub struct CameraControllerSettings {
     pub mouse_key_orbit: MouseButton,
     pub keyboard_key_toggle_cursor_grab: KeyCode,
     pub keyboard_key_escape_cursor_grab: KeyCode,
+    pub keyboard_key_orbit_modifier: KeyCode,
     pub scroll_factor: f32,
     pub friction: f32,
     pub min_walkspeed: f32,
@@ -85,6 +87,7 @@ impl Default for CameraControllerSettings {
             mouse_key_orbit: MouseButton::Left,
             keyboard_key_toggle_cursor_grab: KeyCode::KeyC,
             keyboard_key_escape_cursor_grab: KeyCode::Escape,
+            keyboard_key_orbit_modifier: KeyCode::AltLeft,
             scroll_factor: 0.2,
             friction: 0.5,
             min_walkspeed: 12.5,
@@ -122,11 +125,12 @@ Freecam Controls:
     }
 }
 
-#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Default, PartialEq)]
 enum CursorGrabState {
     #[default]
     NoGrab,
-    Orbit,
+    OrbitOrigin,
+    OrbitPoint(Vec3),
     Pan,
     Navigate,
 }
@@ -142,6 +146,8 @@ fn run_camera_controller(
     mut cursor_grab_state: Local<CursorGrabState>,
     mut query: Query<(&mut Transform, &mut CameraController), With<Camera>>,
     egui_block_input_state: Res<EguiBlockInputState>,
+    pointers: Query<&PointerInteraction>,
+    mut gizmos: Gizmos<DefaultGizmoConfigGroup>,
 ) {
     let dt = time.delta_secs();
 
@@ -168,9 +174,10 @@ fn run_camera_controller(
         if key_input.just_pressed(controller.settings.keyboard_key_toggle_cursor_grab) {
             *cursor_grab_state = match *cursor_grab_state {
                 CursorGrabState::NoGrab => CursorGrabState::Navigate,
-                CursorGrabState::Orbit | CursorGrabState::Pan | CursorGrabState::Navigate => {
-                    CursorGrabState::NoGrab
-                }
+                CursorGrabState::OrbitOrigin
+                | CursorGrabState::OrbitPoint(_)
+                | CursorGrabState::Pan
+                | CursorGrabState::Navigate => CursorGrabState::NoGrab,
             }
         };
         if key_input.just_pressed(controller.settings.keyboard_key_escape_cursor_grab) {
@@ -179,13 +186,32 @@ fn run_camera_controller(
     }
     if !egui_block_input_state.wants_pointer_input {
         if mouse_button_input.just_pressed(controller.settings.mouse_key_orbit) {
-            *cursor_grab_state = CursorGrabState::Orbit;
+            *cursor_grab_state = CursorGrabState::OrbitOrigin;
         }
         if mouse_button_input.just_pressed(controller.settings.mouse_key_pan) {
             *cursor_grab_state = CursorGrabState::Pan;
         }
         if mouse_button_input.just_pressed(controller.settings.mouse_key_navigate) {
-            *cursor_grab_state = CursorGrabState::Navigate;
+            // If we alt-right-click and are hovering over a valid point, go into Orbit Point.
+            // If not hovering over a valid point, don't do anything.
+            // Otherwise go into Pan.
+            if !egui_block_input_state.wants_keyboard_input
+                && key_input.pressed(controller.settings.keyboard_key_orbit_modifier)
+            {
+                if let Some((point, _normal)) = pointers
+                    .iter()
+                    .filter_map(|interaction| interaction.get_nearest_hit())
+                    .filter_map(|(_entity, hit)| hit.position.zip(hit.normal))
+                    .next()
+                {
+                    *cursor_grab_state = CursorGrabState::OrbitPoint(point);
+                } else {
+                    // Hey, you missed!
+                    *cursor_grab_state = CursorGrabState::NoGrab;
+                }
+            } else {
+                *cursor_grab_state = CursorGrabState::Navigate;
+            }
         }
     }
     if mouse_button_input.just_released(controller.settings.mouse_key_orbit) {
@@ -201,6 +227,18 @@ fn run_camera_controller(
         false
     } else {
         true
+    };
+
+    if let CursorGrabState::OrbitPoint(point) = *cursor_grab_state {
+        let dist = (point - transform.translation).length();
+        gizmos
+            .sphere(point, dist / 128.0, bevy::color::palettes::css::WHITE)
+            .resolution(64);
+        gizmos.cross(
+            Isometry3d::from_translation(point),
+            dist / 64.0,
+            bevy::color::palettes::css::WHITE,
+        )
     };
 
     // Keyboard navigation
@@ -253,7 +291,10 @@ fn run_camera_controller(
             MouseScrollUnit::Pixel => accumulated_mouse_scroll.delta.y / 16.0,
         };
         match *cursor_grab_state {
-            CursorGrabState::NoGrab | CursorGrabState::Orbit | CursorGrabState::Pan => {
+            CursorGrabState::NoGrab
+            | CursorGrabState::OrbitOrigin
+            | CursorGrabState::OrbitPoint(_)
+            | CursorGrabState::Pan => {
                 let forward = *transform.forward();
                 transform.translation += scroll * forward * controller.settings.zoom_speed;
             }
@@ -271,7 +312,10 @@ fn run_camera_controller(
     // Handle cursor grab
     if cursor_grab_change {
         match *cursor_grab_state {
-            CursorGrabState::Orbit | CursorGrabState::Pan | CursorGrabState::Navigate => {
+            CursorGrabState::OrbitOrigin
+            | CursorGrabState::OrbitPoint(_)
+            | CursorGrabState::Pan
+            | CursorGrabState::Navigate => {
                 if window.focused {
                     window.cursor_options.grab_mode = CursorGrabMode::Locked;
                     window.cursor_options.visible = false;
@@ -313,7 +357,7 @@ fn run_camera_controller(
                     + accumulated_mouse_motion.delta.y * up * controller.settings.sensitivity / 4.0;
             }
         }
-        CursorGrabState::Orbit => {
+        CursorGrabState::OrbitOrigin => {
             if accumulated_mouse_motion.delta != Vec2::ZERO {
                 // Current position in spherical coordinates
                 let [r, mut theta, mut phi]: [f32; 3] =
@@ -330,6 +374,27 @@ fn run_camera_controller(
                 transform.translation = spherical_to_cartesian(Vec3::new(r, theta, phi));
             }
             *transform = transform.looking_at(Vec3::ZERO, Vec3::Y);
+            let (yaw, pitch, _roll) = transform.rotation.to_euler(EulerRot::YXZ);
+            controller.yaw = yaw;
+            controller.pitch = pitch;
+        }
+        CursorGrabState::OrbitPoint(point) => {
+            if accumulated_mouse_motion.delta != Vec2::ZERO {
+                // Current position in spherical coordinates
+                let [r, mut theta, mut phi]: [f32; 3] =
+                    cartesian_to_spherical(transform.translation - point).into();
+                phi = phi
+                    + accumulated_mouse_motion.delta.x
+                        * RADIANS_PER_DOT
+                        * controller.settings.sensitivity;
+                theta = (theta
+                    - accumulated_mouse_motion.delta.y
+                        * RADIANS_PER_DOT
+                        * controller.settings.sensitivity)
+                    .clamp(0.000001, PI - 0.000001);
+                transform.translation = spherical_to_cartesian(Vec3::new(r, theta, phi)) + point;
+            }
+            *transform = transform.looking_at(point, Vec3::Y);
             let (yaw, pitch, _roll) = transform.rotation.to_euler(EulerRot::YXZ);
             controller.yaw = yaw;
             controller.pitch = pitch;
