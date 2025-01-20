@@ -6,9 +6,9 @@ Curve generator for [Neverball] levels
 
 </div>
 
-## Still in development! I'll publish soon... Until then, don't trust the README.
-
 ![cuveball logo](resources/curveball.png)
+
+👉 [Click to run the web tool][Curveball on the Web] 👈
 
 Curveball is a curve generator tool for [Neverball] level developers.
 
@@ -19,13 +19,11 @@ This repository contains the Curveball curve generator and two programs to acces
 
 Curveball produces Quake3 map data you can copy and paste into a program like [Trenchbroom].
 
-You can use [Curveball on the Web]!
-
 ## Features
 
 Curveball generates a wider variety of curves than what is possible with [curve.c].
 
-Curveball currently supports generating these curves:
+Curveball supports generating these curves:
 
 - curve-classic
 - curve-slope
@@ -34,19 +32,40 @@ Curveball currently supports generating these curves:
 - rayto
 - serpentine
 
-## Local Installation
+## Installation
 
 First, see if [Curveball on the Web] meets your needs.
 
-Both **curveball** and **curveball-cli** are hosted on [crates.io], so you can easily compile the latest release from source to install the software.
+For a local installation, consider downloading one of the releases in Github. Alternatively, you may
+compile from source.
+
+## Compiling
 
 First, install [Rust](https://www.rust-lang.org/).
 
-To install **curveball**, run `cargo install curveball`.
+Then, use [Cargo](https://doc.rust-lang.org/cargo/) to build the software.
 
-To install **curveball-cli**, run `cargo install curveball-cli`.
+For example, `cargo run --bin curveball --release` will compile and run **curveball** in release mode.
 
-You can also use Cargo to install directly from this repository.
+You may also use `cargo install` to install the software. See [here](https://doc.rust-lang.org/cargo/commands/cargo-install.html) for more information.
+
+## Compiling for distribution
+
+Building for distribution requires you to be set up for cross-compilation and compiling for the web. Dependencies include:
+
+- [just](https://github.com/casey/just) - a more convenient Makefile
+- [Trunk](https://trunkrs.dev/) - to create a website with WASM
+- [cross](https://github.com/cross-rs/cross) - for simple cross-compilation; requires Docker or Podman
+
+You will also need to add targets for `x86_64-unknown-linux-gnu` and `x86_64-pc-windows-gnu` with `rustup target add <TARGET>`.
+
+Distribution simply requires running the `justfile`:
+
+```
+just build-linux
+just build-windows
+just build-web
+```
 
 ## Project Structure
 
@@ -81,6 +100,6 @@ A license change will result in a major version bump.
 
 [crates.io]: https://crates.io/
 [curve.c]: https://github.com/Neverball/neverball/blob/master/contrib/curve.c
-[Curveball on the Web]: https://www.google.com
+[Curveball on the Web]: https://mightyburger.github.io/curveball-web/
 [Neverball]: https://neverball.org/
 [Trenchbroom]: https://trenchbroom.github.io/

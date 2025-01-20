@@ -31,7 +31,6 @@ pub struct GuiData {
     controls_open: bool,
     guide_open: bool,
     guide_example: f32,
-    licensing_open: bool,
     about_open: bool,
     selected: Selected,
     curveclassic_args: CurveClassicArgs,
@@ -406,25 +405,11 @@ pub fn ui(
                 "https://github.com/MightyBurger/curveball",
             );
             ui.add_space(12.0);
-            if ui.button("Legal notices").clicked() {
-                local.licensing_open = true;
-            }
-            ui.add_space(12.0);
             ui.label("Copyright © 2025 Jordan Johnson");
         });
 
         if modal.should_close() {
             local.about_open = false;
-        }
-    }
-
-    if local.licensing_open {
-        let modal = Modal::new(Id::new("Licensing Modal")).show(ctx, |ui| {
-            ui.heading(format!("To be determined"));
-        });
-
-        if modal.should_close() {
-            local.licensing_open = false;
         }
     }
 

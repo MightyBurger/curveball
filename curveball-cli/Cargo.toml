@@ -2,6 +2,7 @@
 name = "curveball-cli"
 version = "0.1.0"
 edition = "2021"
+publish = false
 
 [dependencies]
 ansi-colors = "0.3.0"

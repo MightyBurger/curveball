@@ -14,4 +14,6 @@ accepted = [
     "BSL-1.0",
 ]
 
-ignore-transitive-dependencies = true
+ignore-transitive-dependencies = false
+
+private = { ignore = true }
