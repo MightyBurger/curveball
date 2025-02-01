@@ -317,8 +317,8 @@ fn run_camera_controller(
             | CursorGrabState::Pan
             | CursorGrabState::Navigate => {
                 if window.focused {
-                    window.cursor_options.grab_mode = CursorGrabMode::Locked;
-                    window.cursor_options.visible = false;
+                    // window.cursor_options.grab_mode = CursorGrabMode::Locked;
+                    // window.cursor_options.visible = false;
                 }
             }
             CursorGrabState::NoGrab => {
