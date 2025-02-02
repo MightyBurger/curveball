@@ -84,11 +84,16 @@ where
                         let rmat = Mat3::from_cols(dirx.into(), diry.into(), dirz.into());
                         this_point = rmat
                             .mul_vec3(Vec3 {
-                                x: this_point.x as f32,
-                                y: this_point.y as f32,
-                                z: this_point.z as f32,
+                                x: (this_point.x - path_x) as f32,
+                                y: (this_point.y) as f32,
+                                z: (this_point.z - path_z) as f32,
                             })
                             .into();
+                        this_point = DVec3 {
+                            x: this_point.x + path_x,
+                            y: this_point.y,
+                            z: this_point.z + path_z,
+                        };
                     }
 
                     this_point
