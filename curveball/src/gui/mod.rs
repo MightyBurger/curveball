@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
 use crate::brush::{
-    BankArgs, CatenaryArgs, CurveClassicArgs, CurveSelect, CurveSlopeArgs, MeshDisplaySettings,
-    RaytoArgs, SerpentineArgs,
+    BankArgs, CatenaryArgs, CurveClassicArgs, CurveSelect, CurveSlopeArgs, ExtrusionArgs,
+    MeshDisplaySettings, RaytoArgs, SerpentineArgs,
 };
 use crate::camera_controller::CameraController;
 use crate::{GizmoSettings, MeshGen};
@@ -38,6 +38,7 @@ pub struct GuiData {
     bank_args: BankArgs,
     catenary_args: CatenaryArgs,
     serpentine_args: SerpentineArgs,
+    extrusion_args: ExtrusionArgs,
 }
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
@@ -48,6 +49,7 @@ pub enum Selected {
     Bank,
     Catenary,
     Serpentine,
+    Extrusion,
 }
 
 impl Default for Selected {
@@ -91,6 +93,7 @@ pub fn ui(
                     ui.selectable_value(&mut local.selected, Selected::Bank, "Bank");
                     ui.selectable_value(&mut local.selected, Selected::Catenary, "Catenary");
                     ui.selectable_value(&mut local.selected, Selected::Serpentine, "Serpentine");
+                    ui.selectable_value(&mut local.selected, Selected::Extrusion, "Extrusion");
                 });
 
             ui.separator();
@@ -108,6 +111,7 @@ pub fn ui(
                     Selected::Serpentine => {
                         curveopts::serpentine_ui(ui, &mut local.serpentine_args)
                     }
+                    Selected::Extrusion => curveopts::extrusion_ui(ui, &mut local.extrusion_args),
                 }
 
                 ui.separator();
@@ -126,6 +130,7 @@ pub fn ui(
                         Selected::Bank => local.bank_args = BankArgs::default(),
                         Selected::Catenary => local.catenary_args = CatenaryArgs::default(),
                         Selected::Serpentine => local.serpentine_args = SerpentineArgs::default(),
+                        Selected::Extrusion => local.extrusion_args = ExtrusionArgs::default(),
                     }
                 };
                 ui.add_space(8.0);
@@ -445,6 +450,7 @@ pub fn ui(
         Selected::Bank => CurveSelect::Bank(local.bank_args.clone()),
         Selected::Catenary => CurveSelect::Catenary(local.catenary_args.clone()),
         Selected::Serpentine => CurveSelect::Serpentine(local.serpentine_args.clone()),
+        Selected::Extrusion => CurveSelect::Extrusion(local.extrusion_args.clone()),
     };
 }
 

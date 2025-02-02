@@ -10,11 +10,11 @@ use bevy::{
 };
 
 use curveball_lib::curve::{
-    serpentine::SerpentineOffsetMode, Bank, Catenary, Curve, CurveClassic, CurveResult, CurveSlope,
-    Rayto, Serpentine,
+    extrude, serpentine::SerpentineOffsetMode, Bank, Catenary, Curve, CurveClassic, CurveResult,
+    CurveSlope, Rayto, Serpentine,
 };
 use curveball_lib::map::{Brush, Side, SideGeom};
-use glam::DVec3;
+use glam::{DVec2, DVec3};
 
 #[derive(Resource, Debug, Clone)]
 pub struct MeshDisplaySettings {
@@ -37,6 +37,7 @@ pub enum CurveSelect {
     Bank(BankArgs),
     Catenary(CatenaryArgs),
     Serpentine(SerpentineArgs),
+    Extrusion(ExtrusionArgs),
 }
 
 impl Default for CurveSelect {
@@ -231,6 +232,17 @@ impl Default for SerpentineArgs {
     }
 }
 
+#[derive(Debug, Clone, PartialEq, PartialOrd)]
+pub struct ExtrusionArgs {
+    pub n: u32,
+}
+
+impl Default for ExtrusionArgs {
+    fn default() -> Self {
+        Self { n: 24 }
+    }
+}
+
 impl CurveSelect {
     fn brushes(&self) -> CurveResult<Vec<Brush>> {
         let brushes = match self {
@@ -308,6 +320,18 @@ impl CurveSelect {
                 offset: SerpentineOffsetMode::Middle,
             }
             .bake()?,
+            Self::Extrusion(args) => extrude(
+                args.n,
+                [
+                    DVec2::from([16.0, 16.0]),
+                    DVec2::from([16.0, -16.0]),
+                    DVec2::from([-16.0, 16.0]),
+                    DVec2::from([-16.0, -16.0]),
+                ],
+                |t| DVec3::from([t, 0.0, 0.001 * t * t]),
+                -64.0,
+                64.0,
+            )?,
         };
         Ok(brushes)
     }
@@ -356,6 +380,7 @@ pub fn update_mesh(
                 CurveSelect::Bank { .. } => tailwind::ORANGE_400,
                 CurveSelect::Catenary { .. } => tailwind::TEAL_400,
                 CurveSelect::Serpentine { .. } => tailwind::LIME_400,
+                CurveSelect::Extrusion { .. } => tailwind::LIME_400,
             };
 
             let base_color: LinearRgba = base_color.into();

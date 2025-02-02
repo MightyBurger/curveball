@@ -22,7 +22,7 @@ use thiserror::Error;
 
 pub fn extrude<SI, PF>(
     n: u32,
-    sketch_xz: SI,
+    sketch_yz: SI,
     path_fn: PF,
     path_start: f64,
     path_end: f64,
@@ -37,6 +37,10 @@ where
     if n > 4096 {
         return Err(ExtrudeError::TooManySegments { n })?;
     }
+    // for point in sketch_xz.clone().into_iter() {
+    //     dbg!(point);
+    // }
+
     // Iterate over every point in the path.
     // Work on windows of two consecutive points along the path at a time.
     path_start
@@ -44,26 +48,26 @@ where
         .map(path_fn)
         .tuple_windows()
         .map(|(path_point1, path_point2)| {
-            let face1 = sketch_xz.clone().into_iter().map(
+            let face1 = sketch_yz.clone().into_iter().map(
                 |DVec2 {
-                     x: sketch_x,
+                     x: sketch_y,
                      y: sketch_z,
                  }| {
                     DVec3::from([
-                        sketch_x + path_point1.x,
-                        path_point1.y,
+                        path_point1.x,
+                        sketch_y + path_point1.y,
                         sketch_z + path_point1.z,
                     ])
                 },
             );
-            let face2 = sketch_xz.clone().into_iter().map(
+            let face2 = sketch_yz.clone().into_iter().map(
                 |DVec2 {
-                     x: sketch_x,
+                     x: sketch_y,
                      y: sketch_z,
                  }| {
                     DVec3::from([
-                        sketch_x + path_point2.x,
-                        path_point1.y,
+                        path_point2.x,
+                        sketch_y + path_point2.y,
                         sketch_z + path_point2.z,
                     ])
                 },

@@ -2,7 +2,8 @@ use bevy_egui::egui;
 use bevy_egui::egui::Ui;
 
 use crate::brush::{
-    BankArgs, CatenaryArgs, CurveClassicArgs, CurveSlopeArgs, RaytoArgs, SerpentineArgs,
+    BankArgs, CatenaryArgs, CurveClassicArgs, CurveSlopeArgs, ExtrusionArgs, RaytoArgs,
+    SerpentineArgs,
 };
 
 pub fn curveclassic_ui(ui: &mut Ui, args: &mut CurveClassicArgs) {
@@ -498,5 +499,14 @@ pub fn serpentine_ui(ui: &mut Ui, args: &mut SerpentineArgs) {
         ui.add(egui::DragValue::new(&mut args.t).speed(0.1))
             .on_hover_text("t");
         ui.label("Thickness");
+    });
+}
+
+pub fn extrusion_ui(ui: &mut Ui, args: &mut ExtrusionArgs) {
+    ui.label("Segments");
+    ui.horizontal(|ui| {
+        ui.add(egui::DragValue::new(&mut args.n).speed(0.1))
+            .on_hover_text("n");
+        ui.label("Number of segments");
     });
 }
