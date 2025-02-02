@@ -22,6 +22,9 @@ pub use catenary::{Catenary, CatenaryError};
 pub mod serpentine;
 pub use serpentine::{Serpentine, SerpentineError};
 
+pub mod extrude;
+pub use extrude::{extrude, ExtrudeError};
+
 const MAX_HULL_ITER: Option<usize> = Some(10_000);
 
 pub trait Curve {
@@ -44,6 +47,8 @@ pub enum CurveError {
     CatenaryError(#[from] CatenaryError),
     #[error("{0}")]
     SerpentineError(#[from] SerpentineError),
+    #[error("{0}")]
+    ExtrudeError(#[from] ExtrudeError),
 }
 
 pub type CurveResult<T> = Result<T, CurveError>;
