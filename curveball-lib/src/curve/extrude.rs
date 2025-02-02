@@ -46,33 +46,28 @@ where
     path_start
         .lerp_iter_closed(path_end, n as usize + 1)
         .map(path_fn)
+        .map(|path_point| {
+            let a: Vec<_> = sketch_yz
+                .clone()
+                .into_iter()
+                .map(
+                    |DVec2 {
+                         x: sketch_y,
+                         y: sketch_z,
+                     }| {
+                        DVec3::from([
+                            path_point.x,
+                            sketch_y + path_point.y,
+                            sketch_z + path_point.z,
+                        ])
+                    },
+                )
+                .collect();
+            a
+        })
         .tuple_windows()
-        .map(|(path_point1, path_point2)| {
-            let face1 = sketch_yz.clone().into_iter().map(
-                |DVec2 {
-                     x: sketch_y,
-                     y: sketch_z,
-                 }| {
-                    DVec3::from([
-                        path_point1.x,
-                        sketch_y + path_point1.y,
-                        sketch_z + path_point1.z,
-                    ])
-                },
-            );
-            let face2 = sketch_yz.clone().into_iter().map(
-                |DVec2 {
-                     x: sketch_y,
-                     y: sketch_z,
-                 }| {
-                    DVec3::from([
-                        path_point2.x,
-                        sketch_y + path_point2.y,
-                        sketch_z + path_point2.z,
-                    ])
-                },
-            );
-            let vertices: Vec<DVec3> = face1.chain(face2).collect();
+        .map(|(face1, face2)| {
+            let vertices: Vec<DVec3> = face1.into_iter().chain(face2.into_iter()).collect();
             Brush::try_from_vertices(&vertices, MAX_HULL_ITER)
         })
         .map(|brush_result| brush_result.map_err(CurveError::from))
