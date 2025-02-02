@@ -3,33 +3,42 @@
 
 use crate::curve::{CurveError, CurveResult, MAX_HULL_ITER};
 use crate::map::Brush;
-use glam::{DVec2, DVec3};
+use glam::{DVec2, DVec3, Mat3, Vec3};
 use itertools::Itertools;
 use lerp::LerpIter;
 use thiserror::Error;
 
-// #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-// pub enum ThicknessMode {
-//     Vertical,
-//     Orthogonal,
-// }
-//
-// impl Default for ThicknessMode {
-//     fn default() -> Self {
-//         Self::Vertical
-//     }
-// }
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ProfileOrientation {
+    Constant,
+    FollowPath,
+}
+
+impl Default for ProfileOrientation {
+    fn default() -> Self {
+        Self::Constant
+    }
+}
+
+fn dir_vec<PF>(path: PF, about: f64) -> DVec2
+where
+    PF: Fn(f64) -> DVec2,
+{
+    let h = 0.000001;
+    ((path(about + h) - path(about - h)) / (2.0 * h)).normalize()
+}
 
 pub fn extrude<SI, PF>(
     n: u32,
-    sketch_yz: SI,
-    path_fn: PF,
+    profile_2d: SI, // sketch in the YZ plane
+    path: PF,       // path in the XZ plane - why? it is more complex to do it outside a plane
     path_start: f64,
     path_end: f64,
+    profile_orientation: ProfileOrientation,
 ) -> CurveResult<Vec<Brush>>
 where
     SI: IntoIterator<Item = DVec2> + Clone,
-    PF: FnMut(f64) -> DVec3,
+    PF: Fn(f64) -> DVec2 + Clone,
 {
     if n < 1 {
         return Err(ExtrudeError::NotEnoughSegments { n })?;
@@ -37,33 +46,55 @@ where
     if n > 4096 {
         return Err(ExtrudeError::TooManySegments { n })?;
     }
-    // for point in sketch_xz.clone().into_iter() {
-    //     dbg!(point);
-    // }
 
     // Iterate over every point in the path.
     // Work on windows of two consecutive points along the path at a time.
     path_start
         .lerp_iter_closed(path_end, n as usize + 1)
-        .map(path_fn)
-        .map(|path_point| {
-            let a: Vec<_> = sketch_yz
+        .map(|t| {
+            let path_point = path(t);
+            let face: Vec<_> = profile_2d
                 .clone()
                 .into_iter()
-                .map(
-                    |DVec2 {
-                         x: sketch_y,
-                         y: sketch_z,
-                     }| {
-                        DVec3::from([
-                            path_point.x,
-                            sketch_y + path_point.y,
-                            sketch_z + path_point.z,
-                        ])
-                    },
-                )
+                .map(|profile_point| {
+                    let DVec2 {
+                        x: sketch_y,
+                        y: sketch_z,
+                    } = profile_point;
+                    let DVec2 {
+                        x: path_x,
+                        y: path_z,
+                    } = path_point;
+                    let mut this_point = DVec3::from([path_x, sketch_y, sketch_z + path_z]);
+
+                    // Apply an additional rotation step, if desired.
+                    if matches!(profile_orientation, ProfileOrientation::FollowPath) {
+                        let dirx_2d = dir_vec(path.clone(), t);
+                        let dirx = Vec3 {
+                            x: dirx_2d.x as f32,
+                            y: 0.0,
+                            z: dirx_2d.y as f32,
+                        };
+                        let diry = Vec3 {
+                            x: 0.0,
+                            y: 1.0,
+                            z: 0.0,
+                        };
+                        let dirz = dirx.cross(diry);
+                        let rmat = Mat3::from_cols(dirx.into(), diry.into(), dirz.into());
+                        this_point = rmat
+                            .mul_vec3(Vec3 {
+                                x: this_point.x as f32,
+                                y: this_point.y as f32,
+                                z: this_point.z as f32,
+                            })
+                            .into();
+                    }
+
+                    this_point
+                })
                 .collect();
-            a
+            face
         })
         .tuple_windows()
         .map(|(face1, face2)| {

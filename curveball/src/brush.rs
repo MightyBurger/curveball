@@ -328,9 +328,10 @@ impl CurveSelect {
                     DVec2::from([-16.0, 16.0]),
                     DVec2::from([-16.0, -16.0]),
                 ],
-                |t| DVec3::from([t, 0.0, 0.001 * t * t]),
+                |t| DVec2::from([t, 0.01 * t * t]),
                 -64.0,
                 64.0,
+                extrude::ProfileOrientation::FollowPath,
             )?,
         };
         Ok(brushes)
