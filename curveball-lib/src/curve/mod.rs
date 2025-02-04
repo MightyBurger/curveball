@@ -23,7 +23,7 @@ pub mod serpentine;
 pub use serpentine::{Serpentine, SerpentineError};
 
 pub mod extrude;
-pub use extrude::{extrude, ExtrudeError};
+pub use extrude::{extrude_plane_curve, ExtrudeError};
 
 const MAX_HULL_ITER: Option<usize> = Some(10_000);
 

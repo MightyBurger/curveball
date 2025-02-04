@@ -20,6 +20,12 @@ impl Default for ProfileOrientation {
     }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum PathPlane {
+    XZ,
+    XY,
+}
+
 fn dir_vec<PF>(path: PF, about: f64) -> DVec2
 where
     PF: Fn(f64) -> DVec2,
@@ -28,13 +34,14 @@ where
     ((path(about + h) - path(about - h)) / (2.0 * h)).normalize()
 }
 
-pub fn extrude<SI, PF>(
+pub fn extrude_plane_curve<SI, PF>(
     n: u32,
     profile_2d: SI, // sketch in the YZ plane
     path: PF,       // path in the XZ plane - why? it is more complex to do it outside a plane
     path_start: f64,
     path_end: f64,
     profile_orientation: ProfileOrientation,
+    path_plane: PathPlane,
 ) -> CurveResult<Vec<Brush>>
 where
     SI: IntoIterator<Item = DVec2> + Clone,
@@ -57,43 +64,88 @@ where
                 .clone()
                 .into_iter()
                 .map(|profile_point| {
-                    let DVec2 {
-                        x: sketch_y,
-                        y: sketch_z,
-                    } = profile_point;
-                    let DVec2 {
-                        x: path_x,
-                        y: path_z,
-                    } = path_point;
-                    let mut this_point = DVec3::from([path_x, sketch_y, sketch_z + path_z]);
+                    let mut this_point;
+                    match path_plane {
+                        PathPlane::XZ => {
+                            let DVec2 {
+                                x: sketch_y,
+                                y: sketch_z,
+                            } = profile_point;
+                            let DVec2 {
+                                x: path_x,
+                                y: path_z,
+                            } = path_point;
+                            this_point = DVec3::from([path_x, sketch_y, sketch_z + path_z]);
 
-                    // Apply an additional rotation step, if desired.
-                    if matches!(profile_orientation, ProfileOrientation::FollowPath) {
-                        let dirx_2d = dir_vec(path.clone(), t);
-                        let dirx = Vec3 {
-                            x: dirx_2d.x as f32,
-                            y: 0.0,
-                            z: dirx_2d.y as f32,
-                        };
-                        let diry = Vec3 {
-                            x: 0.0,
-                            y: 1.0,
-                            z: 0.0,
-                        };
-                        let dirz = dirx.cross(diry);
-                        let rmat = Mat3::from_cols(dirx.into(), diry.into(), dirz.into());
-                        this_point = rmat
-                            .mul_vec3(Vec3 {
-                                x: (this_point.x - path_x) as f32,
-                                y: (this_point.y) as f32,
-                                z: (this_point.z - path_z) as f32,
-                            })
-                            .into();
-                        this_point = DVec3 {
-                            x: this_point.x + path_x,
-                            y: this_point.y,
-                            z: this_point.z + path_z,
-                        };
+                            // Apply an additional rotation step, if desired.
+                            if matches!(profile_orientation, ProfileOrientation::FollowPath) {
+                                let dirx_2d = dir_vec(path.clone(), t);
+                                let dirx = Vec3 {
+                                    x: dirx_2d.x as f32,
+                                    y: 0.0,
+                                    z: dirx_2d.y as f32,
+                                };
+                                let diry = Vec3 {
+                                    x: 0.0,
+                                    y: 1.0,
+                                    z: 0.0,
+                                };
+                                let dirz = dirx.cross(diry);
+                                let rmat = Mat3::from_cols(dirx.into(), diry.into(), dirz.into());
+                                this_point = rmat
+                                    .mul_vec3(Vec3 {
+                                        x: (this_point.x - path_x) as f32,
+                                        y: (this_point.y) as f32,
+                                        z: (this_point.z - path_z) as f32,
+                                    })
+                                    .into();
+                                this_point = DVec3 {
+                                    x: this_point.x + path_x,
+                                    y: this_point.y,
+                                    z: this_point.z + path_z,
+                                };
+                            }
+                        }
+                        PathPlane::XY => {
+                            let DVec2 {
+                                x: sketch_y,
+                                y: sketch_z,
+                            } = profile_point;
+                            let DVec2 {
+                                x: path_x,
+                                y: path_y,
+                            } = path_point;
+                            this_point = DVec3::from([path_x, sketch_y + path_y, sketch_z]);
+
+                            // Apply an additional rotation step, if desired.
+                            if matches!(profile_orientation, ProfileOrientation::FollowPath) {
+                                let dirx_2d = dir_vec(path.clone(), t);
+                                let dirx = Vec3 {
+                                    x: dirx_2d.x as f32,
+                                    y: dirx_2d.y as f32,
+                                    z: 0.0,
+                                };
+                                let dirz = Vec3 {
+                                    x: 0.0,
+                                    y: 0.0,
+                                    z: 1.0,
+                                };
+                                let diry = dirz.cross(dirx);
+                                let rmat = Mat3::from_cols(dirx.into(), diry.into(), dirz.into());
+                                this_point = rmat
+                                    .mul_vec3(Vec3 {
+                                        x: (this_point.x - path_x) as f32,
+                                        y: (this_point.y - path_y) as f32,
+                                        z: (this_point.z) as f32,
+                                    })
+                                    .into();
+                                this_point = DVec3 {
+                                    x: this_point.x + path_x,
+                                    y: this_point.y + path_y,
+                                    z: this_point.z,
+                                };
+                            }
+                        }
                     }
 
                     this_point
