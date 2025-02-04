@@ -26,7 +26,7 @@ pub enum PathPlane {
     XY,
 }
 
-fn dir_vec<PF>(path: PF, about: f64) -> DVec2
+fn dir_vec<PF>(path: &PF, about: f64) -> DVec2
 where
     PF: Fn(f64) -> DVec2,
 {
@@ -45,7 +45,7 @@ pub fn extrude_plane_curve<SI, PF>(
 ) -> CurveResult<Vec<Brush>>
 where
     SI: IntoIterator<Item = DVec2> + Clone,
-    PF: Fn(f64) -> DVec2 + Clone,
+    PF: Fn(f64) -> DVec2,
 {
     if n < 1 {
         return Err(ExtrudeError::NotEnoughSegments { n })?;
@@ -79,7 +79,7 @@ where
 
                             // Apply an additional rotation step, if desired.
                             if matches!(profile_orientation, ProfileOrientation::FollowPath) {
-                                let dirx_2d = dir_vec(path.clone(), t);
+                                let dirx_2d = dir_vec(&path, t);
                                 let dirx = Vec3 {
                                     x: dirx_2d.x as f32,
                                     y: 0.0,
@@ -119,7 +119,7 @@ where
 
                             // Apply an additional rotation step, if desired.
                             if matches!(profile_orientation, ProfileOrientation::FollowPath) {
-                                let dirx_2d = dir_vec(path.clone(), t);
+                                let dirx_2d = dir_vec(&path, t);
                                 let dirx = Vec3 {
                                     x: dirx_2d.x as f32,
                                     y: dirx_2d.y as f32,
