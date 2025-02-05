@@ -8,6 +8,9 @@ use itertools::Itertools;
 use lerp::LerpIter;
 use thiserror::Error;
 
+pub mod path;
+pub mod profile;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ProfileOrientation {
     Constant,

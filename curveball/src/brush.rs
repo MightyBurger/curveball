@@ -10,8 +10,8 @@ use bevy::{
 };
 
 use curveball_lib::curve::{
-    extrude_plane_curve, serpentine::SerpentineOffsetMode, Bank, Catenary, Curve, CurveClassic,
-    CurveResult, CurveSlope, Rayto, Serpentine,
+    extrude::profile, extrude_plane_curve, serpentine::SerpentineOffsetMode, Bank, Catenary, Curve,
+    CurveClassic, CurveResult, CurveSlope, Rayto, Serpentine,
 };
 use curveball_lib::map::{Brush, Side, SideGeom};
 use glam::{DVec2, DVec3};
@@ -322,12 +322,7 @@ impl CurveSelect {
             .bake()?,
             Self::Extrusion(args) => extrude_plane_curve(
                 args.n,
-                [
-                    DVec2::from([16.0, 16.0]),
-                    DVec2::from([16.0, -16.0]),
-                    DVec2::from([-16.0, 16.0]),
-                    DVec2::from([-16.0, -16.0]),
-                ],
+                profile::circle(12, 16.0),
                 |t| DVec2::from([t, 0.01 * t * t]),
                 -64.0,
                 64.0,
