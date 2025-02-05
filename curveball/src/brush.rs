@@ -322,7 +322,7 @@ impl CurveSelect {
             .bake()?,
             Self::Extrusion(args) => extrude_plane_curve(
                 args.n,
-                profile::circle(12, 16.0),
+                profile::rectangle(48.0, 16.0, profile::RectangleAnchor::TopLeft),
                 |t| DVec2::from([t, 0.01 * t * t]),
                 -64.0,
                 64.0,
