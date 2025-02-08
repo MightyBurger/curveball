@@ -4,9 +4,13 @@
 use crate::curve::{Curve, CurveResult, MAX_HULL_ITER};
 use crate::map::geometry::Brush;
 use glam::DVec3;
+use itertools::Itertools;
+use lerp::LerpIter;
 use thiserror::Error;
 
 use std::f64::consts::PI;
+
+use super::CurveError;
 
 #[derive(Debug, Default, Clone)]
 pub struct Bank {
@@ -33,89 +37,45 @@ impl Curve for Bank {
             return Err(BankError::TooManySegments { n: self.n })?;
         }
 
-        let dtheta = (self.theta1 - self.theta0) / (self.n as f64);
+        self.theta0
+            .lerp_iter_closed(self.theta1, self.n as usize + 1)
+            .map(|dtheta| {
+                let pa = DVec3 {
+                    x: self.ro * f64::cos(deg2rad(dtheta)),
+                    y: self.ro * f64::sin(deg2rad(dtheta)),
+                    z: {
+                        if self.fill {
+                            -self.t
+                        } else {
+                            self.h - self.t
+                        }
+                    },
+                };
+                let pb = DVec3 {
+                    x: self.ri * f64::cos(deg2rad(dtheta)),
+                    y: self.ri * f64::sin(deg2rad(dtheta)),
+                    z: -self.t,
+                };
 
-        let mut brushes = Vec::new();
-
-        for i in 0..self.n {
-            // bounds for this differential segment
-            // s = start, e = end
-            // o = outer, i = inner
-            let thetas = self.theta0 + dtheta * (i as f64);
-            let thetae = self.theta0 + dtheta * (i as f64 + 1.0);
-
-            // points for this differential segment
-            // starting with pa at bottom going counter-clockwise,
-            // then moving up to pe and going counter-clockwise again,
-            // ending with ph
-
-            let pa = DVec3 {
-                x: self.ro * f64::cos(deg2rad(thetas)),
-                y: self.ro * f64::sin(deg2rad(thetas)),
-                z: {
-                    if self.fill {
-                        -self.t
-                    } else {
-                        self.h - self.t
-                    }
-                },
-            };
-
-            let pb = DVec3 {
-                x: self.ro * f64::cos(deg2rad(thetae)),
-                y: self.ro * f64::sin(deg2rad(thetae)),
-                z: {
-                    if self.fill {
-                        -self.t
-                    } else {
-                        self.h - self.t
-                    }
-                },
-            };
-
-            let pc = DVec3 {
-                x: self.ri * f64::cos(deg2rad(thetae)),
-                y: self.ri * f64::sin(deg2rad(thetae)),
-                z: -self.t,
-            };
-
-            let pd = DVec3 {
-                x: self.ri * f64::cos(deg2rad(thetas)),
-                y: self.ri * f64::sin(deg2rad(thetas)),
-                z: -self.t,
-            };
-
-            let pe = DVec3 {
-                x: self.ro * f64::cos(deg2rad(thetas)),
-                y: self.ro * f64::sin(deg2rad(thetas)),
-                z: self.h,
-            };
-
-            let pf = DVec3 {
-                x: self.ro * f64::cos(deg2rad(thetae)),
-                y: self.ro * f64::sin(deg2rad(thetae)),
-                z: self.h,
-            };
-
-            let pg = DVec3 {
-                x: self.ri * f64::cos(deg2rad(thetae)),
-                y: self.ri * f64::sin(deg2rad(thetae)),
-                z: 0.0,
-            };
-
-            let ph = DVec3 {
-                x: self.ri * f64::cos(deg2rad(thetas)),
-                y: self.ri * f64::sin(deg2rad(thetas)),
-                z: 0.0,
-            };
-
-            brushes.push(Brush::try_from_vertices(
-                &[pa, pb, pc, pd, pe, pf, pg, ph],
-                MAX_HULL_ITER,
-            )?);
-        }
-
-        Ok(brushes)
+                let pc = DVec3 {
+                    x: self.ro * f64::cos(deg2rad(dtheta)),
+                    y: self.ro * f64::sin(deg2rad(dtheta)),
+                    z: self.h,
+                };
+                let pd = DVec3 {
+                    x: self.ri * f64::cos(deg2rad(dtheta)),
+                    y: self.ri * f64::sin(deg2rad(dtheta)),
+                    z: 0.0,
+                };
+                [pa, pb, pc, pd]
+            })
+            .tuple_windows()
+            .map(|(f1, f2)| {
+                let vertices: Vec<DVec3> = f1.into_iter().chain(f2).collect();
+                Brush::try_from_vertices(&vertices, MAX_HULL_ITER)
+            })
+            .map(|brush_result| brush_result.map_err(CurveError::from))
+            .collect()
     }
 }
 
