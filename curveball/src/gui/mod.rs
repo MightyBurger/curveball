@@ -11,7 +11,8 @@ use bevy::prelude::*;
 use bevy_egui::egui::containers::modal::Modal;
 use bevy_egui::egui::{menu, Id};
 use bevy_egui::{egui, EguiContexts};
-use curveball_lib::map::{QEntity, QMap, SimpleWorldspawn};
+use curveball_lib::map::entity::SimpleWorldspawn;
+use curveball_lib::map::qmap::{QEntity, QMap};
 
 use egui_extras::{Column, TableBuilder};
 

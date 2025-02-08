@@ -8,7 +8,9 @@ use curveball_lib::curve::serpentine::SerpentineOffsetMode;
 use curveball_lib::curve::{
     Bank, Catenary, Curve, CurveClassic, CurveResult, CurveSlope, Rayto, Serpentine,
 };
-use curveball_lib::map::{Brush, QEntity, QMap, SimpleWorldspawn};
+use curveball_lib::map::entity::SimpleWorldspawn;
+use curveball_lib::map::geometry::Brush;
+use curveball_lib::map::qmap::{QEntity, QMap};
 
 #[derive(Parser)]
 #[command(version, about, long_about = None)]

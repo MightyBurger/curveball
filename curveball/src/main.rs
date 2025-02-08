@@ -16,7 +16,7 @@ mod camera_controller;
 use camera_controller::{CameraController, CameraControllerPlugin};
 
 use curveball_lib::curve::CurveError;
-use curveball_lib::map::Brush;
+use curveball_lib::map::geometry::Brush;
 use thiserror::Error;
 
 #[derive(Component)]

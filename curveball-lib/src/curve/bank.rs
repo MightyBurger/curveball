@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
 use crate::curve::{Curve, CurveResult, MAX_HULL_ITER};
-use crate::map::Brush;
+use crate::map::geometry::Brush;
 use glam::DVec3;
 use thiserror::Error;
 
