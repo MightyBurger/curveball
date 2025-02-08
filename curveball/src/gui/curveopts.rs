@@ -1,12 +1,12 @@
+use crate::brush::ProfileSelect;
 use bevy_egui::egui;
-use bevy_egui::egui::Ui;
 
 use crate::brush::{
     BankArgs, CatenaryArgs, CurveClassicArgs, CurveSlopeArgs, ExtrusionArgs, RaytoArgs,
     SerpentineArgs,
 };
 
-pub fn curveclassic_ui(ui: &mut Ui, args: &mut CurveClassicArgs) {
+pub fn curveclassic_ui(ui: &mut egui::Ui, args: &mut CurveClassicArgs) {
     ui.label("Segments");
     ui.horizontal(|ui| {
         ui.add(egui::DragValue::new(&mut args.n).speed(0.1))
@@ -58,7 +58,7 @@ pub fn curveclassic_ui(ui: &mut Ui, args: &mut CurveClassicArgs) {
     });
 }
 
-pub fn curveslope_ui(ui: &mut Ui, args: &mut CurveSlopeArgs) {
+pub fn curveslope_ui(ui: &mut egui::Ui, args: &mut CurveSlopeArgs) {
     ui.checkbox(&mut args.en_const_thickness, "Force constant thickness");
     ui.horizontal(|ui| {
         ui.add_enabled_ui(args.en_const_thickness, |ui| {
@@ -332,7 +332,7 @@ pub fn curveslope_ui(ui: &mut Ui, args: &mut CurveSlopeArgs) {
     }
 }
 
-pub fn rayto_ui(ui: &mut Ui, args: &mut RaytoArgs) {
+pub fn rayto_ui(ui: &mut egui::Ui, args: &mut RaytoArgs) {
     ui.label("Segments");
     ui.horizontal(|ui| {
         ui.add(egui::DragValue::new(&mut args.n).speed(0.1))
@@ -384,7 +384,7 @@ pub fn rayto_ui(ui: &mut Ui, args: &mut RaytoArgs) {
     });
 }
 
-pub fn bank_ui(ui: &mut Ui, args: &mut BankArgs) {
+pub fn bank_ui(ui: &mut egui::Ui, args: &mut BankArgs) {
     ui.label("Segments");
     ui.horizontal(|ui| {
         ui.add(egui::DragValue::new(&mut args.n).speed(0.1))
@@ -432,7 +432,7 @@ pub fn bank_ui(ui: &mut Ui, args: &mut BankArgs) {
     });
 }
 
-pub fn catenary_ui(ui: &mut Ui, args: &mut CatenaryArgs) {
+pub fn catenary_ui(ui: &mut egui::Ui, args: &mut CatenaryArgs) {
     ui.label("Segments");
     ui.horizontal(|ui| {
         ui.add(egui::DragValue::new(&mut args.n).speed(0.1))
@@ -469,7 +469,7 @@ pub fn catenary_ui(ui: &mut Ui, args: &mut CatenaryArgs) {
     // TODO: allow user to change initial guess
 }
 
-pub fn serpentine_ui(ui: &mut Ui, args: &mut SerpentineArgs) {
+pub fn serpentine_ui(ui: &mut egui::Ui, args: &mut SerpentineArgs) {
     ui.label("Segments");
     ui.horizontal(|ui| {
         ui.add(egui::DragValue::new(&mut args.n).speed(0.1))
@@ -502,11 +502,40 @@ pub fn serpentine_ui(ui: &mut Ui, args: &mut SerpentineArgs) {
     });
 }
 
-pub fn extrusion_ui(ui: &mut Ui, args: &mut ExtrusionArgs) {
-    ui.label("Segments");
-    ui.horizontal(|ui| {
-        ui.add(egui::DragValue::new(&mut args.n).speed(0.1))
-            .on_hover_text("n");
-        ui.label("Number of segments");
-    });
+pub fn extrusion_ui(ui: &mut egui::Ui, args: &mut ExtrusionArgs) {
+    // ui.label("Segments");
+
+    egui::ComboBox::from_id_salt("ProfileSelect")
+        .selected_text(format!("{:?}", args.profile))
+        .show_ui(ui, |ui| {
+            ui.selectable_value(&mut args.profile, ProfileSelect::Circle, "Circle");
+            ui.selectable_value(&mut args.profile, ProfileSelect::Rectangle, "Rectangle");
+        });
+
+    match args.profile {
+        ProfileSelect::Circle => {
+            ui.horizontal(|ui| {
+                ui.add(egui::DragValue::new(&mut args.profile_circle_args.n).speed(0.1))
+                    .on_hover_text("n");
+                ui.label("Resolution");
+            });
+            ui.horizontal(|ui| {
+                ui.add(egui::DragValue::new(&mut args.profile_circle_args.radius).speed(0.1))
+                    .on_hover_text("n");
+                ui.label("Radius");
+            });
+        }
+        ProfileSelect::Rectangle => {}
+    }
+
+    // ui.horizontal(|ui| {
+    //     ui.add(egui::DragValue::new(&mut args.n).speed(0.1))
+    //         .on_hover_text("n");
+    //     ui.label("Number of segments");
+    // });
+    // egui::Frame::none()
+    //     .stroke(Stroke::new(1.0, Color32::WHITE))
+    //     .show(ui, |ui| {
+    //         ui.label("Label with red background");
+    //     });
 }

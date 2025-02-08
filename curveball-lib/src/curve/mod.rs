@@ -23,7 +23,9 @@ pub mod serpentine;
 pub use serpentine::{Serpentine, SerpentineError};
 
 pub mod extrude;
-pub use extrude::{extrude_plane_curve, ExtrudeError};
+pub use extrude::{extrude_planecurve_once, profile, ExtrudeError};
+
+pub use profile::ProfileError;
 
 const MAX_HULL_ITER: Option<usize> = Some(10_000);
 
@@ -49,6 +51,8 @@ pub enum CurveError {
     SerpentineError(#[from] SerpentineError),
     #[error("{0}")]
     ExtrudeError(#[from] ExtrudeError),
+    #[error("{0}")]
+    ProfileError(#[from] ProfileError),
 }
 
 pub type CurveResult<T> = Result<T, CurveError>;

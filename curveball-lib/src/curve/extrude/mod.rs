@@ -37,10 +37,41 @@ where
     ((path(about + h) - path(about - h)) / (2.0 * h)).normalize()
 }
 
-pub fn extrude_plane_curve<SI, PF>(
+pub fn extrude_planecurve_many<SII, SI, PF>(
     n: u32,
-    profile_2d: SI, // sketch in the YZ plane
-    path: PF,       // path in the XZ plane - why? it is more complex to do it outside a plane
+    profiles: SII,
+    path: PF,
+    path_start: f64,
+    path_end: f64,
+    profile_orientation: ProfileOrientation,
+    path_plane: PathPlane,
+) -> CurveResult<Vec<Brush>>
+where
+    SII: IntoIterator<Item = SI> + Clone,
+    SI: IntoIterator<Item = DVec2> + Clone,
+    PF: Fn(f64) -> DVec2,
+{
+    let mut result = Vec::new();
+    for profile in profiles.into_iter() {
+        for brush in extrude_planecurve_once(
+            n,
+            profile,
+            &path,
+            path_start,
+            path_end,
+            profile_orientation,
+            path_plane,
+        )? {
+            result.push(brush);
+        }
+    }
+    Ok(result)
+}
+
+pub fn extrude_planecurve_once<SI, PF>(
+    n: u32,
+    profile: SI,
+    path: PF,
     path_start: f64,
     path_end: f64,
     profile_orientation: ProfileOrientation,
@@ -63,7 +94,7 @@ where
         .lerp_iter_closed(path_end, n as usize + 1)
         .map(|t| {
             let path_point = path(t);
-            let face: Vec<_> = profile_2d
+            let face: Vec<_> = profile
                 .clone()
                 .into_iter()
                 .map(|profile_point| {

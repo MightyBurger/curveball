@@ -10,8 +10,10 @@ use bevy::{
 };
 
 use curveball_lib::curve::{
-    extrude::profile, extrude_plane_curve, serpentine::SerpentineOffsetMode, Bank, Catenary, Curve,
-    CurveClassic, CurveResult, CurveSlope, Rayto, Serpentine,
+    extrude::profile::{self, RectangleAnchor},
+    extrude_planecurve_once,
+    serpentine::SerpentineOffsetMode,
+    Bank, Catenary, Curve, CurveClassic, CurveResult, CurveSlope, Rayto, Serpentine,
 };
 use curveball_lib::map::{Brush, Side, SideGeom};
 use glam::{DVec2, DVec3};
@@ -234,12 +236,62 @@ impl Default for SerpentineArgs {
 
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub struct ExtrusionArgs {
-    pub n: u32,
+    pub profile: ProfileSelect,
+    pub profile_circle_args: ProfileCircleArgs,
+    pub profile_rectangle_args: ProfileRectangleArgs,
 }
 
 impl Default for ExtrusionArgs {
     fn default() -> Self {
-        Self { n: 24 }
+        Self {
+            profile: ProfileSelect::default(),
+            profile_circle_args: ProfileCircleArgs::default(),
+            profile_rectangle_args: ProfileRectangleArgs::default(),
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, PartialOrd)]
+pub enum ProfileSelect {
+    Circle,
+    Rectangle,
+}
+
+impl Default for ProfileSelect {
+    fn default() -> Self {
+        Self::Circle
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, PartialOrd)]
+pub struct ProfileCircleArgs {
+    pub n: u32,
+    pub radius: f64,
+}
+
+impl Default for ProfileCircleArgs {
+    fn default() -> Self {
+        Self {
+            n: 12,
+            radius: 32.0,
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, PartialOrd)]
+pub struct ProfileRectangleArgs {
+    pub width: f64,
+    pub height: f64,
+    pub anchor: RectangleAnchor,
+}
+
+impl Default for ProfileRectangleArgs {
+    fn default() -> Self {
+        Self {
+            width: 64.0,
+            height: 32.0,
+            anchor: RectangleAnchor::TopLeft,
+        }
     }
 }
 
@@ -320,9 +372,19 @@ impl CurveSelect {
                 offset: SerpentineOffsetMode::Middle,
             }
             .bake()?,
-            Self::Extrusion(args) => extrude_plane_curve(
-                args.n,
-                profile::rectangle(48.0, 16.0, profile::RectangleAnchor::TopLeft),
+            Self::Extrusion(args) => extrude_planecurve_once(
+                2,
+                match args.profile {
+                    ProfileSelect::Circle => profile::circle(
+                        args.profile_circle_args.n,
+                        args.profile_circle_args.radius,
+                    )?,
+                    ProfileSelect::Rectangle => profile::rectangle(
+                        args.profile_rectangle_args.width,
+                        args.profile_rectangle_args.height,
+                        args.profile_rectangle_args.anchor,
+                    )?,
+                },
                 |t| DVec2::from([t, 0.01 * t * t]),
                 -64.0,
                 64.0,
