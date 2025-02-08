@@ -10,10 +10,8 @@ use bevy::{
 };
 
 use curveball_lib::curve::{
-    extrude::profile::{self, RectangleAnchor},
-    extrude_planecurve_once,
-    serpentine::SerpentineOffsetMode,
-    Bank, Catenary, Curve, CurveClassic, CurveResult, CurveSlope, Rayto, Serpentine,
+    bank::Bank, catenary::Catenary, curve_classic::CurveClassic, curve_slope::CurveSlope, extrude,
+    rayto::Rayto, serpentine::Serpentine, serpentine::SerpentineOffsetMode, Curve, CurveResult,
 };
 use curveball_lib::map::geometry::{Brush, Side, SideGeom};
 use glam::{DVec2, DVec3};
@@ -282,7 +280,7 @@ impl Default for ProfileCircleArgs {
 pub struct ProfileRectangleArgs {
     pub width: f64,
     pub height: f64,
-    pub anchor: RectangleAnchor,
+    pub anchor: extrude::profile::RectangleAnchor,
 }
 
 impl Default for ProfileRectangleArgs {
@@ -290,7 +288,7 @@ impl Default for ProfileRectangleArgs {
         Self {
             width: 64.0,
             height: 32.0,
-            anchor: RectangleAnchor::TopLeft,
+            anchor: extrude::profile::RectangleAnchor::TopLeft,
         }
     }
 }
@@ -372,14 +370,14 @@ impl CurveSelect {
                 offset: SerpentineOffsetMode::Middle,
             }
             .bake()?,
-            Self::Extrusion(args) => extrude_planecurve_once(
+            Self::Extrusion(args) => extrude::extrude_planecurve_once(
                 2,
                 match args.profile {
-                    ProfileSelect::Circle => profile::circle(
+                    ProfileSelect::Circle => extrude::profile::circle(
                         args.profile_circle_args.n,
                         args.profile_circle_args.radius,
                     )?,
-                    ProfileSelect::Rectangle => profile::rectangle(
+                    ProfileSelect::Rectangle => extrude::profile::rectangle(
                         args.profile_rectangle_args.width,
                         args.profile_rectangle_args.height,
                         args.profile_rectangle_args.anchor,

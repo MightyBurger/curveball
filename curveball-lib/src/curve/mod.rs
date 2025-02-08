@@ -5,27 +5,27 @@ use crate::map::geometry::Brush;
 use thiserror::Error;
 
 pub mod curve_classic;
-pub use curve_classic::{CurveClassic, CurveClassicError};
+use curve_classic::CurveClassicError;
 
 pub mod curve_slope;
-pub use curve_slope::{CurveSlope, CurveSlopeError};
+use curve_slope::CurveSlopeError;
 
 pub mod rayto;
-pub use rayto::{Rayto, RaytoError};
+use rayto::RaytoError;
 
 pub mod bank;
-pub use bank::{Bank, BankError};
+use bank::BankError;
 
 pub mod catenary;
-pub use catenary::{Catenary, CatenaryError};
+use catenary::CatenaryError;
 
 pub mod serpentine;
-pub use serpentine::{Serpentine, SerpentineError};
+use serpentine::SerpentineError;
 
 pub mod extrude;
-pub use extrude::{extrude_planecurve_once, profile, ExtrudeError};
+use extrude::{profile, ExtrudeError};
 
-pub use profile::ProfileError;
+use profile::ProfileError;
 
 const MAX_HULL_ITER: Option<usize> = Some(10_000);
 

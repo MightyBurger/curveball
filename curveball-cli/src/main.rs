@@ -6,7 +6,8 @@ use clap::{Args, Parser, Subcommand};
 
 use curveball_lib::curve::serpentine::SerpentineOffsetMode;
 use curveball_lib::curve::{
-    Bank, Catenary, Curve, CurveClassic, CurveResult, CurveSlope, Rayto, Serpentine,
+    bank::Bank, catenary::Catenary, curve_classic::CurveClassic, curve_slope::CurveSlope,
+    rayto::Rayto, serpentine::Serpentine, Curve, CurveResult,
 };
 use curveball_lib::map::entity::SimpleWorldspawn;
 use curveball_lib::map::geometry::Brush;
