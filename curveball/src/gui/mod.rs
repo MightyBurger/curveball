@@ -235,7 +235,7 @@ pub fn ui(
                                 .iter()
                                 .map(|brush| brush.to_sides_unique().len())
                                 .sum();
-                            let sides_text = if brushes_len == 1 { "side" } else { "sides" };
+                            let sides_text = if sides_len == 1 { "side" } else { "sides" };
                             ui.label(format!(
                                 "{brushes_len} {brushes_text} | {sides_len} {sides_text}"
                             ));
