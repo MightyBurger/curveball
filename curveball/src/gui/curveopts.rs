@@ -546,9 +546,9 @@ pub fn extrusion_ui(ui: &mut egui::Ui, args: &mut ExtrusionArgs) {
             ui.scope(|ui| {
                 ui.style_mut().spacing.item_spacing = egui::vec2(3.0, 3.0);
                 let btn_size = [20.0, 20.0];
-                let inactive_color = egui::Color32::RED;
-                let active_color = egui::Color32::RED;
-                let hovered_color = egui::Color32::RED;
+                let inactive_color = egui::Color32::from_rgb(0, 92, 128);
+                let active_color = egui::Color32::from_rgb(0, 84, 117);
+                let hovered_color = egui::Color32::from_rgb(0, 92, 128);
                 ui.horizontal(|ui| {
                     ui.scope(|ui| {
                         if args.profile_rectangle_args.anchor
