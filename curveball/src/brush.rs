@@ -306,7 +306,7 @@ impl Default for ProfileRectangleArgs {
         Self {
             width: 64.0,
             height: 32.0,
-            anchor: extrude::profile::RectangleAnchor::TopLeft,
+            anchor: extrude::profile::RectangleAnchor::BottomLeft,
         }
     }
 }

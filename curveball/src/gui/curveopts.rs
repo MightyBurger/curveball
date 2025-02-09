@@ -529,7 +529,62 @@ pub fn extrusion_ui(ui: &mut egui::Ui, args: &mut ExtrusionArgs) {
                 ui.label("Radius");
             });
         }
-        ProfileSelect::Rectangle => {}
+        ProfileSelect::Rectangle => {
+            ui.horizontal(|ui| {
+                ui.add(egui::DragValue::new(&mut args.profile_rectangle_args.width).speed(0.1))
+                    .on_hover_text("width");
+                ui.label("Width");
+            });
+            ui.horizontal(|ui| {
+                ui.add(egui::DragValue::new(&mut args.profile_rectangle_args.height).speed(0.1))
+                    .on_hover_text("height");
+                ui.label("Height");
+            });
+
+            ui.label("Anchor position");
+
+            let btn_size = [20.0, 20.0];
+            ui.horizontal(|ui| {
+                if ui.add_sized(btn_size, egui::Button::new("↖")).clicked() {
+                    args.profile_rectangle_args.anchor = extrude::profile::RectangleAnchor::TopLeft;
+                }
+                if ui.add_sized(btn_size, egui::Button::new("⬆")).clicked() {
+                    args.profile_rectangle_args.anchor =
+                        extrude::profile::RectangleAnchor::TopCenter;
+                }
+                if ui.add_sized(btn_size, egui::Button::new("↗")).clicked() {
+                    args.profile_rectangle_args.anchor =
+                        extrude::profile::RectangleAnchor::TopRight;
+                }
+            });
+            ui.horizontal(|ui| {
+                if ui.add_sized(btn_size, egui::Button::new("⬅")).clicked() {
+                    args.profile_rectangle_args.anchor =
+                        extrude::profile::RectangleAnchor::CenterLeft;
+                }
+                if ui.add_sized(btn_size, egui::Button::new("⏺")).clicked() {
+                    args.profile_rectangle_args.anchor = extrude::profile::RectangleAnchor::Center;
+                }
+                if ui.add_sized(btn_size, egui::Button::new("➡")).clicked() {
+                    args.profile_rectangle_args.anchor =
+                        extrude::profile::RectangleAnchor::CenterRight;
+                }
+            });
+            ui.horizontal(|ui| {
+                if ui.add_sized(btn_size, egui::Button::new("↙")).clicked() {
+                    args.profile_rectangle_args.anchor =
+                        extrude::profile::RectangleAnchor::BottomLeft;
+                }
+                if ui.add_sized(btn_size, egui::Button::new("⬇")).clicked() {
+                    args.profile_rectangle_args.anchor =
+                        extrude::profile::RectangleAnchor::BottomCenter;
+                }
+                if ui.add_sized(btn_size, egui::Button::new("↘")).clicked() {
+                    args.profile_rectangle_args.anchor =
+                        extrude::profile::RectangleAnchor::BottomRight;
+                }
+            });
+        }
     }
 
     ui.separator();

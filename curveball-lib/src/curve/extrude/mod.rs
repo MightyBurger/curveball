@@ -73,17 +73,28 @@ where
         .map(|t| {
             let path_point = path_point_fn(t);
             let frenet_frame = path_frenet_frame_fn(t);
+            let frenet_frame_constant = path_frenet_frame_fn(0.0);
             let this_profile = profile_fn(t);
             let face: Vec<_> = this_profile
                 .into_iter()
                 .map(|mut profile_point| {
-                    if matches!(profile_orientation, ProfileOrientation::FollowPath) {
-                        let rmat = Mat3::from_cols(
-                            dvec3_to_vec3(frenet_frame.tangent),
-                            dvec3_to_vec3(frenet_frame.normal),
-                            dvec3_to_vec3(frenet_frame.binormal),
-                        );
-                        profile_point = rmat.mul_vec3(dvec3_to_vec3(profile_point)).into();
+                    match profile_orientation {
+                        ProfileOrientation::Constant => {}
+                        ProfileOrientation::FollowPath => {
+                            let rmat = Mat3::from_cols(
+                                dvec3_to_vec3(frenet_frame_constant.tangent),
+                                dvec3_to_vec3(frenet_frame_constant.normal),
+                                dvec3_to_vec3(frenet_frame_constant.binormal),
+                            );
+                            profile_point =
+                                rmat.inverse().mul_vec3(dvec3_to_vec3(profile_point)).into();
+                            let rmat = Mat3::from_cols(
+                                dvec3_to_vec3(frenet_frame.tangent),
+                                dvec3_to_vec3(frenet_frame.normal),
+                                dvec3_to_vec3(frenet_frame.binormal),
+                            );
+                            profile_point = rmat.mul_vec3(dvec3_to_vec3(profile_point)).into();
+                        }
                     }
                     profile_point = profile_point + path_point;
                     profile_point

@@ -19,8 +19,8 @@ pub fn circle(n: u32, radius: f64) -> ProfileResult<impl Fn(f64) -> Vec<DVec3>> 
     let profile_fn = move |_| {
         0f64.lerp_iter(2.0 * PI, n as usize)
             .map(|theta| DVec3 {
-                x: 0.0,
-                y: radius * theta.cos(),
+                x: radius * theta.cos(),
+                y: 0.0,
                 z: radius * theta.sin(),
             })
             .collect()
@@ -48,9 +48,9 @@ pub fn rectangle(
 ) -> ProfileResult<impl Fn(f64) -> Vec<DVec3>> {
     use RectangleAnchor as RA;
     let hoffset = match anchor {
-        RA::TopLeft | RA::CenterLeft | RA::BottomLeft => -width / 2.0,
+        RA::TopLeft | RA::CenterLeft | RA::BottomLeft => width / 2.0,
         RA::TopCenter | RA::Center | RA::BottomCenter => 0.0,
-        RA::TopRight | RA::CenterRight | RA::BottomRight => width / 2.0,
+        RA::TopRight | RA::CenterRight | RA::BottomRight => -width / 2.0,
     };
     let voffset = match anchor {
         RA::TopLeft | RA::TopCenter | RA::TopRight => -height / 2.0,
@@ -59,10 +59,10 @@ pub fn rectangle(
     };
     let profile_fn = move |_| {
         vec![
-            DVec3::new(0.0, hoffset + width / 2.0, voffset + height / 2.0),
-            DVec3::new(0.0, hoffset + width / 2.0, voffset - height / 2.0),
-            DVec3::new(0.0, hoffset - width / 2.0, voffset + height / 2.0),
-            DVec3::new(0.0, hoffset - width / 2.0, voffset - height / 2.0),
+            DVec3::new(hoffset + width / 2.0, 0.0, voffset + height / 2.0),
+            DVec3::new(hoffset + width / 2.0, 0.0, voffset - height / 2.0),
+            DVec3::new(hoffset - width / 2.0, 0.0, voffset + height / 2.0),
+            DVec3::new(hoffset - width / 2.0, 0.0, voffset - height / 2.0),
         ]
     };
     Ok(profile_fn)
