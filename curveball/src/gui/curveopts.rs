@@ -1,5 +1,6 @@
 use crate::brush::ProfileSelect;
 use bevy_egui::egui;
+use curveball_lib::curve::extrude;
 
 use crate::brush::{
     BankArgs, CatenaryArgs, CurveClassicArgs, CurveSlopeArgs, ExtrusionArgs, RaytoArgs,
@@ -505,6 +506,7 @@ pub fn serpentine_ui(ui: &mut egui::Ui, args: &mut SerpentineArgs) {
 pub fn extrusion_ui(ui: &mut egui::Ui, args: &mut ExtrusionArgs) {
     // ui.label("Segments");
 
+    ui.label("Profile");
     egui::ComboBox::from_id_salt("ProfileSelect")
         .selected_text(format!("{:?}", args.profile))
         .show_ui(ui, |ui| {
@@ -512,6 +514,7 @@ pub fn extrusion_ui(ui: &mut egui::Ui, args: &mut ExtrusionArgs) {
             ui.selectable_value(&mut args.profile, ProfileSelect::Rectangle, "Rectangle");
         });
 
+    ui.add_space(8.0);
     match args.profile {
         ProfileSelect::Circle => {
             ui.horizontal(|ui| {
@@ -527,6 +530,24 @@ pub fn extrusion_ui(ui: &mut egui::Ui, args: &mut ExtrusionArgs) {
         }
         ProfileSelect::Rectangle => {}
     }
+
+    ui.separator();
+
+    ui.label("Profile Orientation");
+    egui::ComboBox::from_id_salt("ProfileOrientation")
+        .selected_text(format!("{:?}", args.profile_orientation))
+        .show_ui(ui, |ui| {
+            ui.selectable_value(
+                &mut args.profile_orientation,
+                extrude::ProfileOrientation::Constant,
+                "Constant",
+            );
+            ui.selectable_value(
+                &mut args.profile_orientation,
+                extrude::ProfileOrientation::FollowPath,
+                "Follow Path",
+            );
+        });
 
     // ui.horizontal(|ui| {
     //     ui.add(egui::DragValue::new(&mut args.n).speed(0.1))

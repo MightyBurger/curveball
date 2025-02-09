@@ -237,6 +237,7 @@ pub struct ExtrusionArgs {
     pub profile: ProfileSelect,
     pub profile_circle_args: ProfileCircleArgs,
     pub profile_rectangle_args: ProfileRectangleArgs,
+    pub profile_orientation: extrude::ProfileOrientation,
 }
 
 impl Default for ExtrusionArgs {
@@ -245,6 +246,7 @@ impl Default for ExtrusionArgs {
             profile: ProfileSelect::default(),
             profile_circle_args: ProfileCircleArgs::default(),
             profile_rectangle_args: ProfileRectangleArgs::default(),
+            profile_orientation: extrude::ProfileOrientation::Constant,
         }
     }
 }
@@ -370,27 +372,37 @@ impl CurveSelect {
                 offset: SerpentineOffsetMode::Middle,
             }
             .bake()?,
-            Self::Extrusion(args) => extrude::extrude_planecurve_once(
-                2,
-                match args.profile {
-                    ProfileSelect::Circle => extrude::profile::circle(
-                        args.profile_circle_args.n,
-                        args.profile_circle_args.radius,
-                    )?,
-                    ProfileSelect::Rectangle => extrude::profile::rectangle(
-                        args.profile_rectangle_args.width,
-                        args.profile_rectangle_args.height,
-                        args.profile_rectangle_args.anchor,
-                    )?,
-                },
-                |t| DVec2::from([t, 0.01 * t * t]),
-                -64.0,
-                64.0,
-                curveball_lib::curve::extrude::ProfileOrientation::FollowPath,
-                curveball_lib::curve::extrude::PathPlane::XZ,
-            )?,
+            Self::Extrusion(args) => Self::extrude_brushes(args)?,
         };
         Ok(brushes)
+    }
+
+    fn extrude_brushes(args: &ExtrusionArgs) -> CurveResult<Vec<Brush>> {
+        let profile_fn: Box<dyn Fn(f64) -> Vec<DVec3>> = match args.profile {
+            ProfileSelect::Circle => Box::new(extrude::profile::circle(
+                args.profile_circle_args.n,
+                args.profile_circle_args.radius,
+            )?),
+            ProfileSelect::Rectangle => Box::new(extrude::profile::rectangle(
+                args.profile_rectangle_args.width,
+                args.profile_rectangle_args.height,
+                args.profile_rectangle_args.anchor,
+            )?),
+        };
+
+        extrude::extrude(
+            4,
+            profile_fn,
+            |t| DVec3::from([t, 0.0, 0.01 * t * t]),
+            |t| extrude::FrenetFrame {
+                tangent: DVec3::new(1.0, 0.0, 0.0),
+                normal: DVec3::new(0.0, 1.0, 0.01 * t),
+                binormal: DVec3::new(0.0, 0.01 * t, 1.0),
+            },
+            -64.0,
+            64.0,
+            args.profile_orientation,
+        )
     }
 }
 
