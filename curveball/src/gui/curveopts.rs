@@ -1,3 +1,4 @@
+use crate::brush::PathSelect;
 use crate::brush::ProfileSelect;
 use bevy_egui::egui;
 use curveball_lib::curve::extrude;
@@ -533,6 +534,40 @@ pub fn extrusion_ui(ui: &mut egui::Ui, args: &mut ExtrusionArgs) {
 
     ui.separator();
 
+    ui.label("Path");
+    egui::ComboBox::from_id_salt("PathSelect")
+        .selected_text(format!("{:?}", args.path))
+        .show_ui(ui, |ui| {
+            ui.selectable_value(&mut args.path, PathSelect::Revolve, "Revolve");
+        });
+
+    ui.add_space(8.0);
+    match args.path {
+        PathSelect::Revolve => {
+            ui.horizontal(|ui| {
+                ui.add(egui::DragValue::new(&mut args.path_n).speed(0.1))
+                    .on_hover_text("path_n");
+                ui.label("Segments");
+            });
+            ui.horizontal(|ui| {
+                ui.add(egui::DragValue::new(&mut args.path_start).speed(0.1))
+                    .on_hover_text("path_start");
+                ui.label("Starting angle");
+            });
+            ui.horizontal(|ui| {
+                ui.add(egui::DragValue::new(&mut args.path_end).speed(0.1))
+                    .on_hover_text("path_end");
+                ui.label("Ending angle");
+            });
+            ui.horizontal(|ui| {
+                ui.add(egui::DragValue::new(&mut args.path_revolve_args.radius).speed(0.1))
+                    .on_hover_text("r");
+                ui.label("Radius");
+            });
+        }
+    }
+
+    ui.separator();
     ui.label("Profile Orientation");
     egui::ComboBox::from_id_salt("ProfileOrientation")
         .selected_text(format!("{:?}", args.profile_orientation))

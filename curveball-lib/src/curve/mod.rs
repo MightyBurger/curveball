@@ -4,28 +4,13 @@
 use crate::map::geometry::Brush;
 use thiserror::Error;
 
-pub mod curve_classic;
-use curve_classic::CurveClassicError;
-
-pub mod curve_slope;
-use curve_slope::CurveSlopeError;
-
-pub mod rayto;
-use rayto::RaytoError;
-
 pub mod bank;
-use bank::BankError;
-
 pub mod catenary;
-use catenary::CatenaryError;
-
-pub mod serpentine;
-use serpentine::SerpentineError;
-
+pub mod curve_classic;
+pub mod curve_slope;
 pub mod extrude;
-use extrude::{profile, ExtrudeError};
-
-use profile::ProfileError;
+pub mod rayto;
+pub mod serpentine;
 
 const MAX_HULL_ITER: Option<usize> = Some(10_000);
 
@@ -36,23 +21,34 @@ pub trait Curve {
 #[derive(Error, Debug)]
 pub enum CurveError {
     #[error("{0}")]
-    CurveClassicError(#[from] CurveClassicError),
+    CurveClassicError(#[from] curve_classic::CurveClassicError),
+
     #[error("{0}")]
-    CurveSlopeError(#[from] CurveSlopeError),
+    CurveSlopeError(#[from] curve_slope::CurveSlopeError),
+
     #[error("Failed to find convex hull: {0}")]
     ConvexHullFail(#[from] chull::ErrorKind),
+
     #[error("{0}")]
-    RaytoError(#[from] RaytoError),
+    RaytoError(#[from] rayto::RaytoError),
+
     #[error("{0}")]
-    BankError(#[from] BankError),
+    BankError(#[from] bank::BankError),
+
     #[error("{0}")]
-    CatenaryError(#[from] CatenaryError),
+    CatenaryError(#[from] catenary::CatenaryError),
+
     #[error("{0}")]
-    SerpentineError(#[from] SerpentineError),
+    SerpentineError(#[from] serpentine::SerpentineError),
+
     #[error("{0}")]
-    ExtrudeError(#[from] ExtrudeError),
+    ExtrudeError(#[from] extrude::ExtrudeError),
+
     #[error("{0}")]
-    ProfileError(#[from] ProfileError),
+    ProfileError(#[from] extrude::profile::ProfileError),
+
+    #[error("{0}")]
+    PathError(#[from] extrude::path::PathError),
 }
 
 pub type CurveResult<T> = Result<T, CurveError>;
