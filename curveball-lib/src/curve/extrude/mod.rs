@@ -3,7 +3,7 @@
 
 use crate::curve::{CurveError, CurveResult, MAX_HULL_ITER};
 use crate::map::geometry::Brush;
-use glam::{DVec3, Mat3, Vec3};
+use glam::{DMat3, DVec3};
 use itertools::Itertools;
 use lerp::LerpIter;
 use thiserror::Error;
@@ -28,14 +28,6 @@ pub struct FrenetFrame {
     pub tangent: DVec3,
     pub normal: DVec3,
     pub binormal: DVec3,
-}
-
-fn dvec3_to_vec3(vecin: DVec3) -> Vec3 {
-    Vec3 {
-        x: vecin.x as f32,
-        y: vecin.y as f32,
-        z: vecin.z as f32,
-    }
 }
 
 // Extrude along a parameterized curve.
@@ -81,19 +73,18 @@ where
                     match profile_orientation {
                         ProfileOrientation::Constant => {}
                         ProfileOrientation::FollowPath => {
-                            let rmat = Mat3::from_cols(
-                                dvec3_to_vec3(frenet_frame_constant.tangent),
-                                dvec3_to_vec3(frenet_frame_constant.normal),
-                                dvec3_to_vec3(frenet_frame_constant.binormal),
+                            let rmat = DMat3::from_cols(
+                                frenet_frame_constant.tangent,
+                                frenet_frame_constant.normal,
+                                frenet_frame_constant.binormal,
                             );
-                            profile_point =
-                                rmat.inverse().mul_vec3(dvec3_to_vec3(profile_point)).into();
-                            let rmat = Mat3::from_cols(
-                                dvec3_to_vec3(frenet_frame.tangent),
-                                dvec3_to_vec3(frenet_frame.normal),
-                                dvec3_to_vec3(frenet_frame.binormal),
+                            profile_point = rmat.inverse().mul_vec3(profile_point).into();
+                            let rmat = DMat3::from_cols(
+                                frenet_frame.tangent,
+                                frenet_frame.normal,
+                                frenet_frame.binormal,
                             );
-                            profile_point = rmat.mul_vec3(dvec3_to_vec3(profile_point)).into();
+                            profile_point = rmat.mul_vec3(profile_point).into();
                         }
                     }
                     profile_point = profile_point + path_point;

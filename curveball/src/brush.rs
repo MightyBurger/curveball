@@ -256,7 +256,7 @@ impl Default for ExtrusionArgs {
             path_n: 12,
             path_start: 0.0,
             path_end: 90.0,
-            profile_orientation: extrude::ProfileOrientation::Constant,
+            profile_orientation: extrude::ProfileOrientation::FollowPath,
         }
     }
 }
@@ -323,7 +323,7 @@ pub struct PathRevolveArgs {
 
 impl Default for PathRevolveArgs {
     fn default() -> Self {
-        Self { radius: 32.0 }
+        Self { radius: 64.0 }
     }
 }
 
