@@ -1,9 +1,12 @@
 // Copyright 2025 Jordan Johnson
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
+use super::CurveError;
 use crate::curve::{Curve, CurveResult, MAX_HULL_ITER};
 use crate::map::geometry::Brush;
 use glam::DVec3;
+use itertools::Itertools;
+use lerp::LerpIter;
 use thiserror::Error;
 
 #[derive(Debug, Default, Clone)]
@@ -46,8 +49,6 @@ impl Curve for Catenary {
             })?;
         }
 
-        let mut brushes = Vec::new();
-
         let a = newton_a(
             v,
             h,
@@ -63,67 +64,39 @@ impl Curve for Catenary {
         let k: f64 = 0.5 * (h - a * f64::ln((self.s + v) / (self.s - v)));
         let c: f64 = -a * f64::cosh((-k) / a);
 
-        // Split up into discrete segments.
-        let dx = self.span / (self.n as f64);
-
-        for i in 0..self.n {
-            // xs = x start, xe = x end
-            // zs0/ze0 = z bottom, zs1/ze1 = z top
-            let xs = dx * (i as f64);
-            let xe = dx * (i as f64 + 1.0);
-            let zs0 = catenary(xs, a, k, c) - self.t;
-            let zs1 = catenary(xs, a, k, c);
-            let ze0 = catenary(xe, a, k, c) - self.t;
-            let ze1 = catenary(xe, a, k, c);
-
-            let pa = DVec3 {
-                x: xe,
-                y: 0.0,
-                z: ze0,
-            };
-            let pb = DVec3 {
-                x: xs,
-                y: 0.0,
-                z: zs0,
-            };
-            let pc = DVec3 {
-                x: xs,
-                y: self.w,
-                z: zs0,
-            };
-            let pd = DVec3 {
-                x: xe,
-                y: self.w,
-                z: ze0,
-            };
-            let pe = DVec3 {
-                x: xe,
-                y: 0.0,
-                z: ze1,
-            };
-            let pf = DVec3 {
-                x: xs,
-                y: 0.0,
-                z: zs1,
-            };
-            let pg = DVec3 {
-                x: xs,
-                y: self.w,
-                z: zs1,
-            };
-            let ph = DVec3 {
-                x: xe,
-                y: self.w,
-                z: ze1,
-            };
-
-            brushes.push(Brush::try_from_vertices(
-                &[pa, pb, pc, pd, pe, pf, pg, ph],
-                MAX_HULL_ITER,
-            )?);
-        }
-
-        Ok(brushes)
+        0.0.lerp_iter_closed(self.span, self.n as usize + 1)
+            .map(|dx| {
+                let zs0 = catenary(dx, a, k, c) - self.t;
+                let zs1 = catenary(dx, a, k, c);
+                let pa = DVec3 {
+                    x: dx,
+                    y: 0.0,
+                    z: zs0,
+                };
+                let pb = DVec3 {
+                    x: dx,
+                    y: self.w,
+                    z: zs0,
+                };
+                let pc = DVec3 {
+                    x: dx,
+                    y: 0.0,
+                    z: zs1,
+                };
+                let pd = DVec3 {
+                    x: dx,
+                    y: self.w,
+                    z: zs1,
+                };
+                [pa, pb, pc, pd]
+            })
+            .tuple_windows()
+            .map(|(f1, f2)| {
+                let vertices: Vec<DVec3> = f1.into_iter().chain(f2).collect();
+                Brush::try_from_vertices(&vertices, MAX_HULL_ITER)
+            })
+            .map(|brush_result| brush_result.map_err(CurveError::from))
+            .collect()
     }
 }
 
