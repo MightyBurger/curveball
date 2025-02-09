@@ -289,7 +289,7 @@ impl Default for ProfileCircleArgs {
     fn default() -> Self {
         Self {
             n: 12,
-            radius: 32.0,
+            radius: 16.0,
         }
     }
 }
@@ -304,8 +304,8 @@ pub struct ProfileRectangleArgs {
 impl Default for ProfileRectangleArgs {
     fn default() -> Self {
         Self {
-            width: 64.0,
-            height: 32.0,
+            width: 32.0,
+            height: 8.0,
             anchor: extrude::profile::RectangleAnchor::BottomLeft,
         }
     }
@@ -323,7 +323,7 @@ pub struct PathRevolveArgs {
 
 impl Default for PathRevolveArgs {
     fn default() -> Self {
-        Self { radius: 64.0 }
+        Self { radius: 32.0 }
     }
 }
 

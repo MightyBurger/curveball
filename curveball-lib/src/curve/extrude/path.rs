@@ -4,7 +4,6 @@
 use std::f64::consts::PI;
 
 use glam::DVec3;
-use lerp::LerpIter;
 use thiserror::Error;
 
 use super::FrenetFrame;

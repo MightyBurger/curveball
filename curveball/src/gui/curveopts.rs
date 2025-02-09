@@ -543,46 +543,141 @@ pub fn extrusion_ui(ui: &mut egui::Ui, args: &mut ExtrusionArgs) {
 
             ui.label("Anchor position");
 
-            let btn_size = [20.0, 20.0];
-            ui.horizontal(|ui| {
-                if ui.add_sized(btn_size, egui::Button::new("↖")).clicked() {
-                    args.profile_rectangle_args.anchor = extrude::profile::RectangleAnchor::TopLeft;
-                }
-                if ui.add_sized(btn_size, egui::Button::new("⬆")).clicked() {
-                    args.profile_rectangle_args.anchor =
-                        extrude::profile::RectangleAnchor::TopCenter;
-                }
-                if ui.add_sized(btn_size, egui::Button::new("↗")).clicked() {
-                    args.profile_rectangle_args.anchor =
-                        extrude::profile::RectangleAnchor::TopRight;
-                }
-            });
-            ui.horizontal(|ui| {
-                if ui.add_sized(btn_size, egui::Button::new("⬅")).clicked() {
-                    args.profile_rectangle_args.anchor =
-                        extrude::profile::RectangleAnchor::CenterLeft;
-                }
-                if ui.add_sized(btn_size, egui::Button::new("⏺")).clicked() {
-                    args.profile_rectangle_args.anchor = extrude::profile::RectangleAnchor::Center;
-                }
-                if ui.add_sized(btn_size, egui::Button::new("➡")).clicked() {
-                    args.profile_rectangle_args.anchor =
-                        extrude::profile::RectangleAnchor::CenterRight;
-                }
-            });
-            ui.horizontal(|ui| {
-                if ui.add_sized(btn_size, egui::Button::new("↙")).clicked() {
-                    args.profile_rectangle_args.anchor =
-                        extrude::profile::RectangleAnchor::BottomLeft;
-                }
-                if ui.add_sized(btn_size, egui::Button::new("⬇")).clicked() {
-                    args.profile_rectangle_args.anchor =
-                        extrude::profile::RectangleAnchor::BottomCenter;
-                }
-                if ui.add_sized(btn_size, egui::Button::new("↘")).clicked() {
-                    args.profile_rectangle_args.anchor =
-                        extrude::profile::RectangleAnchor::BottomRight;
-                }
+            ui.scope(|ui| {
+                ui.style_mut().spacing.item_spacing = egui::vec2(3.0, 3.0);
+                let btn_size = [20.0, 20.0];
+                let inactive_color = egui::Color32::RED;
+                let active_color = egui::Color32::RED;
+                let hovered_color = egui::Color32::RED;
+                ui.horizontal(|ui| {
+                    ui.scope(|ui| {
+                        if args.profile_rectangle_args.anchor
+                            == extrude::profile::RectangleAnchor::TopLeft
+                        {
+                            ui.style_mut().visuals.widgets.inactive.weak_bg_fill = inactive_color;
+                            ui.style_mut().visuals.widgets.active.weak_bg_fill = active_color;
+                            ui.style_mut().visuals.widgets.hovered.weak_bg_fill = hovered_color;
+                        }
+                        if ui.add_sized(btn_size, egui::Button::new("↖")).clicked() {
+                            args.profile_rectangle_args.anchor =
+                                extrude::profile::RectangleAnchor::TopLeft;
+                        }
+                    });
+
+                    ui.scope(|ui| {
+                        if args.profile_rectangle_args.anchor
+                            == extrude::profile::RectangleAnchor::TopCenter
+                        {
+                            ui.style_mut().visuals.widgets.inactive.weak_bg_fill = inactive_color;
+                            ui.style_mut().visuals.widgets.active.weak_bg_fill = active_color;
+                            ui.style_mut().visuals.widgets.hovered.weak_bg_fill = hovered_color;
+                        }
+                        if ui.add_sized(btn_size, egui::Button::new("⬆")).clicked() {
+                            args.profile_rectangle_args.anchor =
+                                extrude::profile::RectangleAnchor::TopCenter;
+                        }
+                    });
+
+                    ui.scope(|ui| {
+                        if args.profile_rectangle_args.anchor
+                            == extrude::profile::RectangleAnchor::TopRight
+                        {
+                            ui.style_mut().visuals.widgets.inactive.weak_bg_fill = inactive_color;
+                            ui.style_mut().visuals.widgets.active.weak_bg_fill = active_color;
+                            ui.style_mut().visuals.widgets.hovered.weak_bg_fill = hovered_color;
+                        }
+                        if ui.add_sized(btn_size, egui::Button::new("↗")).clicked() {
+                            args.profile_rectangle_args.anchor =
+                                extrude::profile::RectangleAnchor::TopRight;
+                        }
+                    });
+                });
+                ui.horizontal(|ui| {
+                    ui.scope(|ui| {
+                        if args.profile_rectangle_args.anchor
+                            == extrude::profile::RectangleAnchor::CenterLeft
+                        {
+                            ui.style_mut().visuals.widgets.inactive.weak_bg_fill = inactive_color;
+                            ui.style_mut().visuals.widgets.active.weak_bg_fill = active_color;
+                            ui.style_mut().visuals.widgets.hovered.weak_bg_fill = hovered_color;
+                        }
+                        if ui.add_sized(btn_size, egui::Button::new("⬅")).clicked() {
+                            args.profile_rectangle_args.anchor =
+                                extrude::profile::RectangleAnchor::CenterLeft;
+                        }
+                    });
+
+                    ui.scope(|ui| {
+                        if args.profile_rectangle_args.anchor
+                            == extrude::profile::RectangleAnchor::Center
+                        {
+                            ui.style_mut().visuals.widgets.inactive.weak_bg_fill = inactive_color;
+                            ui.style_mut().visuals.widgets.active.weak_bg_fill = active_color;
+                            ui.style_mut().visuals.widgets.hovered.weak_bg_fill = hovered_color;
+                        }
+                        if ui.add_sized(btn_size, egui::Button::new("◾")).clicked() {
+                            args.profile_rectangle_args.anchor =
+                                extrude::profile::RectangleAnchor::Center;
+                        }
+                    });
+
+                    ui.scope(|ui| {
+                        if args.profile_rectangle_args.anchor
+                            == extrude::profile::RectangleAnchor::CenterRight
+                        {
+                            ui.style_mut().visuals.widgets.inactive.weak_bg_fill = inactive_color;
+                            ui.style_mut().visuals.widgets.active.weak_bg_fill = active_color;
+                            ui.style_mut().visuals.widgets.hovered.weak_bg_fill = hovered_color;
+                        }
+                        if ui.add_sized(btn_size, egui::Button::new("➡")).clicked() {
+                            args.profile_rectangle_args.anchor =
+                                extrude::profile::RectangleAnchor::CenterRight;
+                        }
+                    });
+                });
+                ui.horizontal(|ui| {
+                    ui.scope(|ui| {
+                        if args.profile_rectangle_args.anchor
+                            == extrude::profile::RectangleAnchor::BottomLeft
+                        {
+                            ui.style_mut().visuals.widgets.inactive.weak_bg_fill = inactive_color;
+                            ui.style_mut().visuals.widgets.active.weak_bg_fill = active_color;
+                            ui.style_mut().visuals.widgets.hovered.weak_bg_fill = hovered_color;
+                        }
+                        if ui.add_sized(btn_size, egui::Button::new("↙")).clicked() {
+                            args.profile_rectangle_args.anchor =
+                                extrude::profile::RectangleAnchor::BottomLeft;
+                        }
+                    });
+
+                    ui.scope(|ui| {
+                        if args.profile_rectangle_args.anchor
+                            == extrude::profile::RectangleAnchor::BottomCenter
+                        {
+                            ui.style_mut().visuals.widgets.inactive.weak_bg_fill = inactive_color;
+                            ui.style_mut().visuals.widgets.active.weak_bg_fill = active_color;
+                            ui.style_mut().visuals.widgets.hovered.weak_bg_fill = hovered_color;
+                        }
+                        if ui.add_sized(btn_size, egui::Button::new("⬇")).clicked() {
+                            args.profile_rectangle_args.anchor =
+                                extrude::profile::RectangleAnchor::BottomCenter;
+                        }
+                    });
+
+                    ui.scope(|ui| {
+                        if args.profile_rectangle_args.anchor
+                            == extrude::profile::RectangleAnchor::BottomRight
+                        {
+                            ui.style_mut().visuals.widgets.inactive.weak_bg_fill = inactive_color;
+                            ui.style_mut().visuals.widgets.active.weak_bg_fill = active_color;
+                            ui.style_mut().visuals.widgets.hovered.weak_bg_fill = hovered_color;
+                        }
+                        if ui.add_sized(btn_size, egui::Button::new("↘")).clicked() {
+                            args.profile_rectangle_args.anchor =
+                                extrude::profile::RectangleAnchor::BottomRight;
+                        }
+                    });
+                });
             });
         }
     }
@@ -638,15 +733,4 @@ pub fn extrusion_ui(ui: &mut egui::Ui, args: &mut ExtrusionArgs) {
                 "Follow Path",
             );
         });
-
-    // ui.horizontal(|ui| {
-    //     ui.add(egui::DragValue::new(&mut args.n).speed(0.1))
-    //         .on_hover_text("n");
-    //     ui.label("Number of segments");
-    // });
-    // egui::Frame::none()
-    //     .stroke(Stroke::new(1.0, Color32::WHITE))
-    //     .show(ui, |ui| {
-    //         ui.label("Label with red background");
-    //     });
 }
