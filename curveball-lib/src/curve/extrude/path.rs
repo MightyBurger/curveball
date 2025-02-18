@@ -19,8 +19,8 @@ pub fn line(
     let frenet_fn = move |_a: f64| {
         let tangent = DVec3 { x, y, z }.normalize_or_zero();
         let normal = DVec3 {
-            x: y,
-            y: -x,
+            x: -y,
+            y: x,
             z: 0.0,
         }
         .normalize_or_zero();

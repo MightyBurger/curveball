@@ -695,10 +695,6 @@ pub fn extrusion_ui(ui: &mut egui::Ui, args: &mut ExtrusionArgs) {
     ui.add_space(8.0);
     match args.path {
         PathSelect::Line => {
-            args.path_n = 1;
-            args.path_start = 0.0;
-            args.path_end = 1.0;
-
             ui.horizontal(|ui| {
                 ui.add(egui::DragValue::new(&mut args.path_line_args.x).speed(0.1))
                     .on_hover_text("x");
@@ -719,17 +715,17 @@ pub fn extrusion_ui(ui: &mut egui::Ui, args: &mut ExtrusionArgs) {
         }
         PathSelect::Revolve => {
             ui.horizontal(|ui| {
-                ui.add(egui::DragValue::new(&mut args.path_n).speed(0.1))
+                ui.add(egui::DragValue::new(&mut args.path_revolve_args.path_n).speed(0.1))
                     .on_hover_text("path_n");
                 ui.label("Segments");
             });
             ui.horizontal(|ui| {
-                ui.add(egui::DragValue::new(&mut args.path_start).speed(0.1))
+                ui.add(egui::DragValue::new(&mut args.path_revolve_args.path_start).speed(0.1))
                     .on_hover_text("path_start");
                 ui.label("Starting angle");
             });
             ui.horizontal(|ui| {
-                ui.add(egui::DragValue::new(&mut args.path_end).speed(0.1))
+                ui.add(egui::DragValue::new(&mut args.path_revolve_args.path_end).speed(0.1))
                     .on_hover_text("path_end");
                 ui.label("Ending angle");
             });

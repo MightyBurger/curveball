@@ -240,9 +240,6 @@ pub struct ExtrusionArgs {
     pub path: PathSelect,
     pub path_line_args: PathLineArgs,
     pub path_revolve_args: PathRevolveArgs,
-    pub path_n: u32,
-    pub path_start: f64,
-    pub path_end: f64,
     pub profile_orientation: extrude::ProfileOrientation,
 }
 
@@ -255,9 +252,6 @@ impl Default for ExtrusionArgs {
             path: PathSelect::default(),
             path_line_args: PathLineArgs::default(),
             path_revolve_args: PathRevolveArgs::default(),
-            path_n: 12,
-            path_start: 0.0,
-            path_end: 90.0,
             profile_orientation: extrude::ProfileOrientation::FollowPath,
         }
     }
@@ -314,12 +308,6 @@ impl Default for ProfileRectangleArgs {
 }
 
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
-pub enum PathSelect {
-    Line,
-    Revolve,
-}
-
-#[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub struct PathLineArgs {
     pub x: f64,
     pub y: f64,
@@ -337,13 +325,27 @@ impl Default for PathLineArgs {
 }
 
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
+pub enum PathSelect {
+    Line,
+    Revolve,
+}
+
+#[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub struct PathRevolveArgs {
+    pub path_n: u32,
+    pub path_start: f64,
+    pub path_end: f64,
     pub radius: f64,
 }
 
 impl Default for PathRevolveArgs {
     fn default() -> Self {
-        Self { radius: 32.0 }
+        Self {
+            path_n: 12,
+            path_start: 0.0,
+            path_end: 90.0,
+            radius: 32.0,
+        }
     }
 }
 
@@ -460,13 +462,28 @@ impl CurveSelect {
             }
         };
 
+        let path_n = match args.path {
+            PathSelect::Line => 1,
+            PathSelect::Revolve => args.path_revolve_args.path_n,
+        };
+
+        let path_start = match args.path {
+            PathSelect::Line => 0.0,
+            PathSelect::Revolve => args.path_revolve_args.path_start,
+        };
+
+        let path_end = match args.path {
+            PathSelect::Line => 1.0,
+            PathSelect::Revolve => args.path_revolve_args.path_end,
+        };
+
         extrude::extrude(
-            args.path_n,
+            path_n,
             profile_fn,
             path_fn,
             frenet_fn,
-            args.path_start,
-            args.path_end,
+            path_start,
+            path_end,
             args.profile_orientation,
         )
     }
