@@ -1,11 +1,12 @@
 // Copyright 2025 Jordan Johnson
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
-use crate::brush::{
-    BankArgs, CatenaryArgs, CurveClassicArgs, CurveSelect, CurveSlopeArgs, ExtrusionArgs,
-    MeshDisplaySettings, RaytoArgs, SerpentineArgs,
-};
+use crate::brush::MeshDisplaySettings;
 use crate::camera_controller::CameraController;
+use crate::curveargs::{
+    BankArgs, CatenaryArgs, CurveClassicArgs, CurveSelect, CurveSlopeArgs, ExtrusionArgs,
+    RaytoArgs, SerpentineArgs,
+};
 use crate::{GizmoSettings, MeshGen};
 use bevy::prelude::*;
 use bevy_egui::egui::containers::modal::Modal;

@@ -8,8 +8,10 @@ use bevy::{prelude::*, winit::WinitSettings};
 use bevy_egui::EguiPlugin;
 
 mod brush;
+mod curveargs;
 mod gui;
-use brush::{update_mesh, CurveSelect, MeshDisplaySettings};
+use brush::{update_mesh, MeshDisplaySettings};
+use curveargs::CurveSelect;
 use gui::egui_blocking_plugin::EguiBlockingPlugin;
 use gui::{ui, UiScreenState};
 mod camera_controller;

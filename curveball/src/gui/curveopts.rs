@@ -1,11 +1,9 @@
-use crate::brush::PathSelect;
-use crate::brush::ProfileSelect;
 use bevy_egui::egui;
 use curveball_lib::curve::extrude;
 
-use crate::brush::{
-    BankArgs, CatenaryArgs, CurveClassicArgs, CurveSlopeArgs, ExtrusionArgs, RaytoArgs,
-    SerpentineArgs,
+use crate::curveargs::{
+    BankArgs, CatenaryArgs, CurveClassicArgs, CurveSlopeArgs, ExtrusionArgs, PathSelect,
+    ProfileSelect, RaytoArgs, SerpentineArgs,
 };
 
 pub fn curveclassic_ui(ui: &mut egui::Ui, args: &mut CurveClassicArgs) {
