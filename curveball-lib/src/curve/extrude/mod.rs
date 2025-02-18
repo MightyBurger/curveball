@@ -3,7 +3,7 @@
 
 use crate::curve::{CurveError, CurveResult, MAX_HULL_ITER};
 use crate::map::geometry::Brush;
-use glam::{DMat3, DVec3};
+use glam::{DMat3, DVec2, DVec3};
 use itertools::Itertools;
 use lerp::LerpIter;
 use thiserror::Error;
@@ -13,13 +13,40 @@ pub mod profile;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub enum ProfileOrientation {
-    Constant,
+    Constant(ProfilePlane),
     FollowPath,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+pub enum ProfilePlane {
+    XZ,
+    YZ,
+    XY,
+}
+
+fn make_3d(point_2d: DVec2, plane: ProfilePlane) -> DVec3 {
+    match plane {
+        ProfilePlane::XZ => DVec3 {
+            x: point_2d.x,
+            y: 0.0,
+            z: point_2d.y,
+        },
+        ProfilePlane::YZ => DVec3 {
+            x: 0.0,
+            y: -point_2d.x,
+            z: point_2d.y,
+        },
+        ProfilePlane::XY => DVec3 {
+            x: point_2d.x,
+            y: point_2d.y,
+            z: 0.0,
+        },
+    }
 }
 
 impl Default for ProfileOrientation {
     fn default() -> Self {
-        Self::Constant
+        Self::Constant(ProfilePlane::XZ)
     }
 }
 
@@ -54,7 +81,7 @@ pub fn extrude<PRF, PI, PPF, PFF>(
 ) -> CurveResult<Vec<Brush>>
 where
     PRF: Fn(f64) -> PI,
-    PI: IntoIterator<Item = DVec3>,
+    PI: IntoIterator<Item = DVec2>,
     PPF: Fn(f64) -> DVec3,
     PFF: Fn(f64) -> FrenetFrame,
 {
@@ -65,30 +92,23 @@ where
         .map(|t| {
             let path_point = path_point_fn(t);
             let frenet_frame = path_frenet_frame_fn(t);
-            let frenet_frame_constant = path_frenet_frame_fn(0.0);
             let this_profile = profile_fn(t);
             let face: Vec<_> = this_profile
                 .into_iter()
-                .map(|mut profile_point| {
-                    match profile_orientation {
-                        ProfileOrientation::Constant => {}
+                .map(|profile_point_2d| {
+                    let profile_point_3d = match profile_orientation {
+                        ProfileOrientation::Constant(plane) => make_3d(profile_point_2d, plane),
                         ProfileOrientation::FollowPath => {
-                            let rmat = DMat3::from_cols(
-                                frenet_frame_constant.tangent,
-                                frenet_frame_constant.normal,
-                                frenet_frame_constant.binormal,
-                            );
-                            profile_point = rmat.inverse().mul_vec3(profile_point).into();
+                            let unrotated_point_3d = make_3d(profile_point_2d, ProfilePlane::YZ);
                             let rmat = DMat3::from_cols(
                                 frenet_frame.tangent,
                                 frenet_frame.normal,
                                 frenet_frame.binormal,
                             );
-                            profile_point = rmat.mul_vec3(profile_point).into();
+                            rmat.mul_vec3(unrotated_point_3d)
                         }
-                    }
-                    profile_point = profile_point + path_point;
-                    profile_point
+                    };
+                    profile_point_3d + path_point
                 })
                 .collect();
             face

@@ -688,11 +688,35 @@ pub fn extrusion_ui(ui: &mut egui::Ui, args: &mut ExtrusionArgs) {
     egui::ComboBox::from_id_salt("PathSelect")
         .selected_text(format!("{:?}", args.path))
         .show_ui(ui, |ui| {
+            ui.selectable_value(&mut args.path, PathSelect::Line, "Line");
             ui.selectable_value(&mut args.path, PathSelect::Revolve, "Revolve");
         });
 
     ui.add_space(8.0);
     match args.path {
+        PathSelect::Line => {
+            args.path_n = 1;
+            args.path_start = 0.0;
+            args.path_end = 1.0;
+
+            ui.horizontal(|ui| {
+                ui.add(egui::DragValue::new(&mut args.path_line_args.x).speed(0.1))
+                    .on_hover_text("x");
+                ui.label("x");
+            });
+
+            ui.horizontal(|ui| {
+                ui.add(egui::DragValue::new(&mut args.path_line_args.y).speed(0.1))
+                    .on_hover_text("y");
+                ui.label("y");
+            });
+
+            ui.horizontal(|ui| {
+                ui.add(egui::DragValue::new(&mut args.path_line_args.z).speed(0.1))
+                    .on_hover_text("z");
+                ui.label("z");
+            });
+        }
         PathSelect::Revolve => {
             ui.horizontal(|ui| {
                 ui.add(egui::DragValue::new(&mut args.path_n).speed(0.1))
@@ -724,8 +748,18 @@ pub fn extrusion_ui(ui: &mut egui::Ui, args: &mut ExtrusionArgs) {
         .show_ui(ui, |ui| {
             ui.selectable_value(
                 &mut args.profile_orientation,
-                extrude::ProfileOrientation::Constant,
-                "Constant",
+                extrude::ProfileOrientation::Constant(extrude::ProfilePlane::XZ),
+                "Constant (XZ)",
+            );
+            ui.selectable_value(
+                &mut args.profile_orientation,
+                extrude::ProfileOrientation::Constant(extrude::ProfilePlane::YZ),
+                "Constant (YZ)",
+            );
+            ui.selectable_value(
+                &mut args.profile_orientation,
+                extrude::ProfileOrientation::Constant(extrude::ProfilePlane::XY),
+                "Constant (XY)",
             );
             ui.selectable_value(
                 &mut args.profile_orientation,

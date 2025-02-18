@@ -3,13 +3,13 @@
 
 use std::f64::consts::PI;
 
-use glam::DVec3;
+use glam::DVec2;
 use lerp::LerpIter;
 use thiserror::Error;
 
 pub type ProfileResult<T> = Result<T, ProfileError>;
 
-pub fn circle(n: u32, radius: f64) -> ProfileResult<impl Fn(f64) -> Vec<DVec3>> {
+pub fn circle(n: u32, radius: f64) -> ProfileResult<impl Fn(f64) -> Vec<DVec2>> {
     if n < 1 {
         return Err(ProfileError::NotEnoughPoints { n });
     }
@@ -18,10 +18,9 @@ pub fn circle(n: u32, radius: f64) -> ProfileResult<impl Fn(f64) -> Vec<DVec3>> 
     }
     let profile_fn = move |_| {
         0f64.lerp_iter(2.0 * PI, n as usize)
-            .map(|theta| DVec3 {
+            .map(|theta| DVec2 {
                 x: radius * theta.cos(),
-                y: 0.0,
-                z: radius * theta.sin(),
+                y: radius * theta.sin(),
             })
             .collect()
     };
@@ -45,7 +44,7 @@ pub fn rectangle(
     width: f64,
     height: f64,
     anchor: RectangleAnchor,
-) -> ProfileResult<impl Fn(f64) -> Vec<DVec3>> {
+) -> ProfileResult<impl Fn(f64) -> Vec<DVec2>> {
     use RectangleAnchor as RA;
     let hoffset = match anchor {
         RA::TopLeft | RA::CenterLeft | RA::BottomLeft => width / 2.0,
@@ -59,10 +58,22 @@ pub fn rectangle(
     };
     let profile_fn = move |_| {
         vec![
-            DVec3::new(hoffset + width / 2.0, 0.0, voffset + height / 2.0),
-            DVec3::new(hoffset + width / 2.0, 0.0, voffset - height / 2.0),
-            DVec3::new(hoffset - width / 2.0, 0.0, voffset + height / 2.0),
-            DVec3::new(hoffset - width / 2.0, 0.0, voffset - height / 2.0),
+            DVec2 {
+                x: hoffset + width / 2.0,
+                y: voffset + height / 2.0,
+            },
+            DVec2 {
+                x: hoffset + width / 2.0,
+                y: voffset - height / 2.0,
+            },
+            DVec2 {
+                x: hoffset - width / 2.0,
+                y: voffset + height / 2.0,
+            },
+            DVec2 {
+                x: hoffset - width / 2.0,
+                y: voffset - height / 2.0,
+            },
         ]
     };
     Ok(profile_fn)

@@ -14,7 +14,7 @@ use curveball_lib::curve::{
     rayto::Rayto, serpentine::Serpentine, serpentine::SerpentineOffsetMode, Curve, CurveResult,
 };
 use curveball_lib::map::geometry::{Brush, Side, SideGeom};
-use glam::DVec3;
+use glam::{DVec2, DVec3};
 
 #[derive(Resource, Debug, Clone)]
 pub struct MeshDisplaySettings {
@@ -238,6 +238,7 @@ pub struct ExtrusionArgs {
     pub profile_circle_args: ProfileCircleArgs,
     pub profile_rectangle_args: ProfileRectangleArgs,
     pub path: PathSelect,
+    pub path_line_args: PathLineArgs,
     pub path_revolve_args: PathRevolveArgs,
     pub path_n: u32,
     pub path_start: f64,
@@ -252,6 +253,7 @@ impl Default for ExtrusionArgs {
             profile_circle_args: ProfileCircleArgs::default(),
             profile_rectangle_args: ProfileRectangleArgs::default(),
             path: PathSelect::default(),
+            path_line_args: PathLineArgs::default(),
             path_revolve_args: PathRevolveArgs::default(),
             path_n: 12,
             path_start: 0.0,
@@ -313,7 +315,25 @@ impl Default for ProfileRectangleArgs {
 
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub enum PathSelect {
+    Line,
     Revolve,
+}
+
+#[derive(Debug, Clone, PartialEq, PartialOrd)]
+pub struct PathLineArgs {
+    pub x: f64,
+    pub y: f64,
+    pub z: f64,
+}
+
+impl Default for PathLineArgs {
+    fn default() -> Self {
+        Self {
+            x: 64.0,
+            y: 0.0,
+            z: 0.0,
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
@@ -410,7 +430,7 @@ impl CurveSelect {
     }
 
     fn extrude_brushes(args: &ExtrusionArgs) -> CurveResult<Vec<Brush>> {
-        let profile_fn: Box<dyn Fn(f64) -> Vec<DVec3>> = match args.profile {
+        let profile_fn: Box<dyn Fn(f64) -> Vec<DVec2>> = match args.profile {
             ProfileSelect::Circle => Box::new(extrude::profile::circle(
                 args.profile_circle_args.n,
                 args.profile_circle_args.radius,
@@ -426,6 +446,14 @@ impl CurveSelect {
             Box<dyn Fn(f64) -> DVec3>,
             Box<dyn Fn(f64) -> extrude::FrenetFrame>,
         ) = match args.path {
+            PathSelect::Line => {
+                let (path_fn, frenet_fn) = extrude::path::line(
+                    args.path_line_args.x,
+                    args.path_line_args.y,
+                    args.path_line_args.z,
+                )?;
+                (Box::new(path_fn), Box::new(frenet_fn))
+            }
             PathSelect::Revolve => {
                 let (path_fn, frenet_fn) = extrude::path::revolve(args.path_revolve_args.radius)?;
                 (Box::new(path_fn), Box::new(frenet_fn))
@@ -441,19 +469,6 @@ impl CurveSelect {
             args.path_end,
             args.profile_orientation,
         )
-        // extrude::extrude(
-        //     4,
-        //     profile_fn,
-        //     |t| DVec3::from([t, 0.0, 0.01 * t * t]),
-        //     |t| extrude::FrenetFrame {
-        //         tangent: DVec3::new(1.0, 0.0, 0.0),
-        //         normal: DVec3::new(0.0, 1.0, 0.01 * t),
-        //         binormal: DVec3::new(0.0, 0.01 * t, 1.0),
-        //     },
-        //     -64.0,
-        //     64.0,
-        //     args.profile_orientation,
-        // )
     }
 }
 

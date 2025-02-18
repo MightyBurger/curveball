@@ -10,6 +10,30 @@ use super::FrenetFrame;
 
 type PathResult<T> = Result<T, PathError>;
 
+pub fn line(
+    x: f64,
+    y: f64,
+    z: f64,
+) -> PathResult<(impl Fn(f64) -> DVec3, impl Fn(f64) -> FrenetFrame)> {
+    let path_fn = move |a: f64| DVec3 { x, y, z } * a;
+    let frenet_fn = move |_a: f64| {
+        let tangent = DVec3 { x, y, z }.normalize_or_zero();
+        let normal = DVec3 {
+            x: y,
+            y: -x,
+            z: 0.0,
+        }
+        .normalize_or_zero();
+        let binormal = tangent.cross(normal);
+        FrenetFrame {
+            tangent,
+            normal,
+            binormal,
+        }
+    };
+    Ok((path_fn, frenet_fn))
+}
+
 pub fn revolve(radius: f64) -> PathResult<(impl Fn(f64) -> DVec3, impl Fn(f64) -> FrenetFrame)> {
     let path_fn = move |mut a: f64| {
         a = a * PI / 180.0;
