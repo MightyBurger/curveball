@@ -250,6 +250,15 @@ pub enum ProfileSelect {
     Rectangle,
 }
 
+impl std::fmt::Display for ProfileSelect {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Circle => write!(f, "Circle"),
+            Self::Rectangle => write!(f, "Rectangle"),
+        }
+    }
+}
+
 impl Default for ProfileSelect {
     fn default() -> Self {
         Self::Circle
@@ -309,6 +318,15 @@ impl Default for PathLineArgs {
 pub enum PathSelect {
     Line,
     Revolve,
+}
+
+impl std::fmt::Display for PathSelect {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Line => write!(f, "Line"),
+            Self::Revolve => write!(f, "Revolve"),
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, PartialOrd)]

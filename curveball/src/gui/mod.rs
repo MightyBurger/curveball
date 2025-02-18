@@ -60,6 +60,20 @@ impl Default for Selected {
     }
 }
 
+impl std::fmt::Display for Selected {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::CurveClassic => write!(f, "Curve Classic"),
+            Self::CurveSlope => write!(f, "Curve Slope"),
+            Self::Rayto => write!(f, "Rayto"),
+            Self::Bank => write!(f, "Bank"),
+            Self::Catenary => write!(f, "Catenary"),
+            Self::Serpentine => write!(f, "Serpentine"),
+            Self::Extrusion => write!(f, "Extrusion"),
+        }
+    }
+}
+
 pub fn ui(
     mut contexts: EguiContexts,
     mut ui_screen_state: ResMut<UiScreenState>,
@@ -78,12 +92,11 @@ pub fn ui(
 
     ui_screen_state.right_panel_width = egui::SidePanel::right("right_panel")
         .resizable(false)
-        //.exact_width(200.0)
         .show(ctx, |ui| {
             ui.add_space(8.0);
             ui.label("Curve");
             egui::ComboBox::from_id_salt("CurveSelect")
-                .selected_text(format!("{:?}", local.selected))
+                .selected_text(format!("{}", local.selected))
                 .show_ui(ui, |ui| {
                     ui.selectable_value(
                         &mut local.selected,

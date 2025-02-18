@@ -507,7 +507,7 @@ pub fn extrusion_ui(ui: &mut egui::Ui, args: &mut ExtrusionArgs) {
 
     ui.label("Profile");
     egui::ComboBox::from_id_salt("ProfileSelect")
-        .selected_text(format!("{:?}", args.profile))
+        .selected_text(format!("{}", args.profile))
         .show_ui(ui, |ui| {
             ui.selectable_value(&mut args.profile, ProfileSelect::Circle, "Circle");
             ui.selectable_value(&mut args.profile, ProfileSelect::Rectangle, "Rectangle");
@@ -684,7 +684,7 @@ pub fn extrusion_ui(ui: &mut egui::Ui, args: &mut ExtrusionArgs) {
 
     ui.label("Path");
     egui::ComboBox::from_id_salt("PathSelect")
-        .selected_text(format!("{:?}", args.path))
+        .selected_text(format!("{}", args.path))
         .show_ui(ui, |ui| {
             ui.selectable_value(&mut args.path, PathSelect::Line, "Line");
             ui.selectable_value(&mut args.path, PathSelect::Revolve, "Revolve");
@@ -738,7 +738,7 @@ pub fn extrusion_ui(ui: &mut egui::Ui, args: &mut ExtrusionArgs) {
     ui.separator();
     ui.label("Profile Orientation");
     egui::ComboBox::from_id_salt("ProfileOrientation")
-        .selected_text(format!("{:?}", args.profile_orientation))
+        .selected_text(format!("{}", args.profile_orientation))
         .show_ui(ui, |ui| {
             ui.selectable_value(
                 &mut args.profile_orientation,

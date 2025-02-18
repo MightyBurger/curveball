@@ -17,6 +17,17 @@ pub enum ProfileOrientation {
     FollowPath,
 }
 
+impl std::fmt::Display for ProfileOrientation {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Constant(ProfilePlane::XZ) => write!(f, "Constant (XZ)"),
+            Self::Constant(ProfilePlane::YZ) => write!(f, "Constant (YZ)"),
+            Self::Constant(ProfilePlane::XY) => write!(f, "Constant (XY)"),
+            Self::FollowPath => write!(f, "Follow Path"),
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub enum ProfilePlane {
     XZ,
