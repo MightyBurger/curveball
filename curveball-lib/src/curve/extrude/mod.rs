@@ -133,6 +133,42 @@ where
         .collect()
 }
 
+// Extrude along a parameterized curve with a path with multiple components.
+// The arguments are the same as extrude, except the profile function is now an iterator over
+// profile functions, each corresponding to a convex 2D profile.
+pub fn extrude_multi<PRFI, PRF, PI, PPF, PFF>(
+    n: u32,
+    profile_fn_multi: PRFI,
+    path_point_fn: PPF,
+    path_frenet_frame_fn: PFF,
+    start: f64,
+    end: f64,
+    profile_orientation: ProfileOrientation,
+) -> CurveResult<Vec<Brush>>
+where
+    PRFI: IntoIterator<Item = PRF>,
+    PRF: Fn(f64) -> PI,
+    PI: IntoIterator<Item = DVec2>,
+    PPF: Fn(f64) -> DVec3,
+    PFF: Fn(f64) -> FrenetFrame,
+{
+    profile_fn_multi
+        .into_iter()
+        .map(|profile_fn| {
+            extrude(
+                n,
+                profile_fn,
+                &path_point_fn,
+                &path_frenet_frame_fn,
+                start,
+                end,
+                profile_orientation,
+            )
+        })
+        .flatten_ok()
+        .collect()
+}
+
 #[derive(Error, Debug)]
 pub enum ExtrudeError {
     #[error("n = {n}. Number of segments must be at least 1.")]

@@ -511,6 +511,7 @@ pub fn extrusion_ui(ui: &mut egui::Ui, args: &mut ExtrusionArgs) {
         .show_ui(ui, |ui| {
             ui.selectable_value(&mut args.profile, ProfileSelect::Circle, "Circle");
             ui.selectable_value(&mut args.profile, ProfileSelect::Rectangle, "Rectangle");
+            ui.selectable_value(&mut args.profile, ProfileSelect::Annulus, "Annulus");
         });
 
     ui.add_space(8.0);
@@ -676,6 +677,37 @@ pub fn extrusion_ui(ui: &mut egui::Ui, args: &mut ExtrusionArgs) {
                         }
                     });
                 });
+            });
+        }
+        ProfileSelect::Annulus => {
+            ui.horizontal(|ui| {
+                ui.add(egui::DragValue::new(&mut args.profile_annulus_args.n).speed(0.1))
+                    .on_hover_text("n");
+                ui.label("Resolution");
+            });
+            ui.horizontal(|ui| {
+                ui.add(
+                    egui::DragValue::new(&mut args.profile_annulus_args.inner_radius).speed(0.1),
+                )
+                .on_hover_text("inner_radius");
+                ui.label("Inner Radius");
+            });
+            ui.horizontal(|ui| {
+                ui.add(
+                    egui::DragValue::new(&mut args.profile_annulus_args.outer_radius).speed(0.1),
+                )
+                .on_hover_text("outer_radius");
+                ui.label("Outer Radius");
+            });
+            ui.horizontal(|ui| {
+                ui.add(egui::DragValue::new(&mut args.profile_annulus_args.start_angle).speed(0.1))
+                    .on_hover_text("start_angle");
+                ui.label("Start Angle");
+            });
+            ui.horizontal(|ui| {
+                ui.add(egui::DragValue::new(&mut args.profile_annulus_args.end_angle).speed(0.1))
+                    .on_hover_text("end_angle");
+                ui.label("End Angle");
             });
         }
     }

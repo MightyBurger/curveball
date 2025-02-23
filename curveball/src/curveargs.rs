@@ -218,6 +218,7 @@ pub struct ExtrusionArgs {
     pub profile: ProfileSelect,
     pub profile_circle_args: ProfileCircleArgs,
     pub profile_rectangle_args: ProfileRectangleArgs,
+    pub profile_annulus_args: ProfileAnnulusArgs,
     pub path: PathSelect,
     pub path_line_args: PathLineArgs,
     pub path_revolve_args: PathRevolveArgs,
@@ -230,6 +231,7 @@ impl Default for ExtrusionArgs {
             profile: ProfileSelect::default(),
             profile_circle_args: ProfileCircleArgs::default(),
             profile_rectangle_args: ProfileRectangleArgs::default(),
+            profile_annulus_args: ProfileAnnulusArgs::default(),
             path: PathSelect::default(),
             path_line_args: PathLineArgs::default(),
             path_revolve_args: PathRevolveArgs::default(),
@@ -248,6 +250,7 @@ impl Default for PathSelect {
 pub enum ProfileSelect {
     Circle,
     Rectangle,
+    Annulus,
 }
 
 impl std::fmt::Display for ProfileSelect {
@@ -255,6 +258,7 @@ impl std::fmt::Display for ProfileSelect {
         match self {
             Self::Circle => write!(f, "Circle"),
             Self::Rectangle => write!(f, "Rectangle"),
+            Self::Annulus => write!(f, "Annulus"),
         }
     }
 }
@@ -293,6 +297,27 @@ impl Default for ProfileRectangleArgs {
             width: 32.0,
             height: 8.0,
             anchor: extrude::profile::RectangleAnchor::BottomLeft,
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, PartialOrd)]
+pub struct ProfileAnnulusArgs {
+    pub n: u32,
+    pub inner_radius: f64,
+    pub outer_radius: f64,
+    pub start_angle: f64,
+    pub end_angle: f64,
+}
+
+impl Default for ProfileAnnulusArgs {
+    fn default() -> Self {
+        Self {
+            n: 12,
+            inner_radius: 48.0,
+            outer_radius: 64.0,
+            start_angle: 0.0,
+            end_angle: 90.0,
         }
     }
 }
@@ -431,15 +456,22 @@ impl CurveSelect {
     }
 
     fn extrude_brushes(args: &ExtrusionArgs) -> CurveResult<Vec<Brush>> {
-        let profile_fn: Box<dyn Fn(f64) -> Vec<DVec2>> = match args.profile {
-            ProfileSelect::Circle => Box::new(extrude::profile::circle(
+        let profile_fn: ProfileFn = match args.profile {
+            ProfileSelect::Circle => ProfileFn::Single(Box::new(extrude::profile::circle(
                 args.profile_circle_args.n,
                 args.profile_circle_args.radius,
-            )?),
-            ProfileSelect::Rectangle => Box::new(extrude::profile::rectangle(
+            )?)),
+            ProfileSelect::Rectangle => ProfileFn::Single(Box::new(extrude::profile::rectangle(
                 args.profile_rectangle_args.width,
                 args.profile_rectangle_args.height,
                 args.profile_rectangle_args.anchor,
+            )?)),
+            ProfileSelect::Annulus => ProfileFn::Multi(extrude::profile::annulus(
+                args.profile_annulus_args.n,
+                args.profile_annulus_args.inner_radius,
+                args.profile_annulus_args.outer_radius,
+                args.profile_annulus_args.start_angle,
+                args.profile_annulus_args.end_angle,
             )?),
         };
 
@@ -476,14 +508,30 @@ impl CurveSelect {
             PathSelect::Revolve => args.path_revolve_args.path_end,
         };
 
-        extrude::extrude(
-            path_n,
-            profile_fn,
-            path_fn,
-            frenet_fn,
-            path_start,
-            path_end,
-            args.profile_orientation,
-        )
+        match profile_fn {
+            ProfileFn::Single(profile_fn) => extrude::extrude(
+                path_n,
+                profile_fn,
+                path_fn,
+                frenet_fn,
+                path_start,
+                path_end,
+                args.profile_orientation,
+            ),
+            ProfileFn::Multi(profile_fn) => extrude::extrude_multi(
+                path_n,
+                profile_fn,
+                path_fn,
+                frenet_fn,
+                path_start,
+                path_end,
+                args.profile_orientation,
+            ),
+        }
     }
+}
+
+enum ProfileFn {
+    Single(Box<dyn Fn(f64) -> Vec<DVec2>>),
+    Multi(Vec<Box<dyn Fn(f64) -> Vec<DVec2>>>),
 }
