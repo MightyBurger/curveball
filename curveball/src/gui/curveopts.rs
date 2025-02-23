@@ -2,9 +2,9 @@ use bevy_egui::egui;
 use curveball_lib::curve::extrude;
 
 use crate::curveargs::{
-    BankArgs, CatenaryArgs, CurveClassicArgs, CurveSlopeArgs, ExtrusionArgs, PathSelect,
-    ProfileSelect, RaytoArgs, SerpentineArgs,
+    BankArgs, CatenaryArgs, CurveClassicArgs, CurveSlopeArgs, RaytoArgs, SerpentineArgs,
 };
+use crate::gui::{ExtrusionGuiData, SelectedPath, SelectedProfile};
 
 pub fn curveclassic_ui(ui: &mut egui::Ui, args: &mut CurveClassicArgs) {
     ui.label("Segments");
@@ -502,21 +502,33 @@ pub fn serpentine_ui(ui: &mut egui::Ui, args: &mut SerpentineArgs) {
     });
 }
 
-pub fn extrusion_ui(ui: &mut egui::Ui, args: &mut ExtrusionArgs) {
+pub fn extrusion_ui(ui: &mut egui::Ui, args: &mut ExtrusionGuiData) {
     // ui.label("Segments");
 
     ui.label("Profile");
-    egui::ComboBox::from_id_salt("ProfileSelect")
-        .selected_text(format!("{}", args.profile))
+    egui::ComboBox::from_id_salt("SelectedProfile")
+        .selected_text(format!("{}", args.selected_profile))
         .show_ui(ui, |ui| {
-            ui.selectable_value(&mut args.profile, ProfileSelect::Circle, "Circle");
-            ui.selectable_value(&mut args.profile, ProfileSelect::Rectangle, "Rectangle");
-            ui.selectable_value(&mut args.profile, ProfileSelect::Annulus, "Annulus");
+            ui.selectable_value(
+                &mut args.selected_profile,
+                SelectedProfile::Circle,
+                "Circle",
+            );
+            ui.selectable_value(
+                &mut args.selected_profile,
+                SelectedProfile::Rectangle,
+                "Rectangle",
+            );
+            ui.selectable_value(
+                &mut args.selected_profile,
+                SelectedProfile::Annulus,
+                "Annulus",
+            );
         });
 
     ui.add_space(8.0);
-    match args.profile {
-        ProfileSelect::Circle => {
+    match args.selected_profile {
+        SelectedProfile::Circle => {
             ui.horizontal(|ui| {
                 ui.add(egui::DragValue::new(&mut args.profile_circle_args.n).speed(0.1))
                     .on_hover_text("n");
@@ -528,7 +540,7 @@ pub fn extrusion_ui(ui: &mut egui::Ui, args: &mut ExtrusionArgs) {
                 ui.label("Radius");
             });
         }
-        ProfileSelect::Rectangle => {
+        SelectedProfile::Rectangle => {
             ui.horizontal(|ui| {
                 ui.add(egui::DragValue::new(&mut args.profile_rectangle_args.width).speed(0.1))
                     .on_hover_text("width");
@@ -679,7 +691,7 @@ pub fn extrusion_ui(ui: &mut egui::Ui, args: &mut ExtrusionArgs) {
                 });
             });
         }
-        ProfileSelect::Annulus => {
+        SelectedProfile::Annulus => {
             ui.horizontal(|ui| {
                 ui.add(egui::DragValue::new(&mut args.profile_annulus_args.n).speed(0.1))
                     .on_hover_text("n");
@@ -716,15 +728,15 @@ pub fn extrusion_ui(ui: &mut egui::Ui, args: &mut ExtrusionArgs) {
 
     ui.label("Path");
     egui::ComboBox::from_id_salt("PathSelect")
-        .selected_text(format!("{}", args.path))
+        .selected_text(format!("{}", args.selected_path))
         .show_ui(ui, |ui| {
-            ui.selectable_value(&mut args.path, PathSelect::Line, "Line");
-            ui.selectable_value(&mut args.path, PathSelect::Revolve, "Revolve");
+            ui.selectable_value(&mut args.selected_path, SelectedPath::Line, "Line");
+            ui.selectable_value(&mut args.selected_path, SelectedPath::Revolve, "Revolve");
         });
 
     ui.add_space(8.0);
-    match args.path {
-        PathSelect::Line => {
+    match args.selected_path {
+        SelectedPath::Line => {
             ui.horizontal(|ui| {
                 ui.add(egui::DragValue::new(&mut args.path_line_args.x).speed(0.1))
                     .on_hover_text("x");
@@ -743,7 +755,7 @@ pub fn extrusion_ui(ui: &mut egui::Ui, args: &mut ExtrusionArgs) {
                 ui.label("z");
             });
         }
-        PathSelect::Revolve => {
+        SelectedPath::Revolve => {
             ui.horizontal(|ui| {
                 ui.add(egui::DragValue::new(&mut args.path_revolve_args.path_n).speed(0.1))
                     .on_hover_text("path_n");

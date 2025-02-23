@@ -6,6 +6,7 @@ use crate::map::geometry::Brush;
 use glam::{DMat3, DVec2, DVec3};
 use itertools::Itertools;
 use lerp::LerpIter;
+use profile::Profile;
 use thiserror::Error;
 
 pub mod path;
@@ -81,9 +82,9 @@ pub struct FrenetFrame {
 //  orientation at any point along the curve. The Frenet Frame should evaluate to
 //  {tangent: [1, 0, 0], normal: [0, 1, 0], binormal: [0, 0, 1]]} when the parameter is zero.
 //  start, end: the start and end values of the parameter
-pub fn extrude<PRF, PI, PPF, PFF>(
+pub fn extrude<PRF, PPF, PFF>(
     n: u32,
-    profile_fn: PRF,
+    profile: PRF,
     path_point_fn: PPF,
     path_frenet_frame_fn: PFF,
     start: f64,
@@ -91,8 +92,7 @@ pub fn extrude<PRF, PI, PPF, PFF>(
     profile_orientation: ProfileOrientation,
 ) -> CurveResult<Vec<Brush>>
 where
-    PRF: Fn(f64) -> PI,
-    PI: IntoIterator<Item = DVec2>,
+    PRF: Profile,
     PPF: Fn(f64) -> DVec3,
     PFF: Fn(f64) -> FrenetFrame,
 {
@@ -103,7 +103,7 @@ where
         .map(|t| {
             let path_point = path_point_fn(t);
             let frenet_frame = path_frenet_frame_fn(t);
-            let this_profile = profile_fn(t);
+            let this_profile = profile.eval(t);
             let face: Vec<_> = this_profile
                 .into_iter()
                 .map(|profile_point_2d| {
@@ -136,9 +136,9 @@ where
 // Extrude along a parameterized curve with a path with multiple components.
 // The arguments are the same as extrude, except the profile function is now an iterator over
 // profile functions, each corresponding to a convex 2D profile.
-pub fn extrude_multi<PRFI, PRF, PI, PPF, PFF>(
+pub fn extrude_multi<PRFI, PRF, PPF, PFF>(
     n: u32,
-    profile_fn_multi: PRFI,
+    compound_profile: PRFI,
     path_point_fn: PPF,
     path_frenet_frame_fn: PFF,
     start: f64,
@@ -146,14 +146,12 @@ pub fn extrude_multi<PRFI, PRF, PI, PPF, PFF>(
     profile_orientation: ProfileOrientation,
 ) -> CurveResult<Vec<Brush>>
 where
-    PRFI: IntoIterator<Item = PRF>,
-    PRF: Fn(f64) -> PI,
-    PI: IntoIterator<Item = DVec2>,
+    PRFI: ExactSizeIterator<Item = PRF>,
+    PRF: Profile,
     PPF: Fn(f64) -> DVec3,
     PFF: Fn(f64) -> FrenetFrame,
 {
-    profile_fn_multi
-        .into_iter()
+    compound_profile
         .map(|profile_fn| {
             extrude(
                 n,

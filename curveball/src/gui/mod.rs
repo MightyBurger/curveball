@@ -5,13 +5,15 @@ use crate::brush::MeshDisplaySettings;
 use crate::camera_controller::CameraController;
 use crate::curveargs::{
     BankArgs, CatenaryArgs, CurveClassicArgs, CurveSelect, CurveSlopeArgs, ExtrusionArgs,
-    RaytoArgs, SerpentineArgs,
+    PathLineArgs, PathRevolveArgs, PathSelect, ProfileAnnulusArgs, ProfileCircleArgs,
+    ProfileRectangleArgs, ProfileSelect, RaytoArgs, SerpentineArgs,
 };
 use crate::{GizmoSettings, MeshGen};
 use bevy::prelude::*;
 use bevy_egui::egui::containers::modal::Modal;
 use bevy_egui::egui::{Id, menu};
 use bevy_egui::{EguiContexts, egui};
+use curveball_lib::curve::extrude::ProfileOrientation;
 use curveball_lib::map::entity::SimpleWorldspawn;
 use curveball_lib::map::qmap::{QEntity, QMap};
 
@@ -33,18 +35,30 @@ pub struct GuiData {
     guide_open: bool,
     guide_example: f32,
     about_open: bool,
-    selected: Selected,
+    selected_curve: SelectedCurve,
     curveclassic_args: CurveClassicArgs,
     curveslope_args: CurveSlopeArgs,
     rayto_args: RaytoArgs,
     bank_args: BankArgs,
     catenary_args: CatenaryArgs,
     serpentine_args: SerpentineArgs,
-    extrusion_args: ExtrusionArgs,
+    extrusion_gui_data: ExtrusionGuiData,
+}
+
+#[derive(Default, Resource, Debug)]
+pub struct ExtrusionGuiData {
+    selected_profile: SelectedProfile,
+    profile_circle_args: ProfileCircleArgs,
+    profile_rectangle_args: ProfileRectangleArgs,
+    profile_annulus_args: ProfileAnnulusArgs,
+    selected_path: SelectedPath,
+    path_line_args: PathLineArgs,
+    path_revolve_args: PathRevolveArgs,
+    profile_orientation: ProfileOrientation,
 }
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
-pub enum Selected {
+pub enum SelectedCurve {
     CurveClassic,
     CurveSlope,
     Rayto,
@@ -54,13 +68,13 @@ pub enum Selected {
     Extrusion,
 }
 
-impl Default for Selected {
+impl Default for SelectedCurve {
     fn default() -> Self {
         Self::Bank
     }
 }
 
-impl std::fmt::Display for Selected {
+impl std::fmt::Display for SelectedCurve {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::CurveClassic => write!(f, "Curve Classic"),
@@ -71,6 +85,50 @@ impl std::fmt::Display for Selected {
             Self::Serpentine => write!(f, "Serpentine"),
             Self::Extrusion => write!(f, "Extrusion"),
         }
+    }
+}
+
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+pub enum SelectedProfile {
+    Circle,
+    Rectangle,
+    Annulus,
+}
+
+impl std::fmt::Display for SelectedProfile {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Circle => write!(f, "Circle"),
+            Self::Rectangle => write!(f, "Rectangle"),
+            Self::Annulus => write!(f, "Annulus"),
+        }
+    }
+}
+
+impl Default for SelectedProfile {
+    fn default() -> Self {
+        Self::Circle
+    }
+}
+
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+pub enum SelectedPath {
+    Line,
+    Revolve,
+}
+
+impl std::fmt::Display for SelectedPath {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Line => write!(f, "Line"),
+            Self::Revolve => write!(f, "Revolve"),
+        }
+    }
+}
+
+impl Default for SelectedPath {
+    fn default() -> Self {
+        Self::Revolve
     }
 }
 
@@ -96,37 +154,55 @@ pub fn ui(
             ui.add_space(8.0);
             ui.label("Curve");
             egui::ComboBox::from_id_salt("CurveSelect")
-                .selected_text(format!("{}", local.selected))
+                .selected_text(format!("{}", local.selected_curve))
                 .show_ui(ui, |ui| {
                     ui.selectable_value(
-                        &mut local.selected,
-                        Selected::CurveClassic,
+                        &mut local.selected_curve,
+                        SelectedCurve::CurveClassic,
                         "Curve Classic",
                     );
-                    ui.selectable_value(&mut local.selected, Selected::CurveSlope, "Curve Slope");
-                    ui.selectable_value(&mut local.selected, Selected::Rayto, "Rayto");
-                    ui.selectable_value(&mut local.selected, Selected::Bank, "Bank");
-                    ui.selectable_value(&mut local.selected, Selected::Catenary, "Catenary");
-                    ui.selectable_value(&mut local.selected, Selected::Serpentine, "Serpentine");
-                    ui.selectable_value(&mut local.selected, Selected::Extrusion, "Extrusion");
+                    ui.selectable_value(
+                        &mut local.selected_curve,
+                        SelectedCurve::CurveSlope,
+                        "Curve Slope",
+                    );
+                    ui.selectable_value(&mut local.selected_curve, SelectedCurve::Rayto, "Rayto");
+                    ui.selectable_value(&mut local.selected_curve, SelectedCurve::Bank, "Bank");
+                    ui.selectable_value(
+                        &mut local.selected_curve,
+                        SelectedCurve::Catenary,
+                        "Catenary",
+                    );
+                    ui.selectable_value(
+                        &mut local.selected_curve,
+                        SelectedCurve::Serpentine,
+                        "Serpentine",
+                    );
+                    ui.selectable_value(
+                        &mut local.selected_curve,
+                        SelectedCurve::Extrusion,
+                        "Extrusion",
+                    );
                 });
 
             ui.separator();
             egui::ScrollArea::vertical().show(ui, |ui| {
-                match local.selected {
-                    Selected::CurveClassic => {
+                match local.selected_curve {
+                    SelectedCurve::CurveClassic => {
                         curveopts::curveclassic_ui(ui, &mut local.curveclassic_args)
                     }
-                    Selected::CurveSlope => {
+                    SelectedCurve::CurveSlope => {
                         curveopts::curveslope_ui(ui, &mut local.curveslope_args)
                     }
-                    Selected::Rayto => curveopts::rayto_ui(ui, &mut local.rayto_args),
-                    Selected::Bank => curveopts::bank_ui(ui, &mut local.bank_args),
-                    Selected::Catenary => curveopts::catenary_ui(ui, &mut local.catenary_args),
-                    Selected::Serpentine => {
+                    SelectedCurve::Rayto => curveopts::rayto_ui(ui, &mut local.rayto_args),
+                    SelectedCurve::Bank => curveopts::bank_ui(ui, &mut local.bank_args),
+                    SelectedCurve::Catenary => curveopts::catenary_ui(ui, &mut local.catenary_args),
+                    SelectedCurve::Serpentine => {
                         curveopts::serpentine_ui(ui, &mut local.serpentine_args)
                     }
-                    Selected::Extrusion => curveopts::extrusion_ui(ui, &mut local.extrusion_args),
+                    SelectedCurve::Extrusion => {
+                        curveopts::extrusion_ui(ui, &mut local.extrusion_gui_data)
+                    }
                 }
 
                 ui.separator();
@@ -136,16 +212,22 @@ pub fn ui(
                     .on_hover_text("Reset the curve to default settings")
                     .clicked()
                 {
-                    match local.selected {
-                        Selected::CurveClassic => {
+                    match local.selected_curve {
+                        SelectedCurve::CurveClassic => {
                             local.curveclassic_args = CurveClassicArgs::default()
                         }
-                        Selected::CurveSlope => local.curveslope_args = CurveSlopeArgs::default(),
-                        Selected::Rayto => local.rayto_args = RaytoArgs::default(),
-                        Selected::Bank => local.bank_args = BankArgs::default(),
-                        Selected::Catenary => local.catenary_args = CatenaryArgs::default(),
-                        Selected::Serpentine => local.serpentine_args = SerpentineArgs::default(),
-                        Selected::Extrusion => local.extrusion_args = ExtrusionArgs::default(),
+                        SelectedCurve::CurveSlope => {
+                            local.curveslope_args = CurveSlopeArgs::default()
+                        }
+                        SelectedCurve::Rayto => local.rayto_args = RaytoArgs::default(),
+                        SelectedCurve::Bank => local.bank_args = BankArgs::default(),
+                        SelectedCurve::Catenary => local.catenary_args = CatenaryArgs::default(),
+                        SelectedCurve::Serpentine => {
+                            local.serpentine_args = SerpentineArgs::default()
+                        }
+                        SelectedCurve::Extrusion => {
+                            local.extrusion_gui_data = ExtrusionGuiData::default()
+                        }
                     }
                 };
                 ui.add_space(8.0);
@@ -458,14 +540,37 @@ pub fn ui(
         }
     }
 
-    *curve_select = match local.selected {
-        Selected::CurveClassic => CurveSelect::CurveClassic(local.curveclassic_args.clone()),
-        Selected::CurveSlope => CurveSelect::CurveSlope(local.curveslope_args.clone()),
-        Selected::Rayto => CurveSelect::Rayto(local.rayto_args.clone()),
-        Selected::Bank => CurveSelect::Bank(local.bank_args.clone()),
-        Selected::Catenary => CurveSelect::Catenary(local.catenary_args.clone()),
-        Selected::Serpentine => CurveSelect::Serpentine(local.serpentine_args.clone()),
-        Selected::Extrusion => CurveSelect::Extrusion(local.extrusion_args.clone()),
+    // Finally, collapse all the GUI information into one curve to display on the screen.
+
+    *curve_select = match local.selected_curve {
+        SelectedCurve::CurveClassic => CurveSelect::CurveClassic(local.curveclassic_args.clone()),
+        SelectedCurve::CurveSlope => CurveSelect::CurveSlope(local.curveslope_args.clone()),
+        SelectedCurve::Rayto => CurveSelect::Rayto(local.rayto_args.clone()),
+        SelectedCurve::Bank => CurveSelect::Bank(local.bank_args.clone()),
+        SelectedCurve::Catenary => CurveSelect::Catenary(local.catenary_args.clone()),
+        SelectedCurve::Serpentine => CurveSelect::Serpentine(local.serpentine_args.clone()),
+        SelectedCurve::Extrusion => CurveSelect::Extrusion(ExtrusionArgs {
+            profile: match local.extrusion_gui_data.selected_profile {
+                SelectedProfile::Circle => {
+                    ProfileSelect::Circle(local.extrusion_gui_data.profile_circle_args.clone())
+                }
+                SelectedProfile::Rectangle => ProfileSelect::Rectangle(
+                    local.extrusion_gui_data.profile_rectangle_args.clone(),
+                ),
+                SelectedProfile::Annulus => {
+                    ProfileSelect::Annulus(local.extrusion_gui_data.profile_annulus_args.clone())
+                }
+            },
+            path: match local.extrusion_gui_data.selected_path {
+                SelectedPath::Line => {
+                    PathSelect::Line(local.extrusion_gui_data.path_line_args.clone())
+                }
+                SelectedPath::Revolve => {
+                    PathSelect::Revolve(local.extrusion_gui_data.path_revolve_args.clone())
+                }
+            },
+            profile_orientation: local.extrusion_gui_data.profile_orientation,
+        }),
     };
 }
 
