@@ -5,12 +5,12 @@ edition = "2024"
 publish = false
 
 [dependencies]
-bevy_egui = { version = "0.32.0", default-features = false, features = [ "arboard", "bevy_asset", "bevy_image", "bevy_render", "bytemuck", "default_fonts", "encase", "open_url", "render", "thread_local", "webbrowser", "wgpu-types" ] }
+bevy_egui = { version = "0.33.0", default-features = false, features = [ "arboard", "bevy_asset", "bevy_image", "bevy_render", "bytemuck", "default_fonts", "encase", "open_url", "render", "thread_local", "webbrowser", "wgpu-types" ] }
 copypasta = "0.10.1"
 curveball-lib = { path = "../curveball-lib" }
-egui_extras = "0.30.0"
+egui_extras = "0.31.0"
 futures-channel = "0.3.31"
-glam = "0.29.2"
+glam = "0.30.0"
 image = "0.25.5"
 thiserror = "2.0.9"
 wasm-bindgen-futures = "0.4.49"
