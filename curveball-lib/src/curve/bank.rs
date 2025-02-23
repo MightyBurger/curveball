@@ -43,13 +43,7 @@ impl Curve for Bank {
                 let pa = DVec3 {
                     x: self.ro * f64::cos(deg2rad(dtheta)),
                     y: self.ro * f64::sin(deg2rad(dtheta)),
-                    z: {
-                        if self.fill {
-                            -self.t
-                        } else {
-                            self.h - self.t
-                        }
-                    },
+                    z: { if self.fill { -self.t } else { self.h - self.t } },
                 };
                 let pb = DVec3 {
                     x: self.ri * f64::cos(deg2rad(dtheta)),

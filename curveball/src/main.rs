@@ -10,10 +10,10 @@ use bevy_egui::EguiPlugin;
 mod brush;
 mod curveargs;
 mod gui;
-use brush::{update_mesh, MeshDisplaySettings};
+use brush::{MeshDisplaySettings, update_mesh};
 use curveargs::CurveSelect;
 use gui::egui_blocking_plugin::EguiBlockingPlugin;
-use gui::{ui, UiScreenState};
+use gui::{UiScreenState, ui};
 mod camera_controller;
 use camera_controller::{CameraController, CameraControllerPlugin};
 

@@ -108,7 +108,9 @@ pub enum CatenaryError {
     TooManySegments { n: u32 },
     #[error("Given length {given} is too short; must be greater than {min}.")]
     LengthTooShort { given: f64, min: f64 },
-    #[error("Newton's method failed to converge to an accurate solution after {iterations} iterations. The initial guess was {initial}. Change the parameters to a less extreme catenary curve, or try again with a different initial guess.")]
+    #[error(
+        "Newton's method failed to converge to an accurate solution after {iterations} iterations. The initial guess was {initial}. Change the parameters to a less extreme catenary curve, or try again with a different initial guess."
+    )]
     NewtonFail { iterations: i32, initial: f64 },
 }
 

@@ -4,8 +4,9 @@
 use bevy::prelude::*;
 
 use curveball_lib::curve::{
-    bank::Bank, catenary::Catenary, curve_classic::CurveClassic, curve_slope::CurveSlope, extrude,
-    rayto::Rayto, serpentine::Serpentine, serpentine::SerpentineOffsetMode, Curve, CurveResult,
+    Curve, CurveResult, bank::Bank, catenary::Catenary, curve_classic::CurveClassic,
+    curve_slope::CurveSlope, extrude, rayto::Rayto, serpentine::Serpentine,
+    serpentine::SerpentineOffsetMode,
 };
 use curveball_lib::map::geometry::Brush;
 use glam::{DVec2, DVec3};

@@ -70,9 +70,15 @@ impl Side {
                 write!(
                     f,
                     "( {:.6} {:.6} {:.6} ) ( {:.6} {:.6} {:.6} ) ( {:.6} {:.6} {:.6} ) {} 0 0 0 0.5 0.5 0 0 0",
-                    self.0.geom.0[0][0], self.0.geom.0[0][1], self.0.geom.0[0][2],
-                    self.0.geom.0[1][0], self.0.geom.0[1][1], self.0.geom.0[1][2],
-                    self.0.geom.0[2][0], self.0.geom.0[2][1], self.0.geom.0[2][2],
+                    self.0.geom.0[0][0],
+                    self.0.geom.0[0][1],
+                    self.0.geom.0[0][2],
+                    self.0.geom.0[1][0],
+                    self.0.geom.0[1][1],
+                    self.0.geom.0[1][2],
+                    self.0.geom.0[2][0],
+                    self.0.geom.0[2][1],
+                    self.0.geom.0[2][2],
                     self.0.mtrl.texture
                 )
             }
@@ -226,30 +232,46 @@ mod tests {
 
         assert_eq!(extracted_vertices.len(), 8);
         assert_eq!(extracted_sides.len(), 6);
-        assert!(extracted_vertices
-            .iter()
-            .any(|vertex| almost_equals(vertex, &DVec3::from([0.0, 0.0, 0.0]))));
-        assert!(extracted_vertices
-            .iter()
-            .any(|vertex| almost_equals(vertex, &DVec3::from([0.0, 0.0, 1.0]))));
-        assert!(extracted_vertices
-            .iter()
-            .any(|vertex| almost_equals(vertex, &DVec3::from([0.0, 1.0, 0.0]))));
-        assert!(extracted_vertices
-            .iter()
-            .any(|vertex| almost_equals(vertex, &DVec3::from([0.0, 1.0, 1.0]))));
-        assert!(extracted_vertices
-            .iter()
-            .any(|vertex| almost_equals(vertex, &DVec3::from([1.0, 0.0, 0.0]))));
-        assert!(extracted_vertices
-            .iter()
-            .any(|vertex| almost_equals(vertex, &DVec3::from([1.0, 0.0, 1.0]))));
-        assert!(extracted_vertices
-            .iter()
-            .any(|vertex| almost_equals(vertex, &DVec3::from([1.0, 1.0, 0.0]))));
-        assert!(extracted_vertices
-            .iter()
-            .any(|vertex| almost_equals(vertex, &DVec3::from([1.0, 1.0, 1.0]))));
+        assert!(
+            extracted_vertices
+                .iter()
+                .any(|vertex| almost_equals(vertex, &DVec3::from([0.0, 0.0, 0.0])))
+        );
+        assert!(
+            extracted_vertices
+                .iter()
+                .any(|vertex| almost_equals(vertex, &DVec3::from([0.0, 0.0, 1.0])))
+        );
+        assert!(
+            extracted_vertices
+                .iter()
+                .any(|vertex| almost_equals(vertex, &DVec3::from([0.0, 1.0, 0.0])))
+        );
+        assert!(
+            extracted_vertices
+                .iter()
+                .any(|vertex| almost_equals(vertex, &DVec3::from([0.0, 1.0, 1.0])))
+        );
+        assert!(
+            extracted_vertices
+                .iter()
+                .any(|vertex| almost_equals(vertex, &DVec3::from([1.0, 0.0, 0.0])))
+        );
+        assert!(
+            extracted_vertices
+                .iter()
+                .any(|vertex| almost_equals(vertex, &DVec3::from([1.0, 0.0, 1.0])))
+        );
+        assert!(
+            extracted_vertices
+                .iter()
+                .any(|vertex| almost_equals(vertex, &DVec3::from([1.0, 1.0, 0.0])))
+        );
+        assert!(
+            extracted_vertices
+                .iter()
+                .any(|vertex| almost_equals(vertex, &DVec3::from([1.0, 1.0, 1.0])))
+        );
     }
 
     #[test]
@@ -270,18 +292,26 @@ mod tests {
         assert_eq!(extracted_vertices.len(), 4);
         assert_eq!(extracted_sides.len(), 4);
 
-        assert!(extracted_vertices
-            .iter()
-            .any(|vertex| almost_equals(vertex, &DVec3::from([0.0, 0.0, 0.0]))));
-        assert!(extracted_vertices
-            .iter()
-            .any(|vertex| almost_equals(vertex, &DVec3::from([0.0, 0.0, 1.0]))));
-        assert!(extracted_vertices
-            .iter()
-            .any(|vertex| almost_equals(vertex, &DVec3::from([0.0, 1.0, 0.0]))));
-        assert!(extracted_vertices
-            .iter()
-            .any(|vertex| almost_equals(vertex, &DVec3::from([1.0, 0.0, 0.0]))));
+        assert!(
+            extracted_vertices
+                .iter()
+                .any(|vertex| almost_equals(vertex, &DVec3::from([0.0, 0.0, 0.0])))
+        );
+        assert!(
+            extracted_vertices
+                .iter()
+                .any(|vertex| almost_equals(vertex, &DVec3::from([0.0, 0.0, 1.0])))
+        );
+        assert!(
+            extracted_vertices
+                .iter()
+                .any(|vertex| almost_equals(vertex, &DVec3::from([0.0, 1.0, 0.0])))
+        );
+        assert!(
+            extracted_vertices
+                .iter()
+                .any(|vertex| almost_equals(vertex, &DVec3::from([1.0, 0.0, 0.0])))
+        );
     }
 
     #[test]
@@ -309,7 +339,10 @@ mod tests {
             mtrl: SideMtrl::default(),
         };
 
-        assert_eq!(format!("{}", side.bake()), "( 1.000000 2.000000 3.000000 ) ( 10.000000 20.000000 30.000000 ) ( 100.000000 200.000000 300.000000 ) mtrl/invisible 0 0 0 0.5 0.5 0 0 0");
+        assert_eq!(
+            format!("{}", side.bake()),
+            "( 1.000000 2.000000 3.000000 ) ( 10.000000 20.000000 30.000000 ) ( 100.000000 200.000000 300.000000 ) mtrl/invisible 0 0 0 0.5 0.5 0 0 0"
+        );
     }
 
     #[test]

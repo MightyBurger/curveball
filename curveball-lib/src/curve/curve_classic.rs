@@ -4,7 +4,7 @@
 use crate::curve::{Curve, CurveResult, MAX_HULL_ITER};
 use crate::map::geometry::Brush;
 use glam::DVec3;
-use itertools::{izip, Itertools};
+use itertools::{Itertools, izip};
 use lerp::LerpIter;
 use thiserror::Error;
 

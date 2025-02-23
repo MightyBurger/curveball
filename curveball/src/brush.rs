@@ -1,7 +1,7 @@
 // Copyright 2025 Jordan Johnson
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
-use crate::{curveargs::CurveSelect, CustomUV, MeshGen, MeshGenError};
+use crate::{CustomUV, MeshGen, MeshGenError, curveargs::CurveSelect};
 
 use bevy::{
     color::palettes::tailwind,

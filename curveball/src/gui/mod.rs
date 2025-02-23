@@ -10,8 +10,8 @@ use crate::curveargs::{
 use crate::{GizmoSettings, MeshGen};
 use bevy::prelude::*;
 use bevy_egui::egui::containers::modal::Modal;
-use bevy_egui::egui::{menu, Id};
-use bevy_egui::{egui, EguiContexts};
+use bevy_egui::egui::{Id, menu};
+use bevy_egui::{EguiContexts, egui};
 use curveball_lib::map::entity::SimpleWorldspawn;
 use curveball_lib::map::qmap::{QEntity, QMap};
 
