@@ -290,10 +290,10 @@ impl Default for ProfileAnnulusArgs {
     fn default() -> Self {
         Self {
             n: 12,
-            inner_radius: 48.0,
-            outer_radius: 64.0,
+            inner_radius: 12.0,
+            outer_radius: 16.0,
             start_angle: 0.0,
-            end_angle: 90.0,
+            end_angle: 360.0,
         }
     }
 }
@@ -340,7 +340,7 @@ impl Default for PathRevolveArgs {
             path_n: 12,
             path_start: 0.0,
             path_end: 90.0,
-            radius: 32.0,
+            radius: 64.0,
         }
     }
 }

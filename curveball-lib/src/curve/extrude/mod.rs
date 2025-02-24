@@ -57,7 +57,7 @@ fn make_3d(point_2d: DVec2, plane: ProfilePlane) -> DVec3 {
 
 impl Default for ProfileOrientation {
     fn default() -> Self {
-        Self::Constant(ProfilePlane::XZ)
+        Self::FollowPath
     }
 }
 
