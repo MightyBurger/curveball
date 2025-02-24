@@ -3,6 +3,8 @@
 
 use bevy::prelude::*;
 
+use glam::{DVec2, DVec3};
+
 use curveball_lib::curve::{
     Curve, CurveResult, bank::Bank, catenary::Catenary, curve_classic::CurveClassic,
     curve_slope::CurveSlope, extrude, rayto::Rayto, serpentine::Serpentine,
@@ -425,79 +427,60 @@ impl CurveSelect {
         Ok(brushes)
     }
 
-    fn extrude_brushes(_args: &ExtrusionArgs) -> CurveResult<Vec<Brush>> {
-        // let profile_fn: ProfileFn = match args.profile {
-        //     ProfileSelect::Circle => ProfileFn::Single(Box::new(extrude::profile::circle(
-        //         args.profile_circle_args.n,
-        //         args.profile_circle_args.radius,
-        //     )?)),
-        //     ProfileSelect::Rectangle => ProfileFn::Single(Box::new(extrude::profile::rectangle(
-        //         args.profile_rectangle_args.width,
-        //         args.profile_rectangle_args.height,
-        //         args.profile_rectangle_args.anchor,
-        //     )?)),
-        //     ProfileSelect::Annulus => ProfileFn::Multi(extrude::profile::annulus(
-        //         args.profile_annulus_args.n,
-        //         args.profile_annulus_args.inner_radius,
-        //         args.profile_annulus_args.outer_radius,
-        //         args.profile_annulus_args.start_angle,
-        //         args.profile_annulus_args.end_angle,
-        //     )?),
-        // };
-        //
-        // let (path_fn, frenet_fn): (
-        //     Box<dyn Fn(f64) -> DVec3>,
-        //     Box<dyn Fn(f64) -> extrude::FrenetFrame>,
-        // ) = match args.path {
-        //     PathSelect::Line => {
-        //         let (path_fn, frenet_fn) = extrude::path::line(
-        //             args.path_line_args.x,
-        //             args.path_line_args.y,
-        //             args.path_line_args.z,
-        //         )?;
-        //         (Box::new(path_fn), Box::new(frenet_fn))
-        //     }
-        //     PathSelect::Revolve => {
-        //         let (path_fn, frenet_fn) = extrude::path::revolve(args.path_revolve_args.radius)?;
-        //         (Box::new(path_fn), Box::new(frenet_fn))
-        //     }
-        // };
-        //
-        // let path_n = match args.path {
-        //     PathSelect::Line => 1,
-        //     PathSelect::Revolve => args.path_revolve_args.path_n,
-        // };
-        //
-        // let path_start = match args.path {
-        //     PathSelect::Line => 0.0,
-        //     PathSelect::Revolve => args.path_revolve_args.path_start,
-        // };
-        //
-        // let path_end = match args.path {
-        //     PathSelect::Line => 1.0,
-        //     PathSelect::Revolve => args.path_revolve_args.path_end,
-        // };
-        //
-        // match profile_fn {
-        //     ProfileFn::Single(profile_fn) => extrude::extrude(
-        //         path_n,
-        //         profile_fn,
-        //         path_fn,
-        //         frenet_fn,
-        //         path_start,
-        //         path_end,
-        //         args.profile_orientation,
-        //     ),
-        //     ProfileFn::Multi(profile_fn) => extrude::extrude_multi(
-        //         path_n,
-        //         profile_fn,
-        //         path_fn,
-        //         frenet_fn,
-        //         path_start,
-        //         path_end,
-        //         args.profile_orientation,
-        //     ),
-        // }
-        todo!()
+    fn extrude_brushes(args: &ExtrusionArgs) -> CurveResult<Vec<Brush>> {
+        let profile: Vec<Vec<DVec2>> = match &args.profile {
+            ProfileSelect::Circle(args) => {
+                let profile = extrude::profile::circle(args.n, args.radius)?;
+                vec![profile]
+            }
+            ProfileSelect::Rectangle(args) => {
+                let profile = extrude::profile::rectangle(args.width, args.height, args.anchor)?;
+                vec![profile]
+            }
+            ProfileSelect::Annulus(args) => extrude::profile::annulus(
+                args.n,
+                args.inner_radius,
+                args.outer_radius,
+                args.start_angle,
+                args.end_angle,
+            )?,
+        };
+        let (path_fn, frenet_fn): (
+            Box<dyn Fn(f64) -> DVec3>,
+            Box<dyn Fn(f64) -> extrude::FrenetFrame>,
+        ) = match &args.path {
+            PathSelect::Line(args) => {
+                let (path_fn, frenet_fn) = extrude::path::line(args.x, args.y, args.z)?;
+                (Box::new(path_fn), Box::new(frenet_fn))
+            }
+            PathSelect::Revolve(args) => {
+                let (path_fn, frenet_fn) = extrude::path::revolve(args.radius)?;
+                (Box::new(path_fn), Box::new(frenet_fn))
+            }
+        };
+
+        let path_n = match &args.path {
+            PathSelect::Line(_args) => 1,
+            PathSelect::Revolve(args) => args.path_n,
+        };
+
+        let path_start = match &args.path {
+            PathSelect::Line(_args) => 0.0,
+            PathSelect::Revolve(args) => args.path_start,
+        };
+
+        let path_end = match &args.path {
+            PathSelect::Line(_args) => 1.0,
+            PathSelect::Revolve(args) => args.path_end,
+        };
+        extrude::extrude_multi(
+            path_n,
+            &profile,
+            path_fn,
+            frenet_fn,
+            path_start,
+            path_end,
+            args.profile_orientation,
+        )
     }
 }

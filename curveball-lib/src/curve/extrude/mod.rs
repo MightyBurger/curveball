@@ -6,7 +6,6 @@ use crate::map::geometry::Brush;
 use glam::{DMat3, DVec2, DVec3};
 use itertools::Itertools;
 use lerp::LerpIter;
-use profile::Profile;
 use thiserror::Error;
 
 pub mod path;
@@ -82,9 +81,9 @@ pub struct FrenetFrame {
 //  orientation at any point along the curve. The Frenet Frame should evaluate to
 //  {tangent: [1, 0, 0], normal: [0, 1, 0], binormal: [0, 0, 1]]} when the parameter is zero.
 //  start, end: the start and end values of the parameter
-pub fn extrude<PRF, PPF, PFF>(
+pub fn extrude<PPF, PFF>(
     n: u32,
-    profile: PRF,
+    profile: &Vec<DVec2>,
     path_point_fn: PPF,
     path_frenet_frame_fn: PFF,
     start: f64,
@@ -92,7 +91,6 @@ pub fn extrude<PRF, PPF, PFF>(
     profile_orientation: ProfileOrientation,
 ) -> CurveResult<Vec<Brush>>
 where
-    PRF: Profile,
     PPF: Fn(f64) -> DVec3,
     PFF: Fn(f64) -> FrenetFrame,
 {
@@ -103,14 +101,13 @@ where
         .map(|t| {
             let path_point = path_point_fn(t);
             let frenet_frame = path_frenet_frame_fn(t);
-            let this_profile = profile.eval(t);
-            let face: Vec<_> = this_profile
-                .into_iter()
+            let face: Vec<_> = profile
+                .iter()
                 .map(|profile_point_2d| {
                     let profile_point_3d = match profile_orientation {
-                        ProfileOrientation::Constant(plane) => make_3d(profile_point_2d, plane),
+                        ProfileOrientation::Constant(plane) => make_3d(*profile_point_2d, plane),
                         ProfileOrientation::FollowPath => {
-                            let unrotated_point_3d = make_3d(profile_point_2d, ProfilePlane::YZ);
+                            let unrotated_point_3d = make_3d(*profile_point_2d, ProfilePlane::YZ);
                             let rmat = DMat3::from_cols(
                                 frenet_frame.tangent,
                                 frenet_frame.normal,
@@ -136,9 +133,9 @@ where
 // Extrude along a parameterized curve with a path with multiple components.
 // The arguments are the same as extrude, except the profile function is now an iterator over
 // profile functions, each corresponding to a convex 2D profile.
-pub fn extrude_multi<PRFI, PRF, PPF, PFF>(
+pub fn extrude_multi<PPF, PFF>(
     n: u32,
-    compound_profile: PRFI,
+    compound_profile: &Vec<Vec<DVec2>>,
     path_point_fn: PPF,
     path_frenet_frame_fn: PFF,
     start: f64,
@@ -146,16 +143,15 @@ pub fn extrude_multi<PRFI, PRF, PPF, PFF>(
     profile_orientation: ProfileOrientation,
 ) -> CurveResult<Vec<Brush>>
 where
-    PRFI: ExactSizeIterator<Item = PRF>,
-    PRF: Profile,
     PPF: Fn(f64) -> DVec3,
     PFF: Fn(f64) -> FrenetFrame,
 {
     compound_profile
-        .map(|profile_fn| {
+        .iter()
+        .map(|profile| {
             extrude(
                 n,
-                profile_fn,
+                profile,
                 &path_point_fn,
                 &path_frenet_frame_fn,
                 start,
