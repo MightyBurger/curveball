@@ -12,7 +12,7 @@ use bevy::{
 use curveball_lib::map::geometry::{Brush, Side, SideGeom};
 use glam::DVec3;
 
-#[derive(Resource, Debug, Clone)]
+#[derive(Resource, Debug, Clone, PartialEq, Eq)]
 pub struct MeshDisplaySettings {
     pub alternating_colors: bool,
 }
@@ -29,7 +29,8 @@ impl Default for MeshDisplaySettings {
 pub fn update_mesh(
     mut commands: Commands,
     curve_select: Res<CurveSelect>,
-    mut previous: Local<Option<CurveSelect>>,
+    mut previous_curve_select: Local<Option<CurveSelect>>,
+    mut previous_meshdisp: Local<Option<MeshDisplaySettings>>,
     mesh_query_1: Query<&Mesh3d, With<CustomUV>>,
     mesh_query_2: Query<Entity, With<CustomUV>>,
     mut meshes: ResMut<Assets<Mesh>>,
@@ -37,15 +38,22 @@ pub fn update_mesh(
     mut meshgen: ResMut<MeshGen>,
     meshdisp: Res<MeshDisplaySettings>,
 ) {
-    // Check if mesh actually needs to update
-    if !(curve_select.is_changed() || meshdisp.is_changed()) {
-        return;
+    let mut update_necessary = false;
+
+    if curve_select.is_changed() {
+        if *previous_curve_select != Some(curve_select.clone()) {
+            update_necessary = true;
+        }
     }
 
-    if let Some(prev) = previous.clone() {
-        if prev == *curve_select && !meshdisp.is_changed() {
-            return;
+    if meshdisp.is_changed() {
+        if *previous_meshdisp != Some(meshdisp.clone()) {
+            update_necessary = true;
         }
+    }
+
+    if !update_necessary {
+        return;
     }
 
     // Remove the old mesh
@@ -117,7 +125,8 @@ pub fn update_mesh(
         }
     }
 
-    *previous = Some(curve_select.clone());
+    *previous_curve_select = Some(curve_select.clone());
+    *previous_meshdisp = Some(meshdisp.clone());
 }
 
 fn brushes_to_mesh<'a>(
