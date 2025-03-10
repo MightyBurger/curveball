@@ -23,8 +23,6 @@ impl Profile for Box<dyn Profile + '_> {
 
 // A profile consisting of multiple convex polygons.
 pub trait CompoundProfile {
-    // The outer Vec MUST be the same length every time this function
-    // is evaluated, regardless of the value of t.
     fn compound_profile(&self, t: f64) -> Vec<Vec<DVec2>>;
 }
 
