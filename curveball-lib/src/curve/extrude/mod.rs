@@ -7,6 +7,7 @@ use crate::map::geometry::Brush;
 use glam::{DMat3, DVec2, DVec3};
 use itertools::Itertools;
 use lerp::LerpIter;
+use profile::{CompoundProfile, Profile};
 use thiserror::Error;
 
 pub mod path;
@@ -82,15 +83,16 @@ pub struct FrenetFrame {
 //  orientation at any point along the curve. The Frenet Frame should evaluate to
 //  {tangent: [1, 0, 0], normal: [0, 1, 0], binormal: [0, 0, 1]]} when the parameter is zero.
 //  start, end: the start and end values of the parameter
-pub fn extrude<PTH>(
+pub fn extrude<PRF, PTH>(
     n: u32,
-    profile: &Vec<DVec2>,
+    profile: &PRF,
     path: &PTH,
     start: f64,
     end: f64,
     profile_orientation: ProfileOrientation,
 ) -> CurveResult<Vec<Brush>>
 where
+    PRF: Profile,
     PTH: Path,
 {
     // Iterate over every point in the path.
@@ -100,7 +102,8 @@ where
         .map(|t| {
             let path_point = path.point(t);
             let frenet_frame = path.frame(t);
-            let face: Vec<_> = profile
+            let this_face = profile.profile(t);
+            let face: Vec<DVec3> = this_face
                 .iter()
                 .map(|profile_point_2d| {
                     let profile_point_3d = match profile_orientation {
@@ -132,22 +135,68 @@ where
 // Extrude along a parameterized curve with a path with multiple components.
 // The arguments are the same as extrude, except the profile function is now an iterator over
 // profile functions, each corresponding to a convex 2D profile.
-pub fn extrude_multi<PTH>(
+pub fn extrude_multi<CPF, PTH>(
     n: u32,
-    compound_profile: &Vec<Vec<DVec2>>,
+    compound_profile: &CPF,
     path: &PTH,
     start: f64,
     end: f64,
     profile_orientation: ProfileOrientation,
 ) -> CurveResult<Vec<Brush>>
 where
+    CPF: CompoundProfile,
     PTH: Path,
 {
-    compound_profile
-        .iter()
-        .map(|profile| extrude(n, profile, path, start, end, profile_orientation))
-        .flatten_ok()
-        .collect()
+    // Iterate over every point in the path.
+    // Work on windows of two consecutive points along the path at a time.
+    let brushes: Result<Vec<Vec<_>>, _> = start
+        .lerp_iter_closed(end, n as usize + 1)
+        .map(|t| {
+            let path_point = path.point(t);
+            let frenet_frame = path.frame(t);
+            let these_faces = compound_profile.compound_profile(t);
+            let mut faces: Vec<Vec<DVec3>> = Vec::new();
+            for this_face in these_faces {
+                let face: Vec<DVec3> = this_face
+                    .iter()
+                    .map(|profile_point_2d| {
+                        let profile_point_3d = match profile_orientation {
+                            ProfileOrientation::Constant(plane) => {
+                                make_3d(*profile_point_2d, plane)
+                            }
+                            ProfileOrientation::FollowPath => {
+                                let unrotated_point_3d =
+                                    make_3d(*profile_point_2d, ProfilePlane::YZ);
+                                let rmat = DMat3::from_cols(
+                                    frenet_frame.tangent,
+                                    frenet_frame.normal,
+                                    frenet_frame.binormal,
+                                );
+                                rmat.mul_vec3(unrotated_point_3d)
+                            }
+                        };
+                        profile_point_3d + path_point
+                    })
+                    .collect();
+                faces.push(face);
+            }
+            faces
+        })
+        .tuple_windows()
+        .map(|(faces1, faces2)| {
+            let brushes: Result<Vec<_>, _> = faces1
+                .into_iter()
+                .zip(faces2.into_iter())
+                .map(|(face1, face2)| {
+                    let vertices: Vec<DVec3> = face1.into_iter().chain(face2.into_iter()).collect();
+                    Brush::try_from_vertices(&vertices, MAX_HULL_ITER)
+                })
+                .collect();
+            brushes
+        })
+        .map(|brush_result| brush_result.map_err(CurveError::from))
+        .collect();
+    brushes.map(|brushes| brushes.into_iter().flatten().collect())
 }
 
 #[derive(Error, Debug)]

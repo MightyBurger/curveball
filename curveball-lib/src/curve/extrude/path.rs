@@ -25,6 +25,12 @@ impl Path for Box<dyn Path + '_> {
     }
 }
 
+#[derive(Error, Debug)]
+pub enum PathError {
+    #[error("{0}")]
+    SinusoidError(#[from] SinusoidError),
+}
+
 // Tip: the tangent vector in the frenet frame should always be the derivative of the path function
 // with respect to the parameter, normalized.
 
@@ -173,10 +179,4 @@ impl Path for Sinusoid {
 pub enum SinusoidError {
     #[error("Period of {0} is invalid; must be positive")]
     SinusoidInfiniteFrequency(f64),
-}
-
-#[derive(Error, Debug)]
-pub enum PathError {
-    #[error("{0}")]
-    SinusoidError(#[from] SinusoidError),
 }

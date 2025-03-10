@@ -6,8 +6,6 @@ use curveball_lib::curve::extrude::ProfileOrientation;
 use curveball_lib::curve::extrude::path::PathResult;
 use curveball_lib::curve::extrude::profile::ProfileResult;
 
-use glam::DVec2;
-
 use curveball_lib::curve::{
     Curve, CurveResult, bank::Bank, catenary::Catenary, curve_classic::CurveClassic,
     curve_slope::CurveSlope, extrude, rayto::Rayto, serpentine::Serpentine,
@@ -400,10 +398,10 @@ pub struct ExtrusionArgs {
 
 impl ExtrusionArgs {
     pub fn brushes(&self) -> CurveResult<Vec<Brush>> {
-        let profile: Vec<Vec<DVec2>> = match self.selected_profile {
-            SelectedProfile::Circle => self.profile_circle_args.profiles()?,
-            SelectedProfile::Rectangle => self.profile_rectangle_args.profiles()?,
-            SelectedProfile::Annulus => self.profile_annulus_args.profiles()?,
+        let profile: Box<dyn extrude::profile::CompoundProfile> = match self.selected_profile {
+            SelectedProfile::Circle => Box::new(self.profile_circle_args.profiles()?),
+            SelectedProfile::Rectangle => Box::new(self.profile_rectangle_args.profiles()?),
+            SelectedProfile::Annulus => Box::new(self.profile_annulus_args.profiles()?),
         };
 
         let path: Box<dyn extrude::path::Path> = match self.selected_path {
@@ -483,9 +481,8 @@ impl Default for ProfileCircleArgs {
 }
 
 impl ProfileCircleArgs {
-    pub fn profiles(&self) -> ProfileResult<Vec<Vec<DVec2>>> {
-        let profile = extrude::profile::circle(self.n, self.radius)?;
-        Ok(vec![profile])
+    pub fn profiles(&self) -> ProfileResult<extrude::profile::Circle> {
+        Ok(extrude::profile::Circle::new(self.n, self.radius)?)
     }
 }
 
@@ -509,9 +506,12 @@ impl Default for ProfileRectangleArgs {
 }
 
 impl ProfileRectangleArgs {
-    pub fn profiles(&self) -> ProfileResult<Vec<Vec<DVec2>>> {
-        let profile = extrude::profile::rectangle(self.width, self.height, self.anchor)?;
-        Ok(vec![profile])
+    pub fn profiles(&self) -> ProfileResult<extrude::profile::Rectangle> {
+        Ok(extrude::profile::Rectangle::new(
+            self.width,
+            self.height,
+            self.anchor,
+        )?)
     }
 }
 
@@ -539,14 +539,14 @@ impl Default for ProfileAnnulusArgs {
 }
 
 impl ProfileAnnulusArgs {
-    pub fn profiles(&self) -> ProfileResult<Vec<Vec<DVec2>>> {
-        extrude::profile::annulus(
+    pub fn profiles(&self) -> ProfileResult<extrude::profile::Annulus> {
+        Ok(extrude::profile::Annulus::new(
             self.n,
             self.inner_radius,
             self.outer_radius,
             self.start_angle,
             self.end_angle,
-        )
+        )?)
     }
 }
 

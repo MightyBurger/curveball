@@ -10,6 +10,41 @@ use thiserror::Error;
 
 pub type ProfileResult<T> = Result<T, ProfileError>;
 
+pub trait Profile {
+    fn profile(&self, t: f64) -> Vec<DVec2>;
+}
+
+// Make Box<dyn Profile> implement Profile
+impl Profile for Box<dyn Profile + '_> {
+    fn profile(&self, t: f64) -> Vec<DVec2> {
+        (**self).profile(t)
+    }
+}
+
+// A profile consisting of multiple convex polygons.
+pub trait CompoundProfile {
+    // The outer Vec MUST be the same length every time this function
+    // is evaluated, regardless of the value of t.
+    fn compound_profile(&self, t: f64) -> Vec<Vec<DVec2>>;
+}
+
+// Make Box<dyn CompoundProfile> implement CompoundProfile
+impl CompoundProfile for Box<dyn CompoundProfile + '_> {
+    fn compound_profile(&self, t: f64) -> Vec<Vec<DVec2>> {
+        (**self).compound_profile(t)
+    }
+}
+
+// Every profile is also a compound profile of length 1.
+impl<T> CompoundProfile for T
+where
+    T: Profile,
+{
+    fn compound_profile(&self, t: f64) -> Vec<Vec<DVec2>> {
+        vec![self.profile(t)]
+    }
+}
+
 #[derive(Error, Debug)]
 pub enum ProfileError {
     #[error("{0}")]
@@ -22,21 +57,33 @@ pub enum ProfileError {
 
 // ==================== Circle ====================
 
-pub fn circle(n: u32, radius: f64) -> ProfileResult<Vec<DVec2>> {
-    if n < 1 {
-        return Err(CircleError::NotEnoughPoints { n })?;
+#[derive(Debug, Clone)]
+pub struct Circle {
+    n: u32,
+    radius: f64,
+}
+
+impl Circle {
+    pub fn new(n: u32, radius: f64) -> Result<Self, CircleError> {
+        if n < 1 {
+            return Err(CircleError::NotEnoughPoints { n });
+        }
+        if n > 4096 {
+            return Err(CircleError::TooManyPoints { n });
+        }
+        Ok(Self { n, radius })
     }
-    if n > 4096 {
-        return Err(CircleError::TooManyPoints { n })?;
+}
+
+impl Profile for Circle {
+    fn profile(&self, _t: f64) -> Vec<DVec2> {
+        0f64.lerp_iter(2.0 * PI, self.n as usize)
+            .map(|theta| DVec2 {
+                x: self.radius * theta.cos(),
+                y: self.radius * theta.sin(),
+            })
+            .collect()
     }
-    let profile_fn = 0f64
-        .lerp_iter(2.0 * PI, n as usize)
-        .map(|theta| DVec2 {
-            x: radius * theta.cos(),
-            y: radius * theta.sin(),
-        })
-        .collect();
-    Ok(profile_fn)
 }
 
 #[derive(Error, Debug)]
@@ -62,37 +109,56 @@ pub enum RectangleAnchor {
     BottomRight,
 }
 
-pub fn rectangle(width: f64, height: f64, anchor: RectangleAnchor) -> ProfileResult<Vec<DVec2>> {
-    use RectangleAnchor as RA;
-    let hoffset = match anchor {
-        RA::TopLeft | RA::CenterLeft | RA::BottomLeft => width / 2.0,
-        RA::TopCenter | RA::Center | RA::BottomCenter => 0.0,
-        RA::TopRight | RA::CenterRight | RA::BottomRight => -width / 2.0,
-    };
-    let voffset = match anchor {
-        RA::TopLeft | RA::TopCenter | RA::TopRight => -height / 2.0,
-        RA::CenterLeft | RA::Center | RA::CenterRight => 0.0,
-        RA::BottomLeft | RA::BottomCenter | RA::BottomRight => height / 2.0,
-    };
-    let profile_fn = vec![
-        DVec2 {
-            x: hoffset + width / 2.0,
-            y: voffset + height / 2.0,
-        },
-        DVec2 {
-            x: hoffset + width / 2.0,
-            y: voffset - height / 2.0,
-        },
-        DVec2 {
-            x: hoffset - width / 2.0,
-            y: voffset + height / 2.0,
-        },
-        DVec2 {
-            x: hoffset - width / 2.0,
-            y: voffset - height / 2.0,
-        },
-    ];
-    Ok(profile_fn)
+#[derive(Debug, Clone)]
+pub struct Rectangle {
+    width: f64,
+    height: f64,
+    anchor: RectangleAnchor,
+}
+
+impl Rectangle {
+    pub fn new(width: f64, height: f64, anchor: RectangleAnchor) -> Result<Self, RectangleError> {
+        Ok(Self {
+            width,
+            height,
+            anchor,
+        })
+    }
+}
+
+impl Profile for Rectangle {
+    fn profile(&self, _t: f64) -> Vec<DVec2> {
+        use RectangleAnchor as RA;
+        let hoffset = match self.anchor {
+            RA::TopLeft | RA::CenterLeft | RA::BottomLeft => self.width / 2.0,
+            RA::TopCenter | RA::Center | RA::BottomCenter => 0.0,
+            RA::TopRight | RA::CenterRight | RA::BottomRight => -self.width / 2.0,
+        };
+        let voffset = match self.anchor {
+            RA::TopLeft | RA::TopCenter | RA::TopRight => -self.height / 2.0,
+            RA::CenterLeft | RA::Center | RA::CenterRight => 0.0,
+            RA::BottomLeft | RA::BottomCenter | RA::BottomRight => self.height / 2.0,
+        };
+        let profile_fn = vec![
+            DVec2 {
+                x: hoffset + self.width / 2.0,
+                y: voffset + self.height / 2.0,
+            },
+            DVec2 {
+                x: hoffset + self.width / 2.0,
+                y: voffset - self.height / 2.0,
+            },
+            DVec2 {
+                x: hoffset - self.width / 2.0,
+                y: voffset + self.height / 2.0,
+            },
+            DVec2 {
+                x: hoffset - self.width / 2.0,
+                y: voffset - self.height / 2.0,
+            },
+        ];
+        profile_fn
+    }
 }
 
 #[derive(Error, Debug)]
@@ -100,45 +166,65 @@ pub enum RectangleError {}
 
 // ==================== Annulus ====================
 
-pub fn annulus(
+pub struct Annulus {
     n: u32,
     inner_radius: f64,
     outer_radius: f64,
-    mut start_angle: f64,
-    mut end_angle: f64,
-) -> ProfileResult<Vec<Vec<DVec2>>> {
-    if n < 1 {
-        return Err(AnnulusError::NotEnoughPoints { n })?;
-    }
-    if n > 4096 {
-        return Err(AnnulusError::TooManyPoints { n })?;
-    }
+    start_angle: f64,
+    end_angle: f64,
+}
 
-    start_angle = start_angle * PI / 180.0;
-    end_angle = end_angle * PI / 180.0;
+impl Annulus {
+    pub fn new(
+        n: u32,
+        inner_radius: f64,
+        outer_radius: f64,
+        start_angle: f64,
+        end_angle: f64,
+    ) -> Result<Self, AnnulusError> {
+        if n < 1 {
+            return Err(AnnulusError::NotEnoughPoints { n })?;
+        }
+        if n > 4096 {
+            return Err(AnnulusError::TooManyPoints { n })?;
+        }
 
-    let profiles = start_angle
-        .lerp_iter_closed(end_angle, n as usize + 1)
-        .map(|theta| {
-            let inner = DVec2 {
-                x: inner_radius * theta.cos(),
-                y: inner_radius * theta.sin(),
-            };
-            let outer = DVec2 {
-                x: outer_radius * theta.cos(),
-                y: outer_radius * theta.sin(),
-            };
-            [inner, outer]
+        Ok(Self {
+            n,
+            inner_radius,
+            outer_radius,
+            start_angle,
+            end_angle,
         })
-        .tuple_windows()
-        .map(|(a1, a2)| {
-            let [p1, p2] = a1;
-            let [p3, p4] = a2;
-            vec![p1, p2, p3, p4]
-        })
-        .collect();
+    }
+}
 
-    Ok(profiles)
+impl CompoundProfile for Annulus {
+    fn compound_profile(&self, _t: f64) -> Vec<Vec<DVec2>> {
+        let start_angle = self.start_angle * PI / 180.0;
+        let end_angle = self.end_angle * PI / 180.0;
+
+        start_angle
+            .lerp_iter_closed(end_angle, self.n as usize + 1)
+            .map(|theta| {
+                let inner = DVec2 {
+                    x: self.inner_radius * theta.cos(),
+                    y: self.inner_radius * theta.sin(),
+                };
+                let outer = DVec2 {
+                    x: self.outer_radius * theta.cos(),
+                    y: self.outer_radius * theta.sin(),
+                };
+                [inner, outer]
+            })
+            .tuple_windows()
+            .map(|(a1, a2)| {
+                let [p1, p2] = a1;
+                let [p3, p4] = a2;
+                vec![p1, p2, p3, p4]
+            })
+            .collect()
+    }
 }
 
 #[derive(Error, Debug)]
