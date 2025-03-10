@@ -8,7 +8,7 @@ use thiserror::Error;
 
 use super::FrenetFrame;
 
-type PathResult<T> = Result<T, PathError>;
+pub type PathResult<T> = Result<T, PathError>;
 
 // Tip: the tangent vector in the frenet frame should always be the derivative of the path function
 // with respect to the parameter, normalized.

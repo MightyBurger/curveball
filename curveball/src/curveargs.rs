@@ -3,6 +3,8 @@
 
 use bevy::prelude::*;
 use curveball_lib::curve::extrude::ProfileOrientation;
+use curveball_lib::curve::extrude::path::PathResult;
+use curveball_lib::curve::extrude::profile::ProfileResult;
 
 use glam::{DVec2, DVec3};
 
@@ -399,54 +401,18 @@ pub struct ExtrusionArgs {
 impl ExtrusionArgs {
     pub fn brushes(&self) -> CurveResult<Vec<Brush>> {
         let profile: Vec<Vec<DVec2>> = match self.selected_profile {
-            SelectedProfile::Circle => {
-                let profile = extrude::profile::circle(
-                    self.profile_circle_args.n,
-                    self.profile_circle_args.radius,
-                )?;
-                vec![profile]
-            }
-            SelectedProfile::Rectangle => {
-                let profile = extrude::profile::rectangle(
-                    self.profile_rectangle_args.width,
-                    self.profile_rectangle_args.height,
-                    self.profile_rectangle_args.anchor,
-                )?;
-                vec![profile]
-            }
-            SelectedProfile::Annulus => extrude::profile::annulus(
-                self.profile_annulus_args.n,
-                self.profile_annulus_args.inner_radius,
-                self.profile_annulus_args.outer_radius,
-                self.profile_annulus_args.start_angle,
-                self.profile_annulus_args.end_angle,
-            )?,
+            SelectedProfile::Circle => self.profile_circle_args.profiles()?,
+            SelectedProfile::Rectangle => self.profile_rectangle_args.profiles()?,
+            SelectedProfile::Annulus => self.profile_annulus_args.profiles()?,
         };
 
         let (path_fn, frenet_fn): (
             Box<dyn Fn(f64) -> DVec3>,
             Box<dyn Fn(f64) -> extrude::FrenetFrame>,
         ) = match self.selected_path {
-            SelectedPath::Line => {
-                let (path_fn, frenet_fn) = extrude::path::line(
-                    self.path_line_args.x,
-                    self.path_line_args.y,
-                    self.path_line_args.z,
-                )?;
-                (Box::new(path_fn), Box::new(frenet_fn))
-            }
-            SelectedPath::Revolve => {
-                let (path_fn, frenet_fn) = extrude::path::revolve(self.path_revolve_args.radius)?;
-                (Box::new(path_fn), Box::new(frenet_fn))
-            }
-            SelectedPath::Sinusoid => {
-                let (path_fn, frenet_fn) = extrude::path::sinusoid(
-                    self.path_sinusoid_args.amplitude,
-                    self.path_sinusoid_args.period,
-                    self.path_sinusoid_args.phase,
-                )?;
-                (Box::new(path_fn), Box::new(frenet_fn))
-            }
+            SelectedPath::Line => self.path_line_args.path()?,
+            SelectedPath::Revolve => self.path_revolve_args.path()?,
+            SelectedPath::Sinusoid => self.path_sinusoid_args.path()?,
         };
 
         let path_n = match self.selected_path {
@@ -520,6 +486,13 @@ impl Default for ProfileCircleArgs {
     }
 }
 
+impl ProfileCircleArgs {
+    pub fn profiles(&self) -> ProfileResult<Vec<Vec<DVec2>>> {
+        let profile = extrude::profile::circle(self.n, self.radius)?;
+        Ok(vec![profile])
+    }
+}
+
 // -------------------------------------------------------- ProfileRectangleArgs
 
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
@@ -536,6 +509,13 @@ impl Default for ProfileRectangleArgs {
             height: 8.0,
             anchor: extrude::profile::RectangleAnchor::BottomLeft,
         }
+    }
+}
+
+impl ProfileRectangleArgs {
+    pub fn profiles(&self) -> ProfileResult<Vec<Vec<DVec2>>> {
+        let profile = extrude::profile::rectangle(self.width, self.height, self.anchor)?;
+        Ok(vec![profile])
     }
 }
 
@@ -559,6 +539,18 @@ impl Default for ProfileAnnulusArgs {
             start_angle: 0.0,
             end_angle: 360.0,
         }
+    }
+}
+
+impl ProfileAnnulusArgs {
+    pub fn profiles(&self) -> ProfileResult<Vec<Vec<DVec2>>> {
+        extrude::profile::annulus(
+            self.n,
+            self.inner_radius,
+            self.outer_radius,
+            self.start_angle,
+            self.end_angle,
+        )
     }
 }
 
@@ -606,6 +598,18 @@ impl Default for PathLineArgs {
     }
 }
 
+impl PathLineArgs {
+    fn path(
+        &self,
+    ) -> PathResult<(
+        Box<dyn Fn(f64) -> DVec3>,
+        Box<dyn Fn(f64) -> extrude::FrenetFrame>,
+    )> {
+        let (path_fn, frenet_fn) = extrude::path::line(self.x, self.y, self.z)?;
+        Ok((Box::new(path_fn), Box::new(frenet_fn)))
+    }
+}
+
 // -------------------------------------------------------- PathRevolveArgs
 
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
@@ -624,6 +628,18 @@ impl Default for PathRevolveArgs {
             path_end: 90.0,
             radius: 64.0,
         }
+    }
+}
+
+impl PathRevolveArgs {
+    fn path(
+        &self,
+    ) -> PathResult<(
+        Box<dyn Fn(f64) -> DVec3>,
+        Box<dyn Fn(f64) -> extrude::FrenetFrame>,
+    )> {
+        let (path_fn, frenet_fn) = extrude::path::revolve(self.radius)?;
+        Ok((Box::new(path_fn), Box::new(frenet_fn)))
     }
 }
 
@@ -649,5 +665,18 @@ impl Default for PathSinusoidArgs {
             period: 128.0,
             phase: 0.0,
         }
+    }
+}
+
+impl PathSinusoidArgs {
+    fn path(
+        &self,
+    ) -> PathResult<(
+        Box<dyn Fn(f64) -> DVec3>,
+        Box<dyn Fn(f64) -> extrude::FrenetFrame>,
+    )> {
+        let (path_fn, frenet_fn) =
+            extrude::path::sinusoid(self.amplitude, self.period, self.phase)?;
+        Ok((Box::new(path_fn), Box::new(frenet_fn)))
     }
 }
