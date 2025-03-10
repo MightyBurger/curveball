@@ -5,8 +5,8 @@ use crate::brush::MeshDisplaySettings;
 use crate::camera_controller::CameraController;
 use crate::curveargs::{
     BankArgs, CatenaryArgs, CurveClassicArgs, CurveSelect, CurveSlopeArgs, ExtrusionArgs,
-    PathLineArgs, PathRevolveArgs, PathSelect, ProfileAnnulusArgs, ProfileCircleArgs,
-    ProfileRectangleArgs, ProfileSelect, RaytoArgs, SerpentineArgs,
+    PathLineArgs, PathRevolveArgs, PathSelect, PathSinusoidArgs, ProfileAnnulusArgs,
+    ProfileCircleArgs, ProfileRectangleArgs, ProfileSelect, RaytoArgs, SerpentineArgs,
 };
 use crate::{GizmoSettings, MeshGen};
 use bevy::prelude::*;
@@ -54,6 +54,7 @@ pub struct ExtrusionGuiData {
     selected_path: SelectedPath,
     path_line_args: PathLineArgs,
     path_revolve_args: PathRevolveArgs,
+    path_sinusoid_args: PathSinusoidArgs,
     profile_orientation: ProfileOrientation,
 }
 
@@ -115,6 +116,7 @@ impl Default for SelectedProfile {
 pub enum SelectedPath {
     Line,
     Revolve,
+    Sinusoid,
 }
 
 impl std::fmt::Display for SelectedPath {
@@ -122,6 +124,7 @@ impl std::fmt::Display for SelectedPath {
         match self {
             Self::Line => write!(f, "Line"),
             Self::Revolve => write!(f, "Revolve"),
+            Self::Sinusoid => write!(f, "Sinusoid"),
         }
     }
 }
@@ -567,6 +570,9 @@ pub fn ui(
                 }
                 SelectedPath::Revolve => {
                     PathSelect::Revolve(local.extrusion_gui_data.path_revolve_args.clone())
+                }
+                SelectedPath::Sinusoid => {
+                    PathSelect::Sinusoid(local.extrusion_gui_data.path_sinusoid_args.clone())
                 }
             },
             profile_orientation: local.extrusion_gui_data.profile_orientation,

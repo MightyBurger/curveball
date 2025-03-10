@@ -10,6 +10,9 @@ use super::FrenetFrame;
 
 type PathResult<T> = Result<T, PathError>;
 
+// Tip: the tangent vector in the frenet frame should always be the derivative of the path function
+// with respect to the parameter, normalized.
+
 pub fn line(
     x: f64,
     y: f64,
@@ -66,5 +69,52 @@ pub fn revolve(radius: f64) -> PathResult<(impl Fn(f64) -> DVec3, impl Fn(f64) -
     Ok((path_fn, frenet_fn))
 }
 
+// Period is in units of space.
+// Phase is also in units of space.
+pub fn sinusoid(
+    amplitude: f64,
+    period: f64,
+    phase: f64,
+) -> PathResult<(impl Fn(f64) -> DVec3, impl Fn(f64) -> FrenetFrame)> {
+    if !(period > 0.0) {
+        return Err(SinusoidError::SinusoidInfiniteFrequency(period))?;
+    }
+    let omega = 2.0 * PI / period;
+    let path_fn = move |a: f64| DVec3 {
+        x: a,
+        y: 0.0,
+        z: amplitude * f64::sin(omega * (a + phase)),
+    };
+    let frenet_fn = move |a: f64| FrenetFrame {
+        tangent: DVec3 {
+            x: 1.0,
+            y: 0.0,
+            z: amplitude * f64::cos(omega * (a + phase)) * omega,
+        }
+        .normalize_or_zero(),
+        normal: DVec3 {
+            x: 0.0,
+            y: 1.0,
+            z: 0.0,
+        },
+        binormal: DVec3 {
+            x: -amplitude * f64::cos(omega * (a + phase)) * omega,
+            y: 0.0,
+            z: 1.0,
+        }
+        .normalize_or_zero(),
+    };
+    Ok((path_fn, frenet_fn))
+}
+
 #[derive(Error, Debug)]
-pub enum PathError {}
+pub enum SinusoidError {
+    #[error("Period of {0} is invalid; must be positive")]
+    SinusoidInfiniteFrequency(f64),
+}
+
+#[derive(Error, Debug)]
+pub enum PathError {
+    #[error("{0}")]
+    SinusoidError(#[from] SinusoidError),
+}

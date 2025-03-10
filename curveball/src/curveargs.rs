@@ -301,6 +301,7 @@ impl Default for ProfileAnnulusArgs {
 pub enum PathSelect {
     Line(PathLineArgs),
     Revolve(PathRevolveArgs),
+    Sinusoid(PathSinusoidArgs),
 }
 
 impl Default for PathSelect {
@@ -341,6 +342,29 @@ impl Default for PathRevolveArgs {
             path_start: 0.0,
             path_end: 90.0,
             radius: 64.0,
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, PartialOrd)]
+pub struct PathSinusoidArgs {
+    pub path_n: u32,
+    pub path_start: f64,
+    pub path_end: f64,
+    pub amplitude: f64,
+    pub period: f64,
+    pub phase: f64,
+}
+
+impl Default for PathSinusoidArgs {
+    fn default() -> Self {
+        Self {
+            path_n: 12,
+            path_start: 0.0,
+            path_end: 128.0,
+            amplitude: 32.0,
+            period: 128.0,
+            phase: 0.0,
         }
     }
 }
@@ -457,21 +481,29 @@ impl CurveSelect {
                 let (path_fn, frenet_fn) = extrude::path::revolve(args.radius)?;
                 (Box::new(path_fn), Box::new(frenet_fn))
             }
+            PathSelect::Sinusoid(args) => {
+                let (path_fn, frenet_fn) =
+                    extrude::path::sinusoid(args.amplitude, args.period, args.phase)?;
+                (Box::new(path_fn), Box::new(frenet_fn))
+            }
         };
 
         let path_n = match &args.path {
             PathSelect::Line(_args) => 1,
             PathSelect::Revolve(args) => args.path_n,
+            PathSelect::Sinusoid(args) => args.path_n,
         };
 
         let path_start = match &args.path {
             PathSelect::Line(_args) => 0.0,
             PathSelect::Revolve(args) => args.path_start,
+            PathSelect::Sinusoid(args) => args.path_start,
         };
 
         let path_end = match &args.path {
             PathSelect::Line(_args) => 1.0,
             PathSelect::Revolve(args) => args.path_end,
+            PathSelect::Sinusoid(args) => args.path_end,
         };
         extrude::extrude_multi(
             path_n,

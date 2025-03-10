@@ -732,6 +732,7 @@ pub fn extrusion_ui(ui: &mut egui::Ui, args: &mut ExtrusionGuiData) {
         .show_ui(ui, |ui| {
             ui.selectable_value(&mut args.selected_path, SelectedPath::Line, "Line");
             ui.selectable_value(&mut args.selected_path, SelectedPath::Revolve, "Revolve");
+            ui.selectable_value(&mut args.selected_path, SelectedPath::Sinusoid, "Sinusoid");
         });
 
     ui.add_space(8.0);
@@ -775,6 +776,38 @@ pub fn extrusion_ui(ui: &mut egui::Ui, args: &mut ExtrusionGuiData) {
                 ui.add(egui::DragValue::new(&mut args.path_revolve_args.radius).speed(0.1))
                     .on_hover_text("r");
                 ui.label("Radius");
+            });
+        }
+        SelectedPath::Sinusoid => {
+            ui.horizontal(|ui| {
+                ui.add(egui::DragValue::new(&mut args.path_sinusoid_args.path_n).speed(0.1))
+                    .on_hover_text("path_n");
+                ui.label("Segments");
+            });
+            ui.horizontal(|ui| {
+                ui.add(egui::DragValue::new(&mut args.path_sinusoid_args.path_start).speed(0.1))
+                    .on_hover_text("path_start");
+                ui.label("Start");
+            });
+            ui.horizontal(|ui| {
+                ui.add(egui::DragValue::new(&mut args.path_sinusoid_args.path_end).speed(0.1))
+                    .on_hover_text("path_end");
+                ui.label("End");
+            });
+            ui.horizontal(|ui| {
+                ui.add(egui::DragValue::new(&mut args.path_sinusoid_args.amplitude).speed(0.1))
+                    .on_hover_text("r");
+                ui.label("Amplitude");
+            });
+            ui.horizontal(|ui| {
+                ui.add(egui::DragValue::new(&mut args.path_sinusoid_args.period).speed(0.1))
+                    .on_hover_text("r");
+                ui.label("Period");
+            });
+            ui.horizontal(|ui| {
+                ui.add(egui::DragValue::new(&mut args.path_sinusoid_args.phase).speed(0.1))
+                    .on_hover_text("r");
+                ui.label("Phase");
             });
         }
     }
