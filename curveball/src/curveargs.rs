@@ -6,7 +6,7 @@ use curveball_lib::curve::extrude::ProfileOrientation;
 use curveball_lib::curve::extrude::path::PathResult;
 use curveball_lib::curve::extrude::profile::ProfileResult;
 
-use glam::{DVec2, DVec3};
+use glam::DVec2;
 
 use curveball_lib::curve::{
     Curve, CurveResult, bank::Bank, catenary::Catenary, curve_classic::CurveClassic,
@@ -406,13 +406,10 @@ impl ExtrusionArgs {
             SelectedProfile::Annulus => self.profile_annulus_args.profiles()?,
         };
 
-        let (path_fn, frenet_fn): (
-            Box<dyn Fn(f64) -> DVec3>,
-            Box<dyn Fn(f64) -> extrude::FrenetFrame>,
-        ) = match self.selected_path {
-            SelectedPath::Line => self.path_line_args.path()?,
-            SelectedPath::Revolve => self.path_revolve_args.path()?,
-            SelectedPath::Sinusoid => self.path_sinusoid_args.path()?,
+        let path: Box<dyn extrude::path::Path> = match self.selected_path {
+            SelectedPath::Line => Box::new(self.path_line_args.path()),
+            SelectedPath::Revolve => Box::new(self.path_revolve_args.path()),
+            SelectedPath::Sinusoid => Box::new(self.path_sinusoid_args.path()?),
         };
 
         let path_n = match self.selected_path {
@@ -435,8 +432,7 @@ impl ExtrusionArgs {
         extrude::extrude_multi(
             path_n,
             &profile,
-            path_fn,
-            frenet_fn,
+            &path,
             path_start,
             path_end,
             self.profile_orientation,
@@ -599,14 +595,8 @@ impl Default for PathLineArgs {
 }
 
 impl PathLineArgs {
-    fn path(
-        &self,
-    ) -> PathResult<(
-        Box<dyn Fn(f64) -> DVec3>,
-        Box<dyn Fn(f64) -> extrude::FrenetFrame>,
-    )> {
-        let (path_fn, frenet_fn) = extrude::path::line(self.x, self.y, self.z)?;
-        Ok((Box::new(path_fn), Box::new(frenet_fn)))
+    fn path(&self) -> extrude::path::Line {
+        extrude::path::Line::new(self.x, self.y, self.z)
     }
 }
 
@@ -632,14 +622,8 @@ impl Default for PathRevolveArgs {
 }
 
 impl PathRevolveArgs {
-    fn path(
-        &self,
-    ) -> PathResult<(
-        Box<dyn Fn(f64) -> DVec3>,
-        Box<dyn Fn(f64) -> extrude::FrenetFrame>,
-    )> {
-        let (path_fn, frenet_fn) = extrude::path::revolve(self.radius)?;
-        Ok((Box::new(path_fn), Box::new(frenet_fn)))
+    fn path(&self) -> extrude::path::Revolve {
+        extrude::path::Revolve::new(self.radius)
     }
 }
 
@@ -669,14 +653,7 @@ impl Default for PathSinusoidArgs {
 }
 
 impl PathSinusoidArgs {
-    fn path(
-        &self,
-    ) -> PathResult<(
-        Box<dyn Fn(f64) -> DVec3>,
-        Box<dyn Fn(f64) -> extrude::FrenetFrame>,
-    )> {
-        let (path_fn, frenet_fn) =
-            extrude::path::sinusoid(self.amplitude, self.period, self.phase)?;
-        Ok((Box::new(path_fn), Box::new(frenet_fn)))
+    fn path(&self) -> PathResult<extrude::path::Sinusoid> {
+        extrude::path::Sinusoid::new(self.amplitude, self.period, self.phase)
     }
 }

@@ -1,6 +1,7 @@
 // Copyright 2025 Jordan Johnson
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
+use crate::curve::extrude::path::Path;
 use crate::curve::{CurveError, CurveResult, MAX_HULL_ITER};
 use crate::map::geometry::Brush;
 use glam::{DMat3, DVec2, DVec3};
@@ -81,26 +82,24 @@ pub struct FrenetFrame {
 //  orientation at any point along the curve. The Frenet Frame should evaluate to
 //  {tangent: [1, 0, 0], normal: [0, 1, 0], binormal: [0, 0, 1]]} when the parameter is zero.
 //  start, end: the start and end values of the parameter
-pub fn extrude<PPF, PFF>(
+pub fn extrude<PTH>(
     n: u32,
     profile: &Vec<DVec2>,
-    path_point_fn: PPF,
-    path_frenet_frame_fn: PFF,
+    path: &PTH,
     start: f64,
     end: f64,
     profile_orientation: ProfileOrientation,
 ) -> CurveResult<Vec<Brush>>
 where
-    PPF: Fn(f64) -> DVec3,
-    PFF: Fn(f64) -> FrenetFrame,
+    PTH: Path,
 {
     // Iterate over every point in the path.
     // Work on windows of two consecutive points along the path at a time.
     start
         .lerp_iter_closed(end, n as usize + 1)
         .map(|t| {
-            let path_point = path_point_fn(t);
-            let frenet_frame = path_frenet_frame_fn(t);
+            let path_point = path.point(t);
+            let frenet_frame = path.frame(t);
             let face: Vec<_> = profile
                 .iter()
                 .map(|profile_point_2d| {
@@ -133,32 +132,20 @@ where
 // Extrude along a parameterized curve with a path with multiple components.
 // The arguments are the same as extrude, except the profile function is now an iterator over
 // profile functions, each corresponding to a convex 2D profile.
-pub fn extrude_multi<PPF, PFF>(
+pub fn extrude_multi<PTH>(
     n: u32,
     compound_profile: &Vec<Vec<DVec2>>,
-    path_point_fn: PPF,
-    path_frenet_frame_fn: PFF,
+    path: &PTH,
     start: f64,
     end: f64,
     profile_orientation: ProfileOrientation,
 ) -> CurveResult<Vec<Brush>>
 where
-    PPF: Fn(f64) -> DVec3,
-    PFF: Fn(f64) -> FrenetFrame,
+    PTH: Path,
 {
     compound_profile
         .iter()
-        .map(|profile| {
-            extrude(
-                n,
-                profile,
-                &path_point_fn,
-                &path_frenet_frame_fn,
-                start,
-                end,
-                profile_orientation,
-            )
-        })
+        .map(|profile| extrude(n, profile, path, start, end, profile_orientation))
         .flatten_ok()
         .collect()
 }
