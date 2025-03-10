@@ -1,7 +1,8 @@
 // Copyright 2025 Jordan Johnson
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
-use crate::{CustomUV, MeshGen, MeshGenError, curveargs::CurveSelect};
+use crate::curveargs::{CurveArgs, SelectedCurve};
+use crate::{CustomUV, MeshGen, MeshGenError};
 
 use bevy::{
     color::palettes::tailwind,
@@ -28,8 +29,8 @@ impl Default for MeshDisplaySettings {
 #[allow(clippy::too_many_arguments)]
 pub fn update_mesh(
     mut commands: Commands,
-    curve_select: Res<CurveSelect>,
-    mut previous_curve_select: Local<Option<CurveSelect>>,
+    curve_select: Res<CurveArgs>,
+    mut previous_curve_select: Local<Option<CurveArgs>>,
     mut previous_meshdisp: Local<Option<MeshDisplaySettings>>,
     mesh_query_1: Query<&Mesh3d, With<CustomUV>>,
     mesh_query_2: Query<Entity, With<CustomUV>>,
@@ -68,15 +69,14 @@ pub fn update_mesh(
     match curve_select.brushes() {
         Ok(brushes) => {
             // Choose a color!
-
-            let base_color = match *curve_select {
-                CurveSelect::CurveClassic { .. } => tailwind::STONE_400,
-                CurveSelect::CurveSlope { .. } => tailwind::SLATE_400,
-                CurveSelect::Rayto { .. } => tailwind::RED_400,
-                CurveSelect::Bank { .. } => tailwind::ORANGE_400,
-                CurveSelect::Catenary { .. } => tailwind::TEAL_400,
-                CurveSelect::Serpentine { .. } => tailwind::LIME_400,
-                CurveSelect::Extrusion { .. } => tailwind::LIME_400,
+            let base_color = match curve_select.selected_curve {
+                SelectedCurve::CurveClassic => tailwind::STONE_400,
+                SelectedCurve::CurveSlope => tailwind::SLATE_400,
+                SelectedCurve::Rayto => tailwind::RED_400,
+                SelectedCurve::Bank => tailwind::ORANGE_400,
+                SelectedCurve::Catenary => tailwind::TEAL_400,
+                SelectedCurve::Serpentine => tailwind::LIME_400,
+                SelectedCurve::Extrusion => tailwind::LIME_400,
             };
 
             let base_color: LinearRgba = base_color.into();

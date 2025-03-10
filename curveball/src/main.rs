@@ -11,7 +11,6 @@ mod brush;
 mod curveargs;
 mod gui;
 use brush::{MeshDisplaySettings, update_mesh};
-use curveargs::CurveSelect;
 use gui::egui_blocking_plugin::EguiBlockingPlugin;
 use gui::{UiScreenState, ui};
 mod camera_controller;
@@ -57,7 +56,7 @@ fn main() {
         .add_systems(Update, ui)
         .add_systems(Update, update_mesh)
         .init_resource::<UiScreenState>()
-        .init_resource::<CurveSelect>()
+        .init_resource::<curveargs::CurveArgs>()
         .init_resource::<MeshGen>()
         .init_resource::<MeshDisplaySettings>()
         .init_resource::<GizmoSettings>()

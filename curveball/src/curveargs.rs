@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
 use bevy::prelude::*;
+use curveball_lib::curve::extrude::ProfileOrientation;
 
 use glam::{DVec2, DVec3};
 
@@ -12,22 +13,71 @@ use curveball_lib::curve::{
 };
 use curveball_lib::map::geometry::Brush;
 
-#[derive(Resource, Debug, Clone, PartialEq, PartialOrd)]
-pub enum CurveSelect {
-    CurveClassic(CurveClassicArgs),
-    CurveSlope(CurveSlopeArgs),
-    Rayto(RaytoArgs),
-    Bank(BankArgs),
-    Catenary(CatenaryArgs),
-    Serpentine(SerpentineArgs),
-    Extrusion(ExtrusionArgs),
+// This struct is the heart of Curveball.
+// All the buttons and sliders (everything in src/gui/mod.rs) adjust the values in this struct.
+// The system in src/brushes.rs monitors for changes in this struct. When it detects one, it calls brushes()
+// to convert these arguments into a curve.
+#[derive(Resource, Debug, Default, Clone, PartialEq, PartialOrd)]
+pub struct CurveArgs {
+    pub selected_curve: SelectedCurve,
+    pub curveclassic_args: CurveClassicArgs,
+    pub curveslope_args: CurveSlopeArgs,
+    pub rayto_args: RaytoArgs,
+    pub bank_args: BankArgs,
+    pub catenary_args: CatenaryArgs,
+    pub serpentine_args: SerpentineArgs,
+    pub extrusion_args: ExtrusionArgs,
 }
 
-impl Default for CurveSelect {
-    fn default() -> Self {
-        Self::Bank(BankArgs::default())
+impl CurveArgs {
+    pub fn brushes(&self) -> CurveResult<Vec<Brush>> {
+        use SelectedCurve as SC;
+        match self.selected_curve {
+            SC::CurveClassic => self.curveclassic_args.brushes(),
+            SC::CurveSlope => self.curveslope_args.brushes(),
+            SC::Rayto => self.rayto_args.brushes(),
+            SC::Bank => self.bank_args.brushes(),
+            SC::Catenary => self.catenary_args.brushes(),
+            SC::Serpentine => self.serpentine_args.brushes(),
+            SC::Extrusion => self.extrusion_args.brushes(),
+        }
     }
 }
+
+// -------------------------------------------------------- SelectedCurve
+
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Copy)]
+pub enum SelectedCurve {
+    CurveClassic,
+    CurveSlope,
+    Rayto,
+    Bank,
+    Catenary,
+    Serpentine,
+    Extrusion,
+}
+
+impl Default for SelectedCurve {
+    fn default() -> Self {
+        Self::Bank
+    }
+}
+
+impl std::fmt::Display for SelectedCurve {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::CurveClassic => write!(f, "Curve Classic"),
+            Self::CurveSlope => write!(f, "Curve Slope"),
+            Self::Rayto => write!(f, "Rayto"),
+            Self::Bank => write!(f, "Bank"),
+            Self::Catenary => write!(f, "Catenary"),
+            Self::Serpentine => write!(f, "Serpentine"),
+            Self::Extrusion => write!(f, "Extrusion"),
+        }
+    }
+}
+
+// -------------------------------------------------------- CurveClassicArgs
 
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub struct CurveClassicArgs {
@@ -56,6 +106,24 @@ impl Default for CurveClassicArgs {
     }
 }
 
+impl CurveClassicArgs {
+    pub fn brushes(&self) -> CurveResult<Vec<Brush>> {
+        CurveClassic {
+            n: self.n,
+            ri0: self.ri0,
+            ro0: self.ro0,
+            ri1: self.ri1,
+            ro1: self.ro1,
+            theta0: self.theta0,
+            theta1: self.theta1,
+            t: self.t,
+        }
+        .bake()
+    }
+}
+
+// -------------------------------------------------------- CurveSlopeArgs
+
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub struct CurveSlopeArgs {
     pub n: u32,
@@ -75,7 +143,6 @@ pub struct CurveSlopeArgs {
     pub height_inner_bot_1: f64,
     pub height_outer_top_1: f64,
     pub height_outer_bot_1: f64,
-    // pub height_link_start_end: bool, // TODO
     pub height_link_inner_outer: bool,
     pub hill_inner_top: f64,
     pub hill_inner_bot: f64,
@@ -104,7 +171,6 @@ impl Default for CurveSlopeArgs {
             height_inner_bot_1: 24.0,
             height_outer_top_1: 32.0,
             height_outer_bot_1: 24.0,
-            // height_link_start_end: true, // TODO
             height_link_inner_outer: true,
             hill_inner_top: 0.0,
             hill_inner_bot: 0.0,
@@ -114,6 +180,35 @@ impl Default for CurveSlopeArgs {
         }
     }
 }
+
+impl CurveSlopeArgs {
+    pub fn brushes(&self) -> CurveResult<Vec<Brush>> {
+        CurveSlope {
+            n: self.n,
+            ri0: self.ri0,
+            ro0: self.ro0,
+            ri1: self.ri1,
+            ro1: self.ro1,
+            theta0: self.theta0,
+            theta1: self.theta1,
+            height_inner_top_0: self.height_inner_top_0,
+            height_inner_bot_0: self.height_inner_bot_0,
+            height_outer_top_0: self.height_outer_top_0,
+            height_outer_bot_0: self.height_outer_bot_0,
+            height_inner_top_1: self.height_inner_top_1,
+            height_inner_bot_1: self.height_inner_bot_1,
+            height_outer_top_1: self.height_outer_top_1,
+            height_outer_bot_1: self.height_outer_bot_1,
+            hill_inner_top: self.hill_inner_top,
+            hill_inner_bot: self.hill_inner_bot,
+            hill_outer_top: self.hill_outer_top,
+            hill_outer_bot: self.hill_outer_bot,
+        }
+        .bake()
+    }
+}
+
+// -------------------------------------------------------- RaytoArgs
 
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub struct RaytoArgs {
@@ -142,6 +237,24 @@ impl Default for RaytoArgs {
     }
 }
 
+impl RaytoArgs {
+    pub fn brushes(&self) -> CurveResult<Vec<Brush>> {
+        Rayto {
+            n: self.n,
+            r0: self.r0,
+            r1: self.r1,
+            theta0: self.theta0,
+            theta1: self.theta1,
+            x: self.x,
+            y: self.y,
+            h: self.h,
+        }
+        .bake()
+    }
+}
+
+// -------------------------------------------------------- BankArgs
+
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub struct BankArgs {
     pub n: u32,
@@ -169,6 +282,24 @@ impl Default for BankArgs {
     }
 }
 
+impl BankArgs {
+    pub fn brushes(&self) -> CurveResult<Vec<Brush>> {
+        Bank {
+            n: self.n,
+            ri: self.ri,
+            ro: self.ro,
+            theta0: self.theta0,
+            theta1: self.theta1,
+            h: self.h,
+            t: self.t,
+            fill: self.fill,
+        }
+        .bake()
+    }
+}
+
+// -------------------------------------------------------- CatenaryArgs
+
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub struct CatenaryArgs {
     pub n: u32,
@@ -194,6 +325,23 @@ impl Default for CatenaryArgs {
     }
 }
 
+impl CatenaryArgs {
+    pub fn brushes(&self) -> CurveResult<Vec<Brush>> {
+        Catenary {
+            n: self.n,
+            span: self.span,
+            height: self.height,
+            s: self.s,
+            w: self.w,
+            t: self.t,
+            initial_guess: self.initial_guess,
+        }
+        .bake()
+    }
+}
+
+// -------------------------------------------------------- SerpentineArgs
+
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub struct SerpentineArgs {
     pub n: u32,
@@ -215,35 +363,147 @@ impl Default for SerpentineArgs {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, PartialOrd)]
-pub struct ExtrusionArgs {
-    pub profile: ProfileSelect,
-    pub path: PathSelect,
-    pub profile_orientation: extrude::ProfileOrientation,
+impl SerpentineArgs {
+    pub fn brushes(&self) -> CurveResult<Vec<Brush>> {
+        Serpentine {
+            n_each: self.n.div_ceil(2),
+            x: self.x,
+            z: self.z,
+            w: self.w,
+            t: self.t,
+            offset: SerpentineOffsetMode::Middle,
+        }
+        .bake()
+    }
 }
 
-impl Default for ExtrusionArgs {
-    fn default() -> Self {
-        Self {
-            profile: ProfileSelect::default(),
-            path: PathSelect::default(),
-            profile_orientation: extrude::ProfileOrientation::FollowPath,
+// -----------------------------------------------------------------------------
+//                              Extrusion
+// -----------------------------------------------------------------------------
+
+// -------------------------------------------------------- ExtrusionArgs
+
+#[derive(Debug, Default, Clone, PartialEq, PartialOrd)]
+pub struct ExtrusionArgs {
+    pub selected_profile: SelectedProfile,
+    pub profile_circle_args: ProfileCircleArgs,
+    pub profile_rectangle_args: ProfileRectangleArgs,
+    pub profile_annulus_args: ProfileAnnulusArgs,
+    pub selected_path: SelectedPath,
+    pub path_line_args: PathLineArgs,
+    pub path_revolve_args: PathRevolveArgs,
+    pub path_sinusoid_args: PathSinusoidArgs,
+    pub profile_orientation: ProfileOrientation,
+}
+
+impl ExtrusionArgs {
+    pub fn brushes(&self) -> CurveResult<Vec<Brush>> {
+        let profile: Vec<Vec<DVec2>> = match self.selected_profile {
+            SelectedProfile::Circle => {
+                let profile = extrude::profile::circle(
+                    self.profile_circle_args.n,
+                    self.profile_circle_args.radius,
+                )?;
+                vec![profile]
+            }
+            SelectedProfile::Rectangle => {
+                let profile = extrude::profile::rectangle(
+                    self.profile_rectangle_args.width,
+                    self.profile_rectangle_args.height,
+                    self.profile_rectangle_args.anchor,
+                )?;
+                vec![profile]
+            }
+            SelectedProfile::Annulus => extrude::profile::annulus(
+                self.profile_annulus_args.n,
+                self.profile_annulus_args.inner_radius,
+                self.profile_annulus_args.outer_radius,
+                self.profile_annulus_args.start_angle,
+                self.profile_annulus_args.end_angle,
+            )?,
+        };
+
+        let (path_fn, frenet_fn): (
+            Box<dyn Fn(f64) -> DVec3>,
+            Box<dyn Fn(f64) -> extrude::FrenetFrame>,
+        ) = match self.selected_path {
+            SelectedPath::Line => {
+                let (path_fn, frenet_fn) = extrude::path::line(
+                    self.path_line_args.x,
+                    self.path_line_args.y,
+                    self.path_line_args.z,
+                )?;
+                (Box::new(path_fn), Box::new(frenet_fn))
+            }
+            SelectedPath::Revolve => {
+                let (path_fn, frenet_fn) = extrude::path::revolve(self.path_revolve_args.radius)?;
+                (Box::new(path_fn), Box::new(frenet_fn))
+            }
+            SelectedPath::Sinusoid => {
+                let (path_fn, frenet_fn) = extrude::path::sinusoid(
+                    self.path_sinusoid_args.amplitude,
+                    self.path_sinusoid_args.period,
+                    self.path_sinusoid_args.phase,
+                )?;
+                (Box::new(path_fn), Box::new(frenet_fn))
+            }
+        };
+
+        let path_n = match self.selected_path {
+            SelectedPath::Line => 1,
+            SelectedPath::Revolve => self.path_revolve_args.path_n,
+            SelectedPath::Sinusoid => self.path_sinusoid_args.path_n,
+        };
+
+        let path_start = match self.selected_path {
+            SelectedPath::Line => 0.0,
+            SelectedPath::Revolve => self.path_revolve_args.path_start,
+            SelectedPath::Sinusoid => self.path_sinusoid_args.path_start,
+        };
+
+        let path_end = match self.selected_path {
+            SelectedPath::Line => 1.0,
+            SelectedPath::Revolve => self.path_revolve_args.path_end,
+            SelectedPath::Sinusoid => self.path_sinusoid_args.path_end,
+        };
+        extrude::extrude_multi(
+            path_n,
+            &profile,
+            path_fn,
+            frenet_fn,
+            path_start,
+            path_end,
+            self.profile_orientation,
+        )
+    }
+}
+
+// -------------------------------------------------------- SelectedProfile
+
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Copy)]
+pub enum SelectedProfile {
+    Circle,
+    Rectangle,
+    Annulus,
+}
+
+impl std::fmt::Display for SelectedProfile {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Circle => write!(f, "Circle"),
+            Self::Rectangle => write!(f, "Rectangle"),
+            Self::Annulus => write!(f, "Annulus"),
         }
     }
 }
 
-#[derive(Debug, Clone, PartialEq, PartialOrd)]
-pub enum ProfileSelect {
-    Circle(ProfileCircleArgs),
-    Rectangle(ProfileRectangleArgs),
-    Annulus(ProfileAnnulusArgs),
-}
-
-impl Default for ProfileSelect {
+impl Default for SelectedProfile {
     fn default() -> Self {
-        Self::Circle(ProfileCircleArgs::default())
+        Self::Circle
     }
 }
+
+// -------------------------------------------------------- ProfileCircleArgs
 
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub struct ProfileCircleArgs {
@@ -259,6 +519,8 @@ impl Default for ProfileCircleArgs {
         }
     }
 }
+
+// -------------------------------------------------------- ProfileRectangleArgs
 
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub struct ProfileRectangleArgs {
@@ -276,6 +538,8 @@ impl Default for ProfileRectangleArgs {
         }
     }
 }
+
+// -------------------------------------------------------- ProfileAnnulusArgs
 
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub struct ProfileAnnulusArgs {
@@ -297,18 +561,33 @@ impl Default for ProfileAnnulusArgs {
         }
     }
 }
-#[derive(Debug, Clone, PartialEq, PartialOrd)]
-pub enum PathSelect {
-    Line(PathLineArgs),
-    Revolve(PathRevolveArgs),
-    Sinusoid(PathSinusoidArgs),
+
+// -------------------------------------------------------- SelectedPath
+
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Copy)]
+pub enum SelectedPath {
+    Line,
+    Revolve,
+    Sinusoid,
 }
 
-impl Default for PathSelect {
-    fn default() -> Self {
-        Self::Revolve(PathRevolveArgs::default())
+impl std::fmt::Display for SelectedPath {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Line => write!(f, "Line"),
+            Self::Revolve => write!(f, "Revolve"),
+            Self::Sinusoid => write!(f, "Sinusoid"),
+        }
     }
 }
+
+impl Default for SelectedPath {
+    fn default() -> Self {
+        Self::Revolve
+    }
+}
+
+// -------------------------------------------------------- PathLineArgs
 
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub struct PathLineArgs {
@@ -326,6 +605,8 @@ impl Default for PathLineArgs {
         }
     }
 }
+
+// -------------------------------------------------------- PathRevolveArgs
 
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub struct PathRevolveArgs {
@@ -345,6 +626,8 @@ impl Default for PathRevolveArgs {
         }
     }
 }
+
+// -------------------------------------------------------- PathSinusoidArgs
 
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub struct PathSinusoidArgs {
@@ -366,153 +649,5 @@ impl Default for PathSinusoidArgs {
             period: 128.0,
             phase: 0.0,
         }
-    }
-}
-
-impl CurveSelect {
-    pub fn brushes(&self) -> CurveResult<Vec<Brush>> {
-        let brushes = match self {
-            Self::CurveClassic(args) => CurveClassic {
-                n: args.n,
-                ri0: args.ri0,
-                ro0: args.ro0,
-                ri1: args.ri1,
-                ro1: args.ro1,
-                theta0: args.theta0,
-                theta1: args.theta1,
-                t: args.t,
-            }
-            .bake()?,
-            Self::CurveSlope(args) => CurveSlope {
-                n: args.n,
-                ri0: args.ri0,
-                ro0: args.ro0,
-                ri1: args.ri1,
-                ro1: args.ro1,
-                theta0: args.theta0,
-                theta1: args.theta1,
-                height_inner_top_0: args.height_inner_top_0,
-                height_inner_bot_0: args.height_inner_bot_0,
-                height_outer_top_0: args.height_outer_top_0,
-                height_outer_bot_0: args.height_outer_bot_0,
-                height_inner_top_1: args.height_inner_top_1,
-                height_inner_bot_1: args.height_inner_bot_1,
-                height_outer_top_1: args.height_outer_top_1,
-                height_outer_bot_1: args.height_outer_bot_1,
-                hill_inner_top: args.hill_inner_top,
-                hill_inner_bot: args.hill_inner_bot,
-                hill_outer_top: args.hill_outer_top,
-                hill_outer_bot: args.hill_outer_bot,
-            }
-            .bake()?,
-            Self::Rayto(args) => Rayto {
-                n: args.n,
-                r0: args.r0,
-                r1: args.r1,
-                theta0: args.theta0,
-                theta1: args.theta1,
-                x: args.x,
-                y: args.y,
-                h: args.h,
-            }
-            .bake()?,
-            Self::Bank(args) => Bank {
-                n: args.n,
-                ri: args.ri,
-                ro: args.ro,
-                theta0: args.theta0,
-                theta1: args.theta1,
-                h: args.h,
-                t: args.t,
-                fill: args.fill,
-            }
-            .bake()?,
-            Self::Catenary(args) => Catenary {
-                n: args.n,
-                span: args.span,
-                height: args.height,
-                s: args.s,
-                w: args.w,
-                t: args.t,
-                initial_guess: args.initial_guess,
-            }
-            .bake()?,
-            Self::Serpentine(args) => Serpentine {
-                n_each: args.n.div_ceil(2),
-                x: args.x,
-                z: args.z,
-                w: args.w,
-                t: args.t,
-                offset: SerpentineOffsetMode::Middle,
-            }
-            .bake()?,
-            Self::Extrusion(args) => Self::extrude_brushes(args)?,
-        };
-        Ok(brushes)
-    }
-
-    fn extrude_brushes(args: &ExtrusionArgs) -> CurveResult<Vec<Brush>> {
-        let profile: Vec<Vec<DVec2>> = match &args.profile {
-            ProfileSelect::Circle(args) => {
-                let profile = extrude::profile::circle(args.n, args.radius)?;
-                vec![profile]
-            }
-            ProfileSelect::Rectangle(args) => {
-                let profile = extrude::profile::rectangle(args.width, args.height, args.anchor)?;
-                vec![profile]
-            }
-            ProfileSelect::Annulus(args) => extrude::profile::annulus(
-                args.n,
-                args.inner_radius,
-                args.outer_radius,
-                args.start_angle,
-                args.end_angle,
-            )?,
-        };
-        let (path_fn, frenet_fn): (
-            Box<dyn Fn(f64) -> DVec3>,
-            Box<dyn Fn(f64) -> extrude::FrenetFrame>,
-        ) = match &args.path {
-            PathSelect::Line(args) => {
-                let (path_fn, frenet_fn) = extrude::path::line(args.x, args.y, args.z)?;
-                (Box::new(path_fn), Box::new(frenet_fn))
-            }
-            PathSelect::Revolve(args) => {
-                let (path_fn, frenet_fn) = extrude::path::revolve(args.radius)?;
-                (Box::new(path_fn), Box::new(frenet_fn))
-            }
-            PathSelect::Sinusoid(args) => {
-                let (path_fn, frenet_fn) =
-                    extrude::path::sinusoid(args.amplitude, args.period, args.phase)?;
-                (Box::new(path_fn), Box::new(frenet_fn))
-            }
-        };
-
-        let path_n = match &args.path {
-            PathSelect::Line(_args) => 1,
-            PathSelect::Revolve(args) => args.path_n,
-            PathSelect::Sinusoid(args) => args.path_n,
-        };
-
-        let path_start = match &args.path {
-            PathSelect::Line(_args) => 0.0,
-            PathSelect::Revolve(args) => args.path_start,
-            PathSelect::Sinusoid(args) => args.path_start,
-        };
-
-        let path_end = match &args.path {
-            PathSelect::Line(_args) => 1.0,
-            PathSelect::Revolve(args) => args.path_end,
-            PathSelect::Sinusoid(args) => args.path_end,
-        };
-        extrude::extrude_multi(
-            path_n,
-            &profile,
-            path_fn,
-            frenet_fn,
-            path_start,
-            path_end,
-            args.profile_orientation,
-        )
     }
 }

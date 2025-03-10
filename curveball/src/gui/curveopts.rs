@@ -1,12 +1,13 @@
 use bevy_egui::egui;
 use curveball_lib::curve::extrude;
 
-use crate::curveargs::{
-    BankArgs, CatenaryArgs, CurveClassicArgs, CurveSlopeArgs, RaytoArgs, SerpentineArgs,
-};
-use crate::gui::{ExtrusionGuiData, SelectedPath, SelectedProfile};
+use crate::curveargs;
+// use crate::curveargs::{
+//     BankArgs, CatenaryArgs, CurveClassicArgs, CurveSlopeArgs, ExtrusionArgs, RaytoArgs,
+//     SerpentineArgs,
+// };
 
-pub fn curveclassic_ui(ui: &mut egui::Ui, args: &mut CurveClassicArgs) {
+pub fn curveclassic_ui(ui: &mut egui::Ui, args: &mut curveargs::CurveClassicArgs) {
     ui.label("Segments");
     ui.horizontal(|ui| {
         ui.add(egui::DragValue::new(&mut args.n).speed(0.1))
@@ -58,7 +59,7 @@ pub fn curveclassic_ui(ui: &mut egui::Ui, args: &mut CurveClassicArgs) {
     });
 }
 
-pub fn curveslope_ui(ui: &mut egui::Ui, args: &mut CurveSlopeArgs) {
+pub fn curveslope_ui(ui: &mut egui::Ui, args: &mut curveargs::CurveSlopeArgs) {
     ui.checkbox(&mut args.en_const_thickness, "Force constant thickness");
     ui.horizontal(|ui| {
         ui.add_enabled_ui(args.en_const_thickness, |ui| {
@@ -332,7 +333,7 @@ pub fn curveslope_ui(ui: &mut egui::Ui, args: &mut CurveSlopeArgs) {
     }
 }
 
-pub fn rayto_ui(ui: &mut egui::Ui, args: &mut RaytoArgs) {
+pub fn rayto_ui(ui: &mut egui::Ui, args: &mut curveargs::RaytoArgs) {
     ui.label("Segments");
     ui.horizontal(|ui| {
         ui.add(egui::DragValue::new(&mut args.n).speed(0.1))
@@ -384,7 +385,7 @@ pub fn rayto_ui(ui: &mut egui::Ui, args: &mut RaytoArgs) {
     });
 }
 
-pub fn bank_ui(ui: &mut egui::Ui, args: &mut BankArgs) {
+pub fn bank_ui(ui: &mut egui::Ui, args: &mut curveargs::BankArgs) {
     ui.label("Segments");
     ui.horizontal(|ui| {
         ui.add(egui::DragValue::new(&mut args.n).speed(0.1))
@@ -432,7 +433,7 @@ pub fn bank_ui(ui: &mut egui::Ui, args: &mut BankArgs) {
     });
 }
 
-pub fn catenary_ui(ui: &mut egui::Ui, args: &mut CatenaryArgs) {
+pub fn catenary_ui(ui: &mut egui::Ui, args: &mut curveargs::CatenaryArgs) {
     ui.label("Segments");
     ui.horizontal(|ui| {
         ui.add(egui::DragValue::new(&mut args.n).speed(0.1))
@@ -469,7 +470,7 @@ pub fn catenary_ui(ui: &mut egui::Ui, args: &mut CatenaryArgs) {
     // TODO: allow user to change initial guess
 }
 
-pub fn serpentine_ui(ui: &mut egui::Ui, args: &mut SerpentineArgs) {
+pub fn serpentine_ui(ui: &mut egui::Ui, args: &mut curveargs::SerpentineArgs) {
     ui.label("Segments");
     ui.horizontal(|ui| {
         ui.add(egui::DragValue::new(&mut args.n).speed(0.1))
@@ -502,7 +503,7 @@ pub fn serpentine_ui(ui: &mut egui::Ui, args: &mut SerpentineArgs) {
     });
 }
 
-pub fn extrusion_ui(ui: &mut egui::Ui, args: &mut ExtrusionGuiData) {
+pub fn extrusion_ui(ui: &mut egui::Ui, args: &mut curveargs::ExtrusionArgs) {
     // ui.label("Segments");
 
     ui.label("Profile");
@@ -511,24 +512,24 @@ pub fn extrusion_ui(ui: &mut egui::Ui, args: &mut ExtrusionGuiData) {
         .show_ui(ui, |ui| {
             ui.selectable_value(
                 &mut args.selected_profile,
-                SelectedProfile::Circle,
+                curveargs::SelectedProfile::Circle,
                 "Circle",
             );
             ui.selectable_value(
                 &mut args.selected_profile,
-                SelectedProfile::Rectangle,
+                curveargs::SelectedProfile::Rectangle,
                 "Rectangle",
             );
             ui.selectable_value(
                 &mut args.selected_profile,
-                SelectedProfile::Annulus,
+                curveargs::SelectedProfile::Annulus,
                 "Annulus",
             );
         });
 
     ui.add_space(8.0);
     match args.selected_profile {
-        SelectedProfile::Circle => {
+        curveargs::SelectedProfile::Circle => {
             ui.horizontal(|ui| {
                 ui.add(egui::DragValue::new(&mut args.profile_circle_args.n).speed(0.1))
                     .on_hover_text("n");
@@ -540,7 +541,7 @@ pub fn extrusion_ui(ui: &mut egui::Ui, args: &mut ExtrusionGuiData) {
                 ui.label("Radius");
             });
         }
-        SelectedProfile::Rectangle => {
+        curveargs::SelectedProfile::Rectangle => {
             ui.horizontal(|ui| {
                 ui.add(egui::DragValue::new(&mut args.profile_rectangle_args.width).speed(0.1))
                     .on_hover_text("width");
@@ -691,7 +692,7 @@ pub fn extrusion_ui(ui: &mut egui::Ui, args: &mut ExtrusionGuiData) {
                 });
             });
         }
-        SelectedProfile::Annulus => {
+        curveargs::SelectedProfile::Annulus => {
             ui.horizontal(|ui| {
                 ui.add(egui::DragValue::new(&mut args.profile_annulus_args.n).speed(0.1))
                     .on_hover_text("n");
@@ -730,14 +731,26 @@ pub fn extrusion_ui(ui: &mut egui::Ui, args: &mut ExtrusionGuiData) {
     egui::ComboBox::from_id_salt("PathSelect")
         .selected_text(format!("{}", args.selected_path))
         .show_ui(ui, |ui| {
-            ui.selectable_value(&mut args.selected_path, SelectedPath::Line, "Line");
-            ui.selectable_value(&mut args.selected_path, SelectedPath::Revolve, "Revolve");
-            ui.selectable_value(&mut args.selected_path, SelectedPath::Sinusoid, "Sinusoid");
+            ui.selectable_value(
+                &mut args.selected_path,
+                curveargs::SelectedPath::Line,
+                "Line",
+            );
+            ui.selectable_value(
+                &mut args.selected_path,
+                curveargs::SelectedPath::Revolve,
+                "Revolve",
+            );
+            ui.selectable_value(
+                &mut args.selected_path,
+                curveargs::SelectedPath::Sinusoid,
+                "Sinusoid",
+            );
         });
 
     ui.add_space(8.0);
     match args.selected_path {
-        SelectedPath::Line => {
+        curveargs::SelectedPath::Line => {
             ui.horizontal(|ui| {
                 ui.add(egui::DragValue::new(&mut args.path_line_args.x).speed(0.1))
                     .on_hover_text("x");
@@ -756,7 +769,7 @@ pub fn extrusion_ui(ui: &mut egui::Ui, args: &mut ExtrusionGuiData) {
                 ui.label("z");
             });
         }
-        SelectedPath::Revolve => {
+        curveargs::SelectedPath::Revolve => {
             ui.horizontal(|ui| {
                 ui.add(egui::DragValue::new(&mut args.path_revolve_args.path_n).speed(0.1))
                     .on_hover_text("path_n");
@@ -778,7 +791,7 @@ pub fn extrusion_ui(ui: &mut egui::Ui, args: &mut ExtrusionGuiData) {
                 ui.label("Radius");
             });
         }
-        SelectedPath::Sinusoid => {
+        curveargs::SelectedPath::Sinusoid => {
             ui.horizontal(|ui| {
                 ui.add(egui::DragValue::new(&mut args.path_sinusoid_args.path_n).speed(0.1))
                     .on_hover_text("path_n");
