@@ -10,14 +10,14 @@ use bevy_egui::EguiPlugin;
 mod brush;
 mod curveargs;
 mod gui;
-use brush::{MeshDisplaySettings, update_mesh};
+use brush::{update_mesh, MeshDisplaySettings};
 use gui::egui_blocking_plugin::EguiBlockingPlugin;
-use gui::{UiScreenState, ui};
+use gui::{ui, UiScreenState};
 mod camera_controller;
 use camera_controller::{CameraController, CameraControllerPlugin};
 
-use curveball_lib::curve::CurveError;
-use curveball_lib::map::geometry::Brush;
+use lib_curveball::curve::CurveError;
+use lib_curveball::map::geometry::Brush;
 use thiserror::Error;
 
 #[derive(Component)]

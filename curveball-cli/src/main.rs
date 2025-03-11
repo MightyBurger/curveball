@@ -4,13 +4,13 @@
 use ansi_colors::ColouredStr;
 use clap::{Args, Parser, Subcommand};
 
-use curveball_lib::curve::{
-    Curve, CurveResult, bank::Bank, curve_classic::CurveClassic, curve_slope::CurveSlope,
-    rayto::Rayto,
+use lib_curveball::curve::{
+    bank::Bank, curve_classic::CurveClassic, curve_slope::CurveSlope, rayto::Rayto, Curve,
+    CurveResult,
 };
-use curveball_lib::map::entity::SimpleWorldspawn;
-use curveball_lib::map::geometry::Brush;
-use curveball_lib::map::qmap::{QEntity, QMap};
+use lib_curveball::map::entity::SimpleWorldspawn;
+use lib_curveball::map::geometry::Brush;
+use lib_curveball::map::qmap::{QEntity, QMap};
 
 #[derive(Parser)]
 #[command(version, about, long_about = None)]

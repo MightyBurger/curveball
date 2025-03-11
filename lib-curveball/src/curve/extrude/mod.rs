@@ -71,24 +71,10 @@ pub struct FrenetFrame {
 }
 
 // Extrude along a parameterized curve.
-// n: number of segments of the path
-// profile: a function that, given a parameter t, returns an iterable of points in a face.
-//  The profile is expected to be constant (independent of the parameter) for almost
-//  all curves, but the functionality exists nonetheless.
-//  The points are expected to lie in the YZ plane - and all of the default Curveball
-//  profiles do this - but it isn't strictly required.
-// path: a function that, given a parameter t, returns a point in 3D space and the Frenet Frame
-//  at that point. The Frenet Frame is used when profile_orientation is set to FollowPath, and
-//  is ignored otherwise. The Frenet Frame is a set of three basis vectors representing the
-//  orientation at any point along the curve. The Frenet Frame should evaluate to
-//  {tangent: [1, 0, 0], normal: [0, 1, 0], binormal: [0, 0, 1]]} when the parameter is zero.
-//  start, end: the start and end values of the parameter
 pub fn extrude<PRF, PTH>(
     n: u32,
     profile: &PRF,
     path: &PTH,
-    start: f64,
-    end: f64,
     profile_orientation: ProfileOrientation,
 ) -> CurveResult<Vec<Brush>>
 where
@@ -101,6 +87,10 @@ where
     if n > 4096 {
         return Err(ExtrudeError::TooManySegments { n })?;
     }
+
+    let start = 0.0;
+    let end = 1.0;
+
     // Iterate over every point in the path.
     // Work on windows of two consecutive points along the path at a time.
     start
@@ -139,14 +129,10 @@ where
 }
 
 // Extrude along a parameterized curve with a path with multiple components.
-// The arguments are the same as extrude, except the profile function is now an iterator over
-// profile functions, each corresponding to a convex 2D profile.
 pub fn extrude_multi<CPF, PTH>(
     n: u32,
     compound_profile: &CPF,
     path: &PTH,
-    start: f64,
-    end: f64,
     profile_orientation: ProfileOrientation,
 ) -> CurveResult<Vec<Brush>>
 where
@@ -164,6 +150,10 @@ where
             n: n_compound as u32,
         })?;
     }
+
+    let start = 0.0;
+    let end = 1.0;
+
     // Iterate over every point in the path.
     // Work on windows of two consecutive points along the path at a time.
     let brushes: Result<Vec<Vec<_>>, _> = start

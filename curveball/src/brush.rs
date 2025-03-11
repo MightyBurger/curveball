@@ -10,8 +10,8 @@ use bevy::{
     render::{render_asset::RenderAssetUsages, render_resource::PrimitiveTopology},
 };
 
-use curveball_lib::map::geometry::{Brush, Side, SideGeom};
 use glam::DVec3;
+use lib_curveball::map::geometry::{Brush, Side, SideGeom};
 
 #[derive(Resource, Debug, Clone, PartialEq, Eq)]
 pub struct MeshDisplaySettings {

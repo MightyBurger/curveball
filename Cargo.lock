@@ -1757,11 +1757,11 @@ dependencies = [
  "bevy",
  "bevy_egui",
  "copypasta",
- "curveball-lib",
  "egui_extras",
  "futures-channel",
  "glam 0.30.0",
  "image",
+ "lib-curveball",
  "thiserror 2.0.11",
  "wasm-bindgen-futures",
  "web-sys",
@@ -1774,18 +1774,7 @@ version = "0.1.0"
 dependencies = [
  "ansi-colors",
  "clap",
- "curveball-lib",
-]
-
-[[package]]
-name = "curveball-lib"
-version = "0.1.0"
-dependencies = [
- "chull",
- "glam 0.30.0",
- "itertools 0.14.0",
- "lerp",
- "thiserror 2.0.11",
+ "lib-curveball",
 ]
 
 [[package]]
@@ -2749,6 +2738,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ecc56a024593ecbcacb6bb4f8f4ace719eb08ae9b701535640ef3efb0e706260"
 dependencies = [
  "num-traits",
+]
+
+[[package]]
+name = "lib-curveball"
+version = "0.1.0"
+dependencies = [
+ "chull",
+ "glam 0.30.0",
+ "itertools 0.14.0",
+ "lerp",
+ "thiserror 2.0.11",
 ]
 
 [[package]]

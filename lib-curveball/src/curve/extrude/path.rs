@@ -92,34 +92,40 @@ impl Path for Line {
 #[derive(Debug, Clone)]
 pub struct Revolve {
     radius: f64,
+    start_angle_rad: f64,
+    end_angle_rad: f64,
 }
 
 impl Revolve {
-    pub fn new(radius: f64) -> Self {
-        Self { radius }
+    pub fn new(radius: f64, start_angle: f64, end_angle: f64) -> Self {
+        Self {
+            radius,
+            start_angle_rad: start_angle * PI / 180.0,
+            end_angle_rad: end_angle * PI / 180.0,
+        }
     }
 }
 
 impl Path for Revolve {
-    fn point(&self, mut t: f64) -> DVec3 {
-        t = t * PI / 180.0;
+    fn point(&self, t: f64) -> DVec3 {
+        let theta = self.start_angle_rad.lerp(self.end_angle_rad, t);
         DVec3 {
-            x: self.radius * t.cos(),
-            y: self.radius * t.sin(),
+            x: self.radius * theta.cos(),
+            y: self.radius * theta.sin(),
             z: 0.0,
         }
     }
-    fn frame(&self, mut t: f64) -> FrenetFrame {
-        t = t * PI / 180.0;
+    fn frame(&self, t: f64) -> FrenetFrame {
+        let theta = self.start_angle_rad.lerp(self.end_angle_rad, t);
         FrenetFrame {
             tangent: DVec3 {
-                x: -t.sin(),
-                y: t.cos(),
+                x: -theta.sin(),
+                y: theta.cos(),
                 z: 0.0,
             },
             normal: DVec3 {
-                x: -t.cos(),
-                y: -t.sin(),
+                x: -theta.cos(),
+                y: -theta.sin(),
                 z: 0.0,
             },
             binormal: DVec3 {
@@ -141,10 +147,12 @@ pub struct Sinusoid {
     amplitude: f64,
     period: f64,
     phase: f64,
+    start: f64,
+    end: f64,
 }
 
 impl Sinusoid {
-    pub fn new(amplitude: f64, period: f64, phase: f64) -> PathResult<Self> {
+    pub fn new(amplitude: f64, period: f64, phase: f64, start: f64, end: f64) -> PathResult<Self> {
         if !(period > 0.0) {
             return Err(SinusoidError::SinusoidInfiniteFrequency(period))?;
         }
@@ -152,26 +160,30 @@ impl Sinusoid {
             amplitude,
             period,
             phase,
+            start,
+            end,
         })
     }
 }
 
 impl Path for Sinusoid {
     fn point(&self, t: f64) -> DVec3 {
+        let x = self.start.lerp(self.end, t);
         let omega = 2.0 * PI / self.period;
         DVec3 {
-            x: t,
+            x,
             y: 0.0,
-            z: self.amplitude * f64::sin(omega * (t + self.phase)),
+            z: self.amplitude * f64::sin(omega * (x + self.phase)),
         }
     }
     fn frame(&self, t: f64) -> FrenetFrame {
+        let x = self.start.lerp(self.end, t);
         let omega = 2.0 * PI / self.period;
         FrenetFrame {
             tangent: DVec3 {
                 x: 1.0,
                 y: 0.0,
-                z: self.amplitude * f64::cos(omega * (t + self.phase)) * omega,
+                z: self.amplitude * f64::cos(omega * (x + self.phase)) * omega,
             }
             .normalize_or_zero(),
             normal: DVec3 {
@@ -180,7 +192,7 @@ impl Path for Sinusoid {
                 z: 0.0,
             },
             binormal: DVec3 {
-                x: -self.amplitude * f64::cos(omega * (t + self.phase)) * omega,
+                x: -self.amplitude * f64::cos(omega * (x + self.phase)) * omega,
                 y: 0.0,
                 z: 1.0,
             }
@@ -285,6 +297,7 @@ pub struct Catenary {
     a: f64,
     k: f64,
     c: f64,
+    span: f64,
 }
 
 impl Catenary {
@@ -311,23 +324,25 @@ impl Catenary {
         let k: f64 = 0.5 * (h - a * f64::ln((s + v) / (s - v)));
         let c: f64 = -a * f64::cosh((-k) / a);
 
-        Ok(Self { a, k, c })
+        Ok(Self { a, k, c, span })
     }
 }
 
 impl Path for Catenary {
     fn point(&self, t: f64) -> DVec3 {
+        let x = 0.0.lerp(self.span, t);
         DVec3 {
-            x: t,
+            x,
             y: 0.0,
-            z: catenary(t, self.a, self.k, self.c),
+            z: catenary(x, self.a, self.k, self.c),
         }
     }
     fn frame(&self, t: f64) -> FrenetFrame {
+        let x = 0.0.lerp(self.span, t);
         let tangent = DVec3 {
             x: 1.0,
             y: 0.0,
-            z: f64::sinh((t - self.k) / self.a), // Derivative of catenary
+            z: f64::sinh((x - self.k) / self.a), // Derivative of catenary
         }
         .normalize_or_zero();
         let normal = DVec3 {

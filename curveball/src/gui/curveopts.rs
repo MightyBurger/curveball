@@ -1,5 +1,5 @@
 use bevy_egui::egui;
-use curveball_lib::curve::extrude;
+use lib_curveball::curve::extrude;
 
 use crate::curveargs;
 // use crate::curveargs::{
@@ -777,12 +777,12 @@ pub fn extrusion_ui(ui: &mut egui::Ui, args: &mut curveargs::ExtrusionArgs) {
                 ui.label("Segments");
             });
             ui.horizontal(|ui| {
-                ui.add(egui::DragValue::new(&mut args.path_revolve_args.path_start).speed(0.1))
+                ui.add(egui::DragValue::new(&mut args.path_revolve_args.start_angle).speed(0.1))
                     .on_hover_text("path_start");
                 ui.label("Starting angle");
             });
             ui.horizontal(|ui| {
-                ui.add(egui::DragValue::new(&mut args.path_revolve_args.path_end).speed(0.1))
+                ui.add(egui::DragValue::new(&mut args.path_revolve_args.end_angle).speed(0.1))
                     .on_hover_text("path_end");
                 ui.label("Ending angle");
             });
@@ -799,16 +799,6 @@ pub fn extrusion_ui(ui: &mut egui::Ui, args: &mut curveargs::ExtrusionArgs) {
                 ui.label("Segments");
             });
             ui.horizontal(|ui| {
-                ui.add(egui::DragValue::new(&mut args.path_sinusoid_args.path_start).speed(0.1))
-                    .on_hover_text("path_start");
-                ui.label("Start");
-            });
-            ui.horizontal(|ui| {
-                ui.add(egui::DragValue::new(&mut args.path_sinusoid_args.path_end).speed(0.1))
-                    .on_hover_text("path_end");
-                ui.label("End");
-            });
-            ui.horizontal(|ui| {
                 ui.add(egui::DragValue::new(&mut args.path_sinusoid_args.amplitude).speed(0.1))
                     .on_hover_text("r");
                 ui.label("Amplitude");
@@ -822,6 +812,16 @@ pub fn extrusion_ui(ui: &mut egui::Ui, args: &mut curveargs::ExtrusionArgs) {
                 ui.add(egui::DragValue::new(&mut args.path_sinusoid_args.phase).speed(0.1))
                     .on_hover_text("r");
                 ui.label("Phase");
+            });
+            ui.horizontal(|ui| {
+                ui.add(egui::DragValue::new(&mut args.path_sinusoid_args.start).speed(0.1))
+                    .on_hover_text("path_start");
+                ui.label("Start");
+            });
+            ui.horizontal(|ui| {
+                ui.add(egui::DragValue::new(&mut args.path_sinusoid_args.end).speed(0.1))
+                    .on_hover_text("path_end");
+                ui.label("End");
             });
         }
         curveargs::SelectedPath::Bezier => {

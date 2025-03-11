@@ -2,16 +2,16 @@
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
 use bevy::prelude::*;
-use curveball_lib::curve::extrude::ProfileOrientation;
-use curveball_lib::curve::extrude::path::PathResult;
-use curveball_lib::curve::extrude::profile::ProfileResult;
 use glam::DVec2;
+use lib_curveball::curve::extrude::ProfileOrientation;
+use lib_curveball::curve::extrude::path::PathResult;
+use lib_curveball::curve::extrude::profile::ProfileResult;
 
-use curveball_lib::curve::{
+use lib_curveball::curve::{
     Curve, CurveResult, bank::Bank, curve_classic::CurveClassic, curve_slope::CurveSlope, extrude,
     rayto::Rayto,
 };
-use curveball_lib::map::geometry::Brush;
+use lib_curveball::map::geometry::Brush;
 
 // This struct is the heart of Curveball.
 // All the buttons and sliders (everything in src/gui/mod.rs) adjust the values in this struct.
@@ -340,32 +340,7 @@ impl ExtrusionArgs {
             SelectedPath::Serpentine => self.path_serpentine_args.path_n,
         };
 
-        let path_start = match self.selected_path {
-            SelectedPath::Line => 0.0,
-            SelectedPath::Revolve => self.path_revolve_args.path_start,
-            SelectedPath::Sinusoid => self.path_sinusoid_args.path_start,
-            SelectedPath::Bezier => 0.0,
-            SelectedPath::Catenary => 0.0,
-            SelectedPath::Serpentine => 0.0,
-        };
-
-        let path_end = match self.selected_path {
-            SelectedPath::Line => 1.0,
-            SelectedPath::Revolve => self.path_revolve_args.path_end,
-            SelectedPath::Sinusoid => self.path_sinusoid_args.path_end,
-            SelectedPath::Bezier => 1.0,
-            SelectedPath::Catenary => self.path_catenary_args.span,
-            SelectedPath::Serpentine => 1.0,
-        };
-
-        extrude::extrude_multi(
-            path_n,
-            &profile,
-            &path,
-            path_start,
-            path_end,
-            self.profile_orientation,
-        )
+        extrude::extrude_multi(path_n, &profile, &path, self.profile_orientation)
     }
 }
 
@@ -569,8 +544,8 @@ impl PathLineArgs {
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub struct PathRevolveArgs {
     pub path_n: u32,
-    pub path_start: f64,
-    pub path_end: f64,
+    pub start_angle: f64,
+    pub end_angle: f64,
     pub radius: f64,
 }
 
@@ -578,8 +553,8 @@ impl Default for PathRevolveArgs {
     fn default() -> Self {
         Self {
             path_n: 12,
-            path_start: 0.0,
-            path_end: 90.0,
+            start_angle: 0.0,
+            end_angle: 90.0,
             radius: 64.0,
         }
     }
@@ -587,7 +562,7 @@ impl Default for PathRevolveArgs {
 
 impl PathRevolveArgs {
     fn path(&self) -> extrude::path::Revolve {
-        extrude::path::Revolve::new(self.radius)
+        extrude::path::Revolve::new(self.radius, self.start_angle, self.end_angle)
     }
 }
 
@@ -596,29 +571,35 @@ impl PathRevolveArgs {
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub struct PathSinusoidArgs {
     pub path_n: u32,
-    pub path_start: f64,
-    pub path_end: f64,
     pub amplitude: f64,
     pub period: f64,
     pub phase: f64,
+    pub start: f64,
+    pub end: f64,
 }
 
 impl Default for PathSinusoidArgs {
     fn default() -> Self {
         Self {
             path_n: 12,
-            path_start: 0.0,
-            path_end: 128.0,
             amplitude: 32.0,
             period: 128.0,
             phase: 0.0,
+            start: 0.0,
+            end: 128.0,
         }
     }
 }
 
 impl PathSinusoidArgs {
     fn path(&self) -> PathResult<extrude::path::Sinusoid> {
-        extrude::path::Sinusoid::new(self.amplitude, self.period, self.phase)
+        extrude::path::Sinusoid::new(
+            self.amplitude,
+            self.period,
+            self.phase,
+            self.start,
+            self.end,
+        )
     }
 }
 

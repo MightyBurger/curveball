@@ -7,4 +7,4 @@ publish = false
 [dependencies]
 ansi-colors = "0.3.0"
 clap = { version = "4.5.23", features = ["derive"] }
-curveball-lib = { path = "../curveball-lib" }
+lib-curveball = { path = "../lib-curveball" }

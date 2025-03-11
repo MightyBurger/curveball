@@ -9,8 +9,8 @@ use bevy::prelude::*;
 use bevy_egui::egui::containers::modal::Modal;
 use bevy_egui::egui::{Id, menu};
 use bevy_egui::{EguiContexts, egui};
-use curveball_lib::map::entity::SimpleWorldspawn;
-use curveball_lib::map::qmap::{QEntity, QMap};
+use lib_curveball::map::entity::SimpleWorldspawn;
+use lib_curveball::map::qmap::{QEntity, QMap};
 
 use egui_extras::{Column, TableBuilder};
 
@@ -168,7 +168,7 @@ pub fn ui(
                                 }
                             }
                             args.extrusion_args.profile_orientation =
-                                curveball_lib::curve::extrude::ProfileOrientation::default();
+                                lib_curveball::curve::extrude::ProfileOrientation::default();
                         }
                     }
                 };
