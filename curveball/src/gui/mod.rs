@@ -78,11 +78,6 @@ pub fn ui(
                     );
                     ui.selectable_value(
                         &mut args.selected_curve,
-                        curveargs::SelectedCurve::Catenary,
-                        "Catenary",
-                    );
-                    ui.selectable_value(
-                        &mut args.selected_curve,
                         curveargs::SelectedCurve::Serpentine,
                         "Serpentine",
                     );
@@ -106,9 +101,6 @@ pub fn ui(
                         curveopts::rayto_ui(ui, &mut args.rayto_args)
                     }
                     curveargs::SelectedCurve::Bank => curveopts::bank_ui(ui, &mut args.bank_args),
-                    curveargs::SelectedCurve::Catenary => {
-                        curveopts::catenary_ui(ui, &mut args.catenary_args)
-                    }
                     curveargs::SelectedCurve::Serpentine => {
                         curveopts::serpentine_ui(ui, &mut args.serpentine_args)
                     }
@@ -136,9 +128,6 @@ pub fn ui(
                         }
                         curveargs::SelectedCurve::Bank => {
                             args.bank_args = curveargs::BankArgs::default()
-                        }
-                        curveargs::SelectedCurve::Catenary => {
-                            args.catenary_args = curveargs::CatenaryArgs::default()
                         }
                         curveargs::SelectedCurve::Serpentine => {
                             args.serpentine_args = curveargs::SerpentineArgs::default()

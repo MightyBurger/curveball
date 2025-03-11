@@ -6,8 +6,8 @@ use clap::{Args, Parser, Subcommand};
 
 use curveball_lib::curve::serpentine::SerpentineOffsetMode;
 use curveball_lib::curve::{
-    Curve, CurveResult, bank::Bank, catenary::Catenary, curve_classic::CurveClassic,
-    curve_slope::CurveSlope, rayto::Rayto, serpentine::Serpentine,
+    Curve, CurveResult, bank::Bank, curve_classic::CurveClassic, curve_slope::CurveSlope,
+    rayto::Rayto, serpentine::Serpentine,
 };
 use curveball_lib::map::entity::SimpleWorldspawn;
 use curveball_lib::map::geometry::Brush;
@@ -33,8 +33,6 @@ enum Commands {
     Rayto(RaytoArgs),
     #[command(about = "Generate a banked curve")]
     Bank(BankArgs),
-    #[command(about = "Generate a catenary curve")]
-    Catenary(CatenaryArgs),
     #[command(about = "Generate a serpentine curve")]
     Serpentine(SerpentineArgs),
 }
@@ -255,16 +253,6 @@ fn map(command: Commands) -> CurveResult<QMap> {
             h: args.h,
             t: args.t,
             fill: args.fill,
-        }
-        .bake()?,
-        Commands::Catenary(args) => Catenary {
-            n: args.n,
-            span: args.span,
-            height: args.height,
-            s: args.s,
-            w: args.w,
-            t: args.t,
-            initial_guess: args.initial_guess,
         }
         .bake()?,
         Commands::Serpentine(args) => Serpentine {

@@ -5,7 +5,6 @@ use crate::map::geometry::Brush;
 use thiserror::Error;
 
 pub mod bank;
-pub mod catenary;
 pub mod curve_classic;
 pub mod curve_slope;
 pub mod extrude;
@@ -34,9 +33,6 @@ pub enum CurveError {
 
     #[error("{0}")]
     BankError(#[from] bank::BankError),
-
-    #[error("{0}")]
-    CatenaryError(#[from] catenary::CatenaryError),
 
     #[error("{0}")]
     SerpentineError(#[from] serpentine::SerpentineError),

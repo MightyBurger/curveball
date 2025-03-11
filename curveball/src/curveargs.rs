@@ -7,9 +7,8 @@ use curveball_lib::curve::extrude::path::PathResult;
 use curveball_lib::curve::extrude::profile::ProfileResult;
 
 use curveball_lib::curve::{
-    Curve, CurveResult, bank::Bank, catenary::Catenary, curve_classic::CurveClassic,
-    curve_slope::CurveSlope, extrude, rayto::Rayto, serpentine::Serpentine,
-    serpentine::SerpentineOffsetMode,
+    Curve, CurveResult, bank::Bank, curve_classic::CurveClassic, curve_slope::CurveSlope, extrude,
+    rayto::Rayto, serpentine::Serpentine, serpentine::SerpentineOffsetMode,
 };
 use curveball_lib::map::geometry::Brush;
 
@@ -24,7 +23,6 @@ pub struct CurveArgs {
     pub curveslope_args: CurveSlopeArgs,
     pub rayto_args: RaytoArgs,
     pub bank_args: BankArgs,
-    pub catenary_args: CatenaryArgs,
     pub serpentine_args: SerpentineArgs,
     pub extrusion_args: ExtrusionArgs,
 }
@@ -37,7 +35,6 @@ impl CurveArgs {
             SC::CurveSlope => self.curveslope_args.brushes(),
             SC::Rayto => self.rayto_args.brushes(),
             SC::Bank => self.bank_args.brushes(),
-            SC::Catenary => self.catenary_args.brushes(),
             SC::Serpentine => self.serpentine_args.brushes(),
             SC::Extrusion => self.extrusion_args.brushes(),
         }
@@ -52,7 +49,6 @@ pub enum SelectedCurve {
     CurveSlope,
     Rayto,
     Bank,
-    Catenary,
     Serpentine,
     Extrusion,
 }
@@ -70,7 +66,6 @@ impl std::fmt::Display for SelectedCurve {
             Self::CurveSlope => write!(f, "Curve Slope"),
             Self::Rayto => write!(f, "Rayto"),
             Self::Bank => write!(f, "Bank"),
-            Self::Catenary => write!(f, "Catenary"),
             Self::Serpentine => write!(f, "Serpentine"),
             Self::Extrusion => write!(f, "Extrusion"),
         }
@@ -293,48 +288,6 @@ impl BankArgs {
             h: self.h,
             t: self.t,
             fill: self.fill,
-        }
-        .bake()
-    }
-}
-
-// -------------------------------------------------------- CatenaryArgs
-
-#[derive(Debug, Clone, PartialEq, PartialOrd)]
-pub struct CatenaryArgs {
-    pub n: u32,
-    pub span: f64,
-    pub height: f64,
-    pub s: f64,
-    pub w: f64,
-    pub t: f64,
-    pub initial_guess: Option<f64>,
-}
-
-impl Default for CatenaryArgs {
-    fn default() -> Self {
-        Self {
-            n: 24,
-            span: 128.0,
-            height: 0.0,
-            s: 132.0,
-            w: 32.0,
-            t: 4.0,
-            initial_guess: None,
-        }
-    }
-}
-
-impl CatenaryArgs {
-    pub fn brushes(&self) -> CurveResult<Vec<Brush>> {
-        Catenary {
-            n: self.n,
-            span: self.span,
-            height: self.height,
-            s: self.s,
-            w: self.w,
-            t: self.t,
-            initial_guess: self.initial_guess,
         }
         .bake()
     }

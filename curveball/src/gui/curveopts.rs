@@ -433,43 +433,6 @@ pub fn bank_ui(ui: &mut egui::Ui, args: &mut curveargs::BankArgs) {
     });
 }
 
-pub fn catenary_ui(ui: &mut egui::Ui, args: &mut curveargs::CatenaryArgs) {
-    ui.label("Segments");
-    ui.horizontal(|ui| {
-        ui.add(egui::DragValue::new(&mut args.n).speed(0.1))
-            .on_hover_text("n");
-        ui.label("Number of segments");
-    });
-    ui.add_space(8.0);
-    ui.label("Dimensions");
-    ui.horizontal(|ui| {
-        ui.add(egui::DragValue::new(&mut args.span).speed(0.1))
-            .on_hover_text("span");
-        ui.label("Span");
-    });
-    ui.horizontal(|ui| {
-        ui.add(egui::DragValue::new(&mut args.height).speed(0.1))
-            .on_hover_text("height");
-        ui.label("Height");
-    });
-    ui.horizontal(|ui| {
-        ui.add(egui::DragValue::new(&mut args.s).speed(0.1))
-            .on_hover_text("s");
-        ui.label("Length");
-    });
-    ui.horizontal(|ui| {
-        ui.add(egui::DragValue::new(&mut args.w).speed(0.1))
-            .on_hover_text("w");
-        ui.label("Width");
-    });
-    ui.horizontal(|ui| {
-        ui.add(egui::DragValue::new(&mut args.t).speed(0.1))
-            .on_hover_text("t");
-        ui.label("Thickness");
-    });
-    // TODO: allow user to change initial guess
-}
-
 pub fn serpentine_ui(ui: &mut egui::Ui, args: &mut curveargs::SerpentineArgs) {
     ui.label("Segments");
     ui.horizontal(|ui| {
