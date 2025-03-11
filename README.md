@@ -12,14 +12,15 @@ Curve generator for [Neverball] levels
 
 Curveball is a curve generator tool for [Neverball] level developers.
 
-This repository contains the Curveball curve generator engine **lib-curveball** and two programs to access it:
+This repository contains the Curveball curve generator engine `lib-curveball` and the graphical tool `curveball`.
 
-- **curveball** - a graphical tool
-- **curveball-cli** - a command-line tool
+You can run `curveball` on your machine, or you can use it on the web.
+
+You can use `lib-curveball` as a library in your own curve generating tools.
 
 Curveball produces Quake3 map data you can copy and paste into a program like [Trenchbroom].
 
-## Curves
+## Features
 
 Curveball generates a wider variety of curves than what is possible with [curve.c].
 
@@ -32,11 +33,11 @@ Curveball supports generating these curves:
 
 ### Curve Classic
 
-Curve Classic contains the same functionality as `curve.c` when `slope` is disabled. It produces circular arcs.
+Curve Classic contains the same functionality as [curve.c] when `slope` is disabled. It produces circular arcs.
 
 ### Curve Slope
 
-Curve Classic contains the same functionality as `curve.c` when `slope` is enabled, with a little more flexibility.
+Curve Classic contains the same functionality as [curve.c] when `slope` is enabled, with a little more flexibility.
 
 ### Rayto
 
@@ -79,6 +80,22 @@ For example, `cargo run --bin curveball --release` will compile and run **curveb
 
 You may also use `cargo install` to install the software. See [here](https://doc.rust-lang.org/cargo/commands/cargo-install.html) for more information.
 
+## Using Curveball in your own script
+
+You may want to write your own curve generating scripts and use Curveball to help. To do this:
+
+1. Make a new package with `cargo new`
+
+2. Add Curveball with `cargo add lib-curveball`
+
+3. Use the [examples](lib-curveball/examples/) to get started
+
+You can use `lib-curveball` to:
+
+- Generate brushes directly from points, or
+
+- Define your own profile or path and calling `extrude()`
+
 ## Compiling for distribution
 
 Building for distribution requires you to be set up for cross-compilation and compiling for the web. Dependencies include:
@@ -104,10 +121,7 @@ Curveball is written in Rust.
 This repository is a Cargo workspace with the following crates:
 
 - `curveball` - Binary crate; compiles to the GUI tool.
-- `curveball-cli` - Binary crate; compiles to the CLI tool.
-- `curveball-lib` - Library crate containing functions to generate the various curves.
-
-This organization makes `curveball-cli` faster to compile since Cargo does not include all the dependencies of the GUI application.
+- `lib-curveball` - Library crate containing functions to generate the various curves.
 
 ## Is it any good?
 
