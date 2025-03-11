@@ -495,8 +495,8 @@ impl Default for ProfileArbitraryArgs {
         Self {
             polygons: vec![vec![
                 DVec2 { x: 0.0, y: 0.0 },
-                DVec2 { x: 64.0, y: 0.0 },
-                DVec2 { x: 64.0, y: 64.0 },
+                DVec2 { x: 32.0, y: 0.0 },
+                DVec2 { x: 32.0, y: 32.0 },
             ]],
         }
     }
