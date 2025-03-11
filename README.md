@@ -12,25 +12,55 @@ Curve generator for [Neverball] levels
 
 Curveball is a curve generator tool for [Neverball] level developers.
 
-This repository contains the Curveball curve generator and two programs to access it:
+This repository contains the Curveball curve generator engine **lib-curveball** and two programs to access it:
 
 - **curveball** - a graphical tool
 - **curveball-cli** - a command-line tool
 
 Curveball produces Quake3 map data you can copy and paste into a program like [Trenchbroom].
 
-## Features
+## Curves
 
 Curveball generates a wider variety of curves than what is possible with [curve.c].
 
 Curveball supports generating these curves:
 
-- curve-classic
-- curve-slope
-- catenary
-- bank
-- rayto
-- serpentine
+- Curve Classic
+- Curve Slope
+- Rayto
+- Extrusion
+
+### Curve Classic
+
+Curve Classic contains the same functionality as `curve.c` when `slope` is disabled. It produces circular arcs.
+
+### Curve Slope
+
+Curve Classic contains the same functionality as `curve.c` when `slope` is enabled, with a little more flexibility.
+
+### Rayto
+
+An oddity in the set of curves Curveball produces, **Rayto** fills in the "negative space" left by a circular arc. The resulting shape is useful for avoiding [T-intersections](https://icculus.org/neverball/mapping/) when constructing maps.
+
+### Extrusion
+
+The **Extrusion** tool generates curves in a manner inspired by mechanical CAD sofware. The tool allows you to select one of the following 2D profiles:
+
+- Circle
+- Circle sector
+- Rectangle
+- Parallelogram
+- Annulus
+- Any arbitrary set of convex polygons
+
+The tool will extrude these 2D profiles along one of the following paths in 3D space:
+
+- Line
+- Revolve
+- Sinusoid
+- Bezier
+- Catenary
+- Serpentine
 
 ## Installation
 
