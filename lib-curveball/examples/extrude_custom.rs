@@ -25,6 +25,22 @@ fn brushes_to_string(brushes: Vec<Brush>) -> CurveResult<String> {
 }
 
 // ==================== MyRevolve path ====================
+// To create a custom path, make a struct that implements the
+// Path trait. Doing so requires you to define two functions
+// that take in t: point(), and frame().
+//
+// extrude() will continually call point() and frame() with
+// the parameter t gradually increasing from 0.0 up to 1.0.
+//
+// frame() is required to use extrude() with
+// ProfileOrientation::FollowPath. If you plan to just use
+// ProfileOrientation::Constant, just have frame() return
+// some placeholder vectors like DVec3::default().
+//
+// To know what the different values of ProfileOrientation
+// do, play around with the Curveball app. It'll be much
+// easier to understand than if I explained it here.
+// ========================================================
 
 #[derive(Debug, Clone)]
 pub struct MyRevolve {
@@ -75,6 +91,23 @@ impl Path for MyRevolve {
 }
 
 // ==================== MyRectangle profile ====================
+// To create a custom profile, make a struct that implements the
+// Profile trait. Doing so requires you to define one function
+// that takes in t and returns a Vec<DVec2>: profile().
+//
+// extrude() will continually call profile() with
+// the parameter t gradually increasing from 0.0 up to 1.0.
+//
+// Often, your profile will just be a constant shape and will
+// not depend on t, so you can just leave this parameter unused.
+// The example profile below does this.
+//
+// The returned profile must be a convex polygon.
+//
+// You can also create a profile that returns multiple polygons
+// at each step. The Annulus profile in Curveball does this.
+// To do this, implement CompoundProfile instead of Profile.
+// ============================================================
 
 #[derive(Debug, Clone)]
 pub struct MyRectangle {
