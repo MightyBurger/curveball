@@ -4,7 +4,6 @@
 use crate::map::geometry::Brush;
 use thiserror::Error;
 
-pub mod bank;
 pub mod curve_classic;
 pub mod curve_slope;
 pub mod extrude;
@@ -29,9 +28,6 @@ pub enum CurveError {
 
     #[error("{0}")]
     RaytoError(#[from] rayto::RaytoError),
-
-    #[error("{0}")]
-    BankError(#[from] bank::BankError),
 
     #[error("{0}")]
     ExtrudeError(#[from] extrude::ExtrudeError),

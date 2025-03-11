@@ -8,8 +8,7 @@ use lib_curveball::curve::extrude::path::PathResult;
 use lib_curveball::curve::extrude::profile::ProfileResult;
 
 use lib_curveball::curve::{
-    Curve, CurveResult, bank::Bank, curve_classic::CurveClassic, curve_slope::CurveSlope, extrude,
-    rayto::Rayto,
+    Curve, CurveResult, curve_classic::CurveClassic, curve_slope::CurveSlope, extrude, rayto::Rayto,
 };
 use lib_curveball::map::geometry::Brush;
 
@@ -23,7 +22,6 @@ pub struct CurveArgs {
     pub curveclassic_args: CurveClassicArgs,
     pub curveslope_args: CurveSlopeArgs,
     pub rayto_args: RaytoArgs,
-    pub bank_args: BankArgs,
     pub extrusion_args: ExtrusionArgs,
 }
 
@@ -34,7 +32,6 @@ impl CurveArgs {
             SC::CurveClassic => self.curveclassic_args.brushes(),
             SC::CurveSlope => self.curveslope_args.brushes(),
             SC::Rayto => self.rayto_args.brushes(),
-            SC::Bank => self.bank_args.brushes(),
             SC::Extrusion => self.extrusion_args.brushes(),
         }
     }
@@ -47,13 +44,12 @@ pub enum SelectedCurve {
     CurveClassic,
     CurveSlope,
     Rayto,
-    Bank,
     Extrusion,
 }
 
 impl Default for SelectedCurve {
     fn default() -> Self {
-        Self::Bank
+        Self::CurveClassic
     }
 }
 
@@ -63,7 +59,6 @@ impl std::fmt::Display for SelectedCurve {
             Self::CurveClassic => write!(f, "Curve Classic"),
             Self::CurveSlope => write!(f, "Curve Slope"),
             Self::Rayto => write!(f, "Rayto"),
-            Self::Bank => write!(f, "Bank"),
             Self::Extrusion => write!(f, "Extrusion"),
         }
     }
@@ -240,51 +235,6 @@ impl RaytoArgs {
             x: self.x,
             y: self.y,
             h: self.h,
-        }
-        .bake()
-    }
-}
-
-// -------------------------------------------------------- BankArgs
-
-#[derive(Debug, Clone, PartialEq, PartialOrd)]
-pub struct BankArgs {
-    pub n: u32,
-    pub ri: f64,
-    pub ro: f64,
-    pub theta0: f64,
-    pub theta1: f64,
-    pub h: f64,
-    pub t: f64,
-    pub fill: bool,
-}
-
-impl Default for BankArgs {
-    fn default() -> Self {
-        Self {
-            n: 24,
-            ri: 64.0,
-            ro: 128.0,
-            theta0: 0.0,
-            theta1: 90.0,
-            h: 64.0,
-            t: 8.0,
-            fill: false,
-        }
-    }
-}
-
-impl BankArgs {
-    pub fn brushes(&self) -> CurveResult<Vec<Brush>> {
-        Bank {
-            n: self.n,
-            ri: self.ri,
-            ro: self.ro,
-            theta0: self.theta0,
-            theta1: self.theta1,
-            h: self.h,
-            t: self.t,
-            fill: self.fill,
         }
         .bake()
     }

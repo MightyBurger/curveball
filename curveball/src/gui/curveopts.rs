@@ -388,54 +388,6 @@ pub fn rayto_ui(ui: &mut egui::Ui, args: &mut curveargs::RaytoArgs) {
     });
 }
 
-pub fn bank_ui(ui: &mut egui::Ui, args: &mut curveargs::BankArgs) {
-    ui.label("Segments");
-    ui.horizontal(|ui| {
-        ui.add(egui::DragValue::new(&mut args.n).speed(0.1))
-            .on_hover_text("n");
-        ui.label("Number of segments");
-    });
-    ui.add_space(8.0);
-    ui.label("Radii");
-    ui.horizontal(|ui| {
-        ui.add(egui::DragValue::new(&mut args.ri).speed(0.1))
-            .on_hover_text("ri");
-        ui.label("Inner radius");
-    });
-    ui.horizontal(|ui| {
-        ui.add(egui::DragValue::new(&mut args.ro).speed(0.1))
-            .on_hover_text("ro");
-        ui.label("Outer radius");
-    });
-    ui.add_space(8.0);
-    ui.label("Angles");
-    ui.horizontal(|ui| {
-        ui.add(egui::DragValue::new(&mut args.theta0).speed(0.1))
-            .on_hover_text("theta0");
-        ui.label("Start angle (deg)");
-    });
-    ui.horizontal(|ui| {
-        ui.add(egui::DragValue::new(&mut args.theta1).speed(0.1))
-            .on_hover_text("theta1");
-        ui.label("End angle (deg)");
-    });
-    ui.add_space(8.0);
-    ui.label("Heights");
-    ui.horizontal(|ui| {
-        ui.add(egui::DragValue::new(&mut args.h).speed(0.1))
-            .on_hover_text("h");
-        ui.label("Height");
-    });
-    ui.horizontal(|ui| {
-        ui.add(egui::DragValue::new(&mut args.t).speed(0.1))
-            .on_hover_text("t");
-        ui.label("Thickness");
-    });
-    ui.horizontal(|ui| {
-        ui.checkbox(&mut args.fill, "Filled").on_hover_text("fill");
-    });
-}
-
 pub fn extrusion_ui(ui: &mut egui::Ui, args: &mut curveargs::ExtrusionArgs) {
     // ui.label("Segments");
 

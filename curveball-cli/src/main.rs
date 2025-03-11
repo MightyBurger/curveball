@@ -5,8 +5,7 @@ use ansi_colors::ColouredStr;
 use clap::{Args, Parser, Subcommand};
 
 use lib_curveball::curve::{
-    bank::Bank, curve_classic::CurveClassic, curve_slope::CurveSlope, rayto::Rayto, Curve,
-    CurveResult,
+    Curve, CurveResult, curve_classic::CurveClassic, curve_slope::CurveSlope, rayto::Rayto,
 };
 use lib_curveball::map::entity::SimpleWorldspawn;
 use lib_curveball::map::geometry::Brush;
@@ -30,8 +29,6 @@ enum Commands {
     CurveSlope(CurveSlopeArgs),
     #[command(about = "Generate a curve with rays from a circle segment to a single point")]
     Rayto(RaytoArgs),
-    #[command(about = "Generate a banked curve")]
-    Bank(BankArgs),
 }
 
 #[derive(Args)]
@@ -116,64 +113,6 @@ struct RaytoArgs {
     h: f64,
 }
 
-#[derive(Args)]
-struct BankArgs {
-    #[arg(long, help = "Number of segments")]
-    n: u32,
-    #[arg(long, help = "Inner radius")]
-    ri: f64,
-    #[arg(long, help = "Outer radius")]
-    ro: f64,
-    #[arg(long, help = "Starting angle (deg)")]
-    theta0: f64,
-    #[arg(long, help = "Ending angle (deg)")]
-    theta1: f64,
-    #[arg(long, help = "Cone height")]
-    h: f64,
-    #[arg(long, help = "Thickness of the bank")]
-    t: f64,
-    #[arg(long, help = "Filled bank")]
-    fill: bool,
-}
-
-#[derive(Args)]
-struct CatenaryArgs {
-    #[arg(long, help = "Number of segments")]
-    n: u32,
-    #[arg(long, help = "Ending horizontal position of the curve")]
-    span: f64,
-    #[arg(long, help = "Ending height of the curve")]
-    height: f64,
-    #[arg(long, help = "Length of the curve (i.e. how long your rope is)")]
-    s: f64,
-    #[arg(long, help = "Width of the curve")]
-    w: f64,
-    #[arg(long, help = "Thickness of the curve")]
-    t: f64,
-    #[arg(
-        long,
-        help = "The initial guess for the catenary parameter 'a'; used for Newton's method"
-    )]
-    initial_guess: Option<f64>,
-}
-
-#[derive(Args)]
-struct SerpentineArgs {
-    #[arg(
-        long,
-        help = "Number of segments; will be rounded up to the nearest multiple of 2"
-    )]
-    n: u32,
-    #[arg(long, help = "Ending horizontal position of curve")]
-    x: f64,
-    #[arg(long, help = "Ending height of the curve")]
-    z: f64,
-    #[arg(long, help = "Width of the curve")]
-    w: f64,
-    #[arg(long, help = "Thickness of the curve")]
-    t: f64,
-}
-
 fn main() {
     let cli = Cli::parse();
     let map = map(cli.command).unwrap_or_else(|err| {
@@ -239,17 +178,6 @@ fn map(command: Commands) -> CurveResult<QMap> {
             x: args.x,
             y: args.y,
             h: args.h,
-        }
-        .bake()?,
-        Commands::Bank(args) => Bank {
-            n: args.n,
-            ro: args.ro,
-            ri: args.ri,
-            theta0: args.theta0,
-            theta1: args.theta1,
-            h: args.h,
-            t: args.t,
-            fill: args.fill,
         }
         .bake()?,
     };
