@@ -9,7 +9,6 @@ pub mod curve_classic;
 pub mod curve_slope;
 pub mod extrude;
 pub mod rayto;
-pub mod serpentine;
 
 const MAX_HULL_ITER: Option<usize> = Some(10_000);
 
@@ -33,9 +32,6 @@ pub enum CurveError {
 
     #[error("{0}")]
     BankError(#[from] bank::BankError),
-
-    #[error("{0}")]
-    SerpentineError(#[from] serpentine::SerpentineError),
 
     #[error("{0}")]
     ExtrudeError(#[from] extrude::ExtrudeError),

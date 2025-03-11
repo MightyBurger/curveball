@@ -4,10 +4,9 @@
 use ansi_colors::ColouredStr;
 use clap::{Args, Parser, Subcommand};
 
-use curveball_lib::curve::serpentine::SerpentineOffsetMode;
 use curveball_lib::curve::{
     Curve, CurveResult, bank::Bank, curve_classic::CurveClassic, curve_slope::CurveSlope,
-    rayto::Rayto, serpentine::Serpentine,
+    rayto::Rayto,
 };
 use curveball_lib::map::entity::SimpleWorldspawn;
 use curveball_lib::map::geometry::Brush;
@@ -33,8 +32,6 @@ enum Commands {
     Rayto(RaytoArgs),
     #[command(about = "Generate a banked curve")]
     Bank(BankArgs),
-    #[command(about = "Generate a serpentine curve")]
-    Serpentine(SerpentineArgs),
 }
 
 #[derive(Args)]
@@ -253,15 +250,6 @@ fn map(command: Commands) -> CurveResult<QMap> {
             h: args.h,
             t: args.t,
             fill: args.fill,
-        }
-        .bake()?,
-        Commands::Serpentine(args) => Serpentine {
-            n_each: args.n.div_ceil(2),
-            x: args.x,
-            z: args.z,
-            w: args.w,
-            t: args.t,
-            offset: SerpentineOffsetMode::Middle,
         }
         .bake()?,
     };

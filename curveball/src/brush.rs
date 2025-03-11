@@ -74,7 +74,6 @@ pub fn update_mesh(
                 SelectedCurve::CurveSlope => tailwind::SLATE_400,
                 SelectedCurve::Rayto => tailwind::RED_400,
                 SelectedCurve::Bank => tailwind::ORANGE_400,
-                SelectedCurve::Serpentine => tailwind::LIME_400,
                 SelectedCurve::Extrusion => tailwind::LIME_400,
             };
 

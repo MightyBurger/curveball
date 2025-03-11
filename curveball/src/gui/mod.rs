@@ -78,11 +78,6 @@ pub fn ui(
                     );
                     ui.selectable_value(
                         &mut args.selected_curve,
-                        curveargs::SelectedCurve::Serpentine,
-                        "Serpentine",
-                    );
-                    ui.selectable_value(
-                        &mut args.selected_curve,
                         curveargs::SelectedCurve::Extrusion,
                         "Extrusion",
                     );
@@ -101,9 +96,6 @@ pub fn ui(
                         curveopts::rayto_ui(ui, &mut args.rayto_args)
                     }
                     curveargs::SelectedCurve::Bank => curveopts::bank_ui(ui, &mut args.bank_args),
-                    curveargs::SelectedCurve::Serpentine => {
-                        curveopts::serpentine_ui(ui, &mut args.serpentine_args)
-                    }
                     curveargs::SelectedCurve::Extrusion => {
                         curveopts::extrusion_ui(ui, &mut args.extrusion_args)
                     }
@@ -128,9 +120,6 @@ pub fn ui(
                         }
                         curveargs::SelectedCurve::Bank => {
                             args.bank_args = curveargs::BankArgs::default()
-                        }
-                        curveargs::SelectedCurve::Serpentine => {
-                            args.serpentine_args = curveargs::SerpentineArgs::default()
                         }
                         curveargs::SelectedCurve::Extrusion => {
                             match args.extrusion_args.selected_profile {

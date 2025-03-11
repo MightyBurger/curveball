@@ -9,7 +9,7 @@ use glam::DVec2;
 
 use curveball_lib::curve::{
     Curve, CurveResult, bank::Bank, curve_classic::CurveClassic, curve_slope::CurveSlope, extrude,
-    rayto::Rayto, serpentine::Serpentine, serpentine::SerpentineOffsetMode,
+    rayto::Rayto,
 };
 use curveball_lib::map::geometry::Brush;
 
@@ -24,7 +24,6 @@ pub struct CurveArgs {
     pub curveslope_args: CurveSlopeArgs,
     pub rayto_args: RaytoArgs,
     pub bank_args: BankArgs,
-    pub serpentine_args: SerpentineArgs,
     pub extrusion_args: ExtrusionArgs,
 }
 
@@ -36,7 +35,6 @@ impl CurveArgs {
             SC::CurveSlope => self.curveslope_args.brushes(),
             SC::Rayto => self.rayto_args.brushes(),
             SC::Bank => self.bank_args.brushes(),
-            SC::Serpentine => self.serpentine_args.brushes(),
             SC::Extrusion => self.extrusion_args.brushes(),
         }
     }
@@ -50,7 +48,6 @@ pub enum SelectedCurve {
     CurveSlope,
     Rayto,
     Bank,
-    Serpentine,
     Extrusion,
 }
 
@@ -67,7 +64,6 @@ impl std::fmt::Display for SelectedCurve {
             Self::CurveSlope => write!(f, "Curve Slope"),
             Self::Rayto => write!(f, "Rayto"),
             Self::Bank => write!(f, "Bank"),
-            Self::Serpentine => write!(f, "Serpentine"),
             Self::Extrusion => write!(f, "Extrusion"),
         }
     }
@@ -289,43 +285,6 @@ impl BankArgs {
             h: self.h,
             t: self.t,
             fill: self.fill,
-        }
-        .bake()
-    }
-}
-
-// -------------------------------------------------------- SerpentineArgs
-
-#[derive(Debug, Clone, PartialEq, PartialOrd)]
-pub struct SerpentineArgs {
-    pub n: u32,
-    pub x: f64,
-    pub z: f64,
-    pub w: f64,
-    pub t: f64,
-}
-
-impl Default for SerpentineArgs {
-    fn default() -> Self {
-        Self {
-            n: 24,
-            x: 128.0,
-            z: 64.0,
-            w: 32.0,
-            t: 8.0,
-        }
-    }
-}
-
-impl SerpentineArgs {
-    pub fn brushes(&self) -> CurveResult<Vec<Brush>> {
-        Serpentine {
-            n_each: self.n.div_ceil(2),
-            x: self.x,
-            z: self.z,
-            w: self.w,
-            t: self.t,
-            offset: SerpentineOffsetMode::Middle,
         }
         .bake()
     }

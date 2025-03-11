@@ -433,39 +433,6 @@ pub fn bank_ui(ui: &mut egui::Ui, args: &mut curveargs::BankArgs) {
     });
 }
 
-pub fn serpentine_ui(ui: &mut egui::Ui, args: &mut curveargs::SerpentineArgs) {
-    ui.label("Segments");
-    ui.horizontal(|ui| {
-        ui.add(egui::DragValue::new(&mut args.n).speed(0.1))
-            .on_hover_text("n");
-        ui.label("Number of segments");
-    });
-    ui.add_space(8.0);
-    ui.label("End position");
-    ui.horizontal(|ui| {
-        ui.add(egui::DragValue::new(&mut args.x).speed(0.1))
-            .on_hover_text("x");
-        ui.label("x");
-    });
-    ui.horizontal(|ui| {
-        ui.add(egui::DragValue::new(&mut args.z).speed(0.1))
-            .on_hover_text("z");
-        ui.label("z");
-    });
-    ui.add_space(8.0);
-    ui.label("Dimensions");
-    ui.horizontal(|ui| {
-        ui.add(egui::DragValue::new(&mut args.w).speed(0.1))
-            .on_hover_text("w");
-        ui.label("Width");
-    });
-    ui.horizontal(|ui| {
-        ui.add(egui::DragValue::new(&mut args.t).speed(0.1))
-            .on_hover_text("t");
-        ui.label("Thickness");
-    });
-}
-
 pub fn extrusion_ui(ui: &mut egui::Ui, args: &mut curveargs::ExtrusionArgs) {
     // ui.label("Segments");
 
