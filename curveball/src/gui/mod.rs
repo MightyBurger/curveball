@@ -323,7 +323,7 @@ pub fn ui(
                             ui.label("Left click");
                         });
                         row.col(|ui| {
-                            ui.label("Orbit around origin");
+                            ui.label("Orbit");
                         });
                     });
                     body.row(row_len, |mut row| {
