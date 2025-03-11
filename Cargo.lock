@@ -1528,6 +1528,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "color"
+version = "0.2.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "61c387f6cef110ee8eaf12fca5586d3d303c07c594f4a5f02c768b6470b70dbd"
+
+[[package]]
 name = "color_quant"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1756,6 +1762,7 @@ version = "0.5.0"
 dependencies = [
  "bevy",
  "bevy_egui",
+ "color",
  "copypasta",
  "egui_extras",
  "futures-channel",

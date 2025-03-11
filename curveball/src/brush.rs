@@ -1,7 +1,7 @@
 // Copyright 2025 Jordan Johnson
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
-use crate::curveargs::{CurveArgs, SelectedCurve};
+use crate::curveargs::{CurveArgs, SelectedCurve, SelectedPath, SelectedProfile};
 use crate::{CustomUV, MeshGen, MeshGenError};
 
 use bevy::{
@@ -73,7 +73,37 @@ pub fn update_mesh(
                 SelectedCurve::CurveClassic => tailwind::STONE_400,
                 SelectedCurve::CurveSlope => tailwind::SLATE_400,
                 SelectedCurve::Rayto => tailwind::RED_400,
-                SelectedCurve::Extrusion => tailwind::LIME_400,
+                SelectedCurve::Extrusion => {
+                    let unshifted_color = match curve_select.extrusion_args.selected_path {
+                        SelectedPath::Line => tailwind::YELLOW_400,
+                        SelectedPath::Revolve => tailwind::ORANGE_400,
+                        SelectedPath::Sinusoid => tailwind::INDIGO_400,
+                        SelectedPath::Bezier => tailwind::FUCHSIA_400,
+                        SelectedPath::Catenary => tailwind::TEAL_400,
+                        SelectedPath::Serpentine => tailwind::LIME_400,
+                    };
+                    let hue_shift = match curve_select.extrusion_args.selected_profile {
+                        SelectedProfile::Circle => -30.0,
+                        SelectedProfile::CircleSector => -20.0,
+                        SelectedProfile::Rectangle => -10.0,
+                        SelectedProfile::Parallelogram => 0.0,
+                        SelectedProfile::Annulus => 10.0,
+                        SelectedProfile::Arbitrary => 20.0,
+                    };
+                    let color = color::OpaqueColor::<color::Srgb>::new([
+                        unshifted_color.red,
+                        unshifted_color.green,
+                        unshifted_color.blue,
+                    ]);
+                    let color = color.map_hue(|hue| hue + hue_shift % 360.0);
+
+                    Srgba {
+                        red: color.components[0],
+                        green: color.components[1],
+                        blue: color.components[2],
+                        alpha: 1.0,
+                    }
+                }
             };
 
             let base_color: LinearRgba = base_color.into();

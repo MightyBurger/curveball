@@ -16,6 +16,7 @@ thiserror = "2.0.9"
 wasm-bindgen-futures = "0.4.49"
 web-sys = { version = "0.3.76", features = ["Clipboard", "Window", "Navigator"] }
 winit = "0.30.7"
+color = "0.2.3"
 
 [dependencies.bevy]
 version = "0.15"
