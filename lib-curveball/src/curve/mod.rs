@@ -12,7 +12,7 @@ pub mod rayto;
 const MAX_HULL_ITER: Option<usize> = Some(10_000);
 
 pub trait Curve {
-    fn bake(&self) -> Result<Vec<Brush>, CurveError>;
+    fn bake(&self) -> CurveResult<Vec<Brush>>;
 }
 
 #[derive(Error, Debug)]
