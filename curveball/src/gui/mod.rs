@@ -133,7 +133,45 @@ pub fn ui(
                             args.serpentine_args = curveargs::SerpentineArgs::default()
                         }
                         curveargs::SelectedCurve::Extrusion => {
-                            args.extrusion_args = curveargs::ExtrusionArgs::default()
+                            match args.extrusion_args.selected_profile {
+                                curveargs::SelectedProfile::Circle => {
+                                    args.extrusion_args.profile_circle_args =
+                                        curveargs::ProfileCircleArgs::default()
+                                }
+                                curveargs::SelectedProfile::Rectangle => {
+                                    args.extrusion_args.profile_rectangle_args =
+                                        curveargs::ProfileRectangleArgs::default()
+                                }
+                                curveargs::SelectedProfile::Annulus => {
+                                    args.extrusion_args.profile_annulus_args =
+                                        curveargs::ProfileAnnulusArgs::default()
+                                }
+                            }
+
+                            match args.extrusion_args.selected_path {
+                                curveargs::SelectedPath::Line => {
+                                    args.extrusion_args.path_line_args =
+                                        curveargs::PathLineArgs::default()
+                                }
+                                curveargs::SelectedPath::Revolve => {
+                                    args.extrusion_args.path_revolve_args =
+                                        curveargs::PathRevolveArgs::default()
+                                }
+                                curveargs::SelectedPath::Sinusoid => {
+                                    args.extrusion_args.path_sinusoid_args =
+                                        curveargs::PathSinusoidArgs::default()
+                                }
+                                curveargs::SelectedPath::Bezier => {
+                                    args.extrusion_args.path_bezier_args =
+                                        curveargs::PathBezierArgs::default()
+                                }
+                                curveargs::SelectedPath::Catenary => {
+                                    args.extrusion_args.path_catenary_args =
+                                        curveargs::PathCatenaryArgs::default()
+                                }
+                            }
+                            args.extrusion_args.profile_orientation =
+                                curveball_lib::curve::extrude::ProfileOrientation::default();
                         }
                     }
                 };
