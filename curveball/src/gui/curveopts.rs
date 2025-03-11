@@ -751,6 +751,11 @@ pub fn extrusion_ui(ui: &mut egui::Ui, args: &mut curveargs::ExtrusionArgs) {
                 curveargs::SelectedPath::Bezier,
                 "Bezier",
             );
+            ui.selectable_value(
+                &mut args.selected_path,
+                curveargs::SelectedPath::Catenary,
+                "Catenary",
+            );
         });
 
     ui.add_space(8.0);
@@ -863,6 +868,28 @@ pub fn extrusion_ui(ui: &mut egui::Ui, args: &mut curveargs::ExtrusionArgs) {
             if let Some(point_to_delete) = point_to_delete {
                 args.path_bezier_args.points.remove(point_to_delete);
             }
+        }
+        curveargs::SelectedPath::Catenary => {
+            ui.horizontal(|ui| {
+                ui.add(egui::DragValue::new(&mut args.path_catenary_args.path_n).speed(0.1))
+                    .on_hover_text("path_n");
+                ui.label("Segments");
+            });
+            ui.horizontal(|ui| {
+                ui.add(egui::DragValue::new(&mut args.path_catenary_args.span).speed(0.1))
+                    .on_hover_text("span");
+                ui.label("Span");
+            });
+            ui.horizontal(|ui| {
+                ui.add(egui::DragValue::new(&mut args.path_catenary_args.height).speed(0.1))
+                    .on_hover_text("height");
+                ui.label("Height");
+            });
+            ui.horizontal(|ui| {
+                ui.add(egui::DragValue::new(&mut args.path_catenary_args.s).speed(0.1))
+                    .on_hover_text("s");
+                ui.label("Length");
+            });
         }
     }
 

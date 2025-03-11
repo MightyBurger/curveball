@@ -394,6 +394,7 @@ pub struct ExtrusionArgs {
     pub path_revolve_args: PathRevolveArgs,
     pub path_sinusoid_args: PathSinusoidArgs,
     pub path_bezier_args: PathBezierArgs,
+    pub path_catenary_args: PathCatenaryArgs,
     pub profile_orientation: ProfileOrientation,
 }
 
@@ -410,6 +411,7 @@ impl ExtrusionArgs {
             SelectedPath::Revolve => Box::new(self.path_revolve_args.path()),
             SelectedPath::Sinusoid => Box::new(self.path_sinusoid_args.path()?),
             SelectedPath::Bezier => Box::new(self.path_bezier_args.path()?),
+            SelectedPath::Catenary => Box::new(self.path_catenary_args.path()?),
         };
 
         let path_n = match self.selected_path {
@@ -417,6 +419,7 @@ impl ExtrusionArgs {
             SelectedPath::Revolve => self.path_revolve_args.path_n,
             SelectedPath::Sinusoid => self.path_sinusoid_args.path_n,
             SelectedPath::Bezier => self.path_bezier_args.path_n,
+            SelectedPath::Catenary => self.path_catenary_args.path_n,
         };
 
         let path_start = match self.selected_path {
@@ -424,6 +427,7 @@ impl ExtrusionArgs {
             SelectedPath::Revolve => self.path_revolve_args.path_start,
             SelectedPath::Sinusoid => self.path_sinusoid_args.path_start,
             SelectedPath::Bezier => 0.0,
+            SelectedPath::Catenary => 0.0,
         };
 
         let path_end = match self.selected_path {
@@ -431,7 +435,9 @@ impl ExtrusionArgs {
             SelectedPath::Revolve => self.path_revolve_args.path_end,
             SelectedPath::Sinusoid => self.path_sinusoid_args.path_end,
             SelectedPath::Bezier => 1.0,
+            SelectedPath::Catenary => self.path_catenary_args.span,
         };
+
         extrude::extrude_multi(
             path_n,
             &profile,
@@ -563,6 +569,7 @@ pub enum SelectedPath {
     Revolve,
     Sinusoid,
     Bezier,
+    Catenary,
 }
 
 impl std::fmt::Display for SelectedPath {
@@ -572,6 +579,7 @@ impl std::fmt::Display for SelectedPath {
             Self::Revolve => write!(f, "Revolve"),
             Self::Sinusoid => write!(f, "Sinusoid"),
             Self::Bezier => write!(f, "Bezier"),
+            Self::Catenary => write!(f, "Catenary"),
         }
     }
 }
@@ -689,5 +697,36 @@ impl Default for PathBezierArgs {
 impl PathBezierArgs {
     fn path(&self) -> PathResult<extrude::path::Bezier> {
         Ok(extrude::path::Bezier::new(self.points.clone())?)
+    }
+}
+
+// -------------------------------------------------------- PathCatenaryArgs
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct PathCatenaryArgs {
+    pub path_n: u32,
+    pub span: f64,
+    pub height: f64,
+    pub s: f64,
+}
+
+impl Default for PathCatenaryArgs {
+    fn default() -> Self {
+        Self {
+            path_n: 12,
+            span: 128.0,
+            height: 0.0,
+            s: 132.0,
+        }
+    }
+}
+
+impl PathCatenaryArgs {
+    fn path(&self) -> PathResult<extrude::path::Catenary> {
+        Ok(extrude::path::Catenary::new(
+            self.span,
+            self.height,
+            self.s,
+        )?)
     }
 }
