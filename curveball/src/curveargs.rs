@@ -350,6 +350,7 @@ pub struct ExtrusionArgs {
     pub path_sinusoid_args: PathSinusoidArgs,
     pub path_bezier_args: PathBezierArgs,
     pub path_catenary_args: PathCatenaryArgs,
+    pub path_serpentine_args: PathSerpentineArgs,
     pub profile_orientation: ProfileOrientation,
 }
 
@@ -368,6 +369,7 @@ impl ExtrusionArgs {
             SelectedPath::Sinusoid => Box::new(self.path_sinusoid_args.path()?),
             SelectedPath::Bezier => Box::new(self.path_bezier_args.path()?),
             SelectedPath::Catenary => Box::new(self.path_catenary_args.path()?),
+            SelectedPath::Serpentine => Box::new(self.path_serpentine_args.path()?),
         };
 
         let path_n = match self.selected_path {
@@ -376,6 +378,7 @@ impl ExtrusionArgs {
             SelectedPath::Sinusoid => self.path_sinusoid_args.path_n,
             SelectedPath::Bezier => self.path_bezier_args.path_n,
             SelectedPath::Catenary => self.path_catenary_args.path_n,
+            SelectedPath::Serpentine => self.path_serpentine_args.path_n,
         };
 
         let path_start = match self.selected_path {
@@ -384,6 +387,7 @@ impl ExtrusionArgs {
             SelectedPath::Sinusoid => self.path_sinusoid_args.path_start,
             SelectedPath::Bezier => 0.0,
             SelectedPath::Catenary => 0.0,
+            SelectedPath::Serpentine => 0.0,
         };
 
         let path_end = match self.selected_path {
@@ -392,6 +396,7 @@ impl ExtrusionArgs {
             SelectedPath::Sinusoid => self.path_sinusoid_args.path_end,
             SelectedPath::Bezier => 1.0,
             SelectedPath::Catenary => self.path_catenary_args.span,
+            SelectedPath::Serpentine => 1.0,
         };
 
         extrude::extrude_multi(
@@ -553,6 +558,7 @@ pub enum SelectedPath {
     Sinusoid,
     Bezier,
     Catenary,
+    Serpentine,
 }
 
 impl std::fmt::Display for SelectedPath {
@@ -563,6 +569,7 @@ impl std::fmt::Display for SelectedPath {
             Self::Sinusoid => write!(f, "Sinusoid"),
             Self::Bezier => write!(f, "Bezier"),
             Self::Catenary => write!(f, "Catenary"),
+            Self::Serpentine => write!(f, "Serpentine"),
         }
     }
 }
@@ -711,5 +718,30 @@ impl PathCatenaryArgs {
             self.height,
             self.s,
         )?)
+    }
+}
+
+// -------------------------------------------------------- PathSerpentineArgs
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct PathSerpentineArgs {
+    pub path_n: u32,
+    pub x: f64,
+    pub z: f64,
+}
+
+impl Default for PathSerpentineArgs {
+    fn default() -> Self {
+        Self {
+            path_n: 12,
+            x: 64.0,
+            z: 32.0,
+        }
+    }
+}
+
+impl PathSerpentineArgs {
+    fn path(&self) -> PathResult<extrude::path::Serpentine> {
+        Ok(extrude::path::Serpentine::new(self.x, self.z)?)
     }
 }

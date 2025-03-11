@@ -777,6 +777,11 @@ pub fn extrusion_ui(ui: &mut egui::Ui, args: &mut curveargs::ExtrusionArgs) {
                 curveargs::SelectedPath::Catenary,
                 "Catenary",
             );
+            ui.selectable_value(
+                &mut args.selected_path,
+                curveargs::SelectedPath::Serpentine,
+                "Serpentine",
+            );
         });
 
     ui.add_space(8.0);
@@ -787,13 +792,11 @@ pub fn extrusion_ui(ui: &mut egui::Ui, args: &mut curveargs::ExtrusionArgs) {
                     .on_hover_text("x");
                 ui.label("x");
             });
-
             ui.horizontal(|ui| {
                 ui.add(egui::DragValue::new(&mut args.path_line_args.y).speed(0.1))
                     .on_hover_text("y");
                 ui.label("y");
             });
-
             ui.horizontal(|ui| {
                 ui.add(egui::DragValue::new(&mut args.path_line_args.z).speed(0.1))
                     .on_hover_text("z");
@@ -910,6 +913,25 @@ pub fn extrusion_ui(ui: &mut egui::Ui, args: &mut curveargs::ExtrusionArgs) {
                 ui.add(egui::DragValue::new(&mut args.path_catenary_args.s).speed(0.1))
                     .on_hover_text("s");
                 ui.label("Length");
+            });
+        }
+        curveargs::SelectedPath::Serpentine => {
+            ui.horizontal(|ui| {
+                ui.add(egui::DragValue::new(&mut args.path_serpentine_args.path_n).speed(0.1))
+                    .on_hover_text("path_n");
+                ui.label("Segments");
+            });
+            ui.add_space(8.0);
+            ui.label("End position");
+            ui.horizontal(|ui| {
+                ui.add(egui::DragValue::new(&mut args.path_serpentine_args.x).speed(0.1))
+                    .on_hover_text("x");
+                ui.label("x");
+            });
+            ui.horizontal(|ui| {
+                ui.add(egui::DragValue::new(&mut args.path_serpentine_args.z).speed(0.1))
+                    .on_hover_text("z");
+                ui.label("z");
             });
         }
     }

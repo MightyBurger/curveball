@@ -4,6 +4,7 @@
 use std::f64::consts::PI;
 
 use glam::{DVec2, DVec3};
+use lerp::Lerp;
 use thiserror::Error;
 
 use super::FrenetFrame;
@@ -34,10 +35,14 @@ pub enum PathError {
     BezierError(#[from] BezierError),
     #[error("{0}")]
     CatenaryError(#[from] CatenaryError),
+    #[error("{0}")]
+    SerpentineError(#[from] SerpentineError),
 }
 
 // Tip: the tangent vector in the frenet frame should always be the derivative of the path function
 // with respect to the parameter, normalized.
+
+// ==================== Line ====================
 
 #[derive(Debug, Clone)]
 pub struct Line {
@@ -81,6 +86,8 @@ impl Path for Line {
         }
     }
 }
+
+// ==================== Revolve ====================
 
 #[derive(Debug, Clone)]
 pub struct Revolve {
@@ -126,6 +133,8 @@ impl Path for Revolve {
 
 // Period is in units of space.
 // Phase is also in units of space.
+
+// ==================== Sinusoid ====================
 
 #[derive(Debug, Clone)]
 pub struct Sinusoid {
@@ -185,6 +194,8 @@ pub enum SinusoidError {
     #[error("Period of {0} is invalid; must be positive")]
     SinusoidInfiniteFrequency(f64),
 }
+
+// ==================== Bezier ====================
 
 #[derive(Debug, Clone)]
 pub struct Bezier {
@@ -266,6 +277,8 @@ fn bezier_derivative(points: &Vec<DVec2>, t: f64) -> DVec2 {
         .collect();
     bezier(&intersparsed_points, t)
 }
+
+// ==================== Catenary ====================
 
 #[derive(Debug, Clone)]
 pub struct Catenary {
@@ -404,4 +417,112 @@ pub enum CatenaryError {
         "Newton's method failed to converge to an accurate solution after {iterations} iterations. The initial guess was {initial}. Change the parameters to a less extreme catenary curve, or try again with a different initial guess."
     )]
     NewtonFail { iterations: i32, initial: f64 },
+}
+
+// ==================== Serpentine ====================
+
+#[derive(Debug, Clone)]
+pub struct Serpentine {
+    x: f64,
+    z: f64,
+}
+
+impl Serpentine {
+    pub fn new(x: f64, z: f64) -> Result<Self, SerpentineError> {
+        if z <= 0.0 {
+            return Err(SerpentineError::OrderedHeight);
+        }
+        if z > x {
+            return Err(SerpentineError::TooTall);
+        }
+
+        Ok(Self { x, z })
+    }
+}
+
+impl Path for Serpentine {
+    // Expected for t to vary between 0 and 1
+    fn point(&self, t: f64) -> DVec3 {
+        let xm = self.x / 2.0;
+        let zm = self.z / 2.0;
+
+        let zd = self.z - zm;
+        let xd = self.x - xm;
+
+        let r0 = ((zm * zm) + (xm * xm)) / (2.0 * zm);
+        let r1 = ((zd * zd) + (xd * xd)) / (2.0 * zd);
+
+        let theta0_start = -PI / 2.0;
+        let theta0_end = f64::asin(xm / r0) - PI / 2.0;
+
+        let theta1_start = PI / 2.0 + f64::asin(xd / r1);
+        let theta1_end = PI / 2.0;
+
+        if t < 0.5 {
+            let theta = theta0_start.lerp(theta0_end, t * 2.0);
+            DVec3 {
+                x: r0 * f64::cos(theta),
+                y: 0.0,
+                z: r0 * f64::sin(theta) + r0,
+            }
+        } else {
+            let theta = theta1_start.lerp(theta1_end, (t - 0.5) * 2.0);
+            DVec3 {
+                x: r1 * f64::cos(theta) + self.x,
+                y: 0.0,
+                z: r1 * f64::sin(theta) - r0 + self.z,
+            }
+        }
+    }
+    fn frame(&self, t: f64) -> FrenetFrame {
+        let xm = self.x / 2.0;
+        let zm = self.z / 2.0;
+
+        let zd = self.z - zm;
+        let xd = self.x - xm;
+
+        let r0 = ((zm * zm) + (xm * xm)) / (2.0 * zm);
+        let r1 = ((zd * zd) + (xd * xd)) / (2.0 * zd);
+
+        let theta0_start = -PI / 2.0;
+        let theta0_end = f64::asin(xm / r0) - PI / 2.0;
+
+        let theta1_start = PI / 2.0 + f64::asin(xd / r1);
+        let theta1_end = PI / 2.0;
+
+        let tangent = if t < 0.5 {
+            let theta = theta0_start.lerp(theta0_end, t * 2.0);
+            DVec3 {
+                x: -f64::sin(theta),
+                y: 0.0,
+                z: f64::cos(theta),
+            }
+        } else {
+            let theta = theta1_start.lerp(theta1_end, (t - 0.5) * 2.0);
+            DVec3 {
+                x: f64::sin(theta),
+                y: 0.0,
+                z: -f64::cos(theta),
+            }
+        };
+        let normal = DVec3 {
+            x: 0.0,
+            y: 1.0,
+            z: 0.0,
+        };
+        let binormal = tangent.cross(normal);
+        FrenetFrame {
+            tangent,
+            normal,
+            binormal,
+        }
+    }
+}
+
+#[derive(Error, Debug)]
+pub enum SerpentineError {
+    #[error("Ending height must be greater than the starting height.")]
+    OrderedHeight,
+    #[error("Serpentine curve height cannot be greater than its length.")]
+    TooTall,
 }

@@ -173,6 +173,10 @@ pub fn ui(
                                     args.extrusion_args.path_catenary_args =
                                         curveargs::PathCatenaryArgs::default()
                                 }
+                                curveargs::SelectedPath::Serpentine => {
+                                    args.extrusion_args.path_serpentine_args =
+                                        curveargs::PathSerpentineArgs::default()
+                                }
                             }
                             args.extrusion_args.profile_orientation =
                                 curveball_lib::curve::extrude::ProfileOrientation::default();
