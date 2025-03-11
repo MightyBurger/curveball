@@ -541,7 +541,7 @@ pub fn extrusion_ui(ui: &mut egui::Ui, args: &mut curveargs::ExtrusionArgs) {
                 ui.label("Resolution");
             });
             ui.add_space(8.0);
-            ui.label("Radius");
+            ui.label("Radii");
             ui.horizontal(|ui| {
                 ui.add(
                     egui::DragValue::new(&mut args.profile_annulus_args.inner_radius).speed(0.1),
@@ -549,8 +549,6 @@ pub fn extrusion_ui(ui: &mut egui::Ui, args: &mut curveargs::ExtrusionArgs) {
                 .on_hover_text("inner_radius");
                 ui.label("Inner Radius");
             });
-            ui.add_space(8.0);
-            ui.label("Angles");
             ui.horizontal(|ui| {
                 ui.add(
                     egui::DragValue::new(&mut args.profile_annulus_args.outer_radius).speed(0.1),
@@ -558,6 +556,8 @@ pub fn extrusion_ui(ui: &mut egui::Ui, args: &mut curveargs::ExtrusionArgs) {
                 .on_hover_text("outer_radius");
                 ui.label("Outer Radius");
             });
+            ui.add_space(8.0);
+            ui.label("Angles");
             ui.horizontal(|ui| {
                 ui.add(egui::DragValue::new(&mut args.profile_annulus_args.start_angle).speed(0.1))
                     .on_hover_text("start_angle");
