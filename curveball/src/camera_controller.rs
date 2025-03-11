@@ -129,7 +129,7 @@ Freecam Controls:
 enum CursorGrabState {
     #[default]
     NoGrab,
-    OrbitOrigin,
+    OrbitInFront(Vec3),
     OrbitPoint(Vec3),
     Pan,
     Navigate,
@@ -174,7 +174,7 @@ fn run_camera_controller(
         if key_input.just_pressed(controller.settings.keyboard_key_toggle_cursor_grab) {
             *cursor_grab_state = match *cursor_grab_state {
                 CursorGrabState::NoGrab => CursorGrabState::Navigate,
-                CursorGrabState::OrbitOrigin
+                CursorGrabState::OrbitInFront(_)
                 | CursorGrabState::OrbitPoint(_)
                 | CursorGrabState::Pan
                 | CursorGrabState::Navigate => CursorGrabState::NoGrab,
@@ -186,7 +186,8 @@ fn run_camera_controller(
     }
     if !egui_block_input_state.wants_pointer_input {
         if mouse_button_input.just_pressed(controller.settings.mouse_key_orbit) {
-            *cursor_grab_state = CursorGrabState::OrbitOrigin;
+            let point = transform.translation + transform.forward() * 512.0;
+            *cursor_grab_state = CursorGrabState::OrbitInFront(point);
         }
         if mouse_button_input.just_pressed(controller.settings.mouse_key_pan) {
             *cursor_grab_state = CursorGrabState::Pan;
@@ -292,7 +293,7 @@ fn run_camera_controller(
         };
         match *cursor_grab_state {
             CursorGrabState::NoGrab
-            | CursorGrabState::OrbitOrigin
+            | CursorGrabState::OrbitInFront(_)
             | CursorGrabState::OrbitPoint(_)
             | CursorGrabState::Pan => {
                 let forward = *transform.forward();
@@ -312,7 +313,7 @@ fn run_camera_controller(
     // Handle cursor grab
     if cursor_grab_change {
         match *cursor_grab_state {
-            CursorGrabState::OrbitOrigin
+            CursorGrabState::OrbitInFront(_)
             | CursorGrabState::OrbitPoint(_)
             | CursorGrabState::Pan
             | CursorGrabState::Navigate => {
@@ -357,11 +358,30 @@ fn run_camera_controller(
                     + accumulated_mouse_motion.delta.y * up * controller.settings.sensitivity / 4.0;
             }
         }
-        CursorGrabState::OrbitOrigin => {
+        CursorGrabState::OrbitInFront(point) => {
+            // if accumulated_mouse_motion.delta != Vec2::ZERO {
+            //     // Current position in spherical coordinates
+            //     let [r, mut theta, mut phi]: [f32; 3] =
+            //         cartesian_to_spherical(transform.translation).into();
+            //     phi = phi
+            //         + accumulated_mouse_motion.delta.x
+            //             * RADIANS_PER_DOT
+            //             * controller.settings.sensitivity;
+            //     theta = (theta
+            //         - accumulated_mouse_motion.delta.y
+            //             * RADIANS_PER_DOT
+            //             * controller.settings.sensitivity)
+            //         .clamp(0.000001, PI - 0.000001);
+            //     transform.translation = spherical_to_cartesian(Vec3::new(r, theta, phi));
+            // }
+            // *transform = transform.looking_at(Vec3::ZERO, Vec3::Y);
+            // let (yaw, pitch, _roll) = transform.rotation.to_euler(EulerRot::YXZ);
+            // controller.yaw = yaw;
+            // controller.pitch = pitch;
             if accumulated_mouse_motion.delta != Vec2::ZERO {
                 // Current position in spherical coordinates
                 let [r, mut theta, mut phi]: [f32; 3] =
-                    cartesian_to_spherical(transform.translation).into();
+                    cartesian_to_spherical(transform.translation - point).into();
                 phi = phi
                     + accumulated_mouse_motion.delta.x
                         * RADIANS_PER_DOT
@@ -371,9 +391,9 @@ fn run_camera_controller(
                         * RADIANS_PER_DOT
                         * controller.settings.sensitivity)
                     .clamp(0.000001, PI - 0.000001);
-                transform.translation = spherical_to_cartesian(Vec3::new(r, theta, phi));
+                transform.translation = spherical_to_cartesian(Vec3::new(r, theta, phi)) + point;
             }
-            *transform = transform.looking_at(Vec3::ZERO, Vec3::Y);
+            *transform = transform.looking_at(point, Vec3::Y);
             let (yaw, pitch, _roll) = transform.rotation.to_euler(EulerRot::YXZ);
             controller.yaw = yaw;
             controller.pitch = pitch;
