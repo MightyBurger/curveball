@@ -488,6 +488,11 @@ pub fn extrusion_ui(ui: &mut egui::Ui, args: &mut curveargs::ExtrusionArgs) {
                 curveargs::SelectedProfile::Annulus,
                 "Annulus",
             );
+            ui.selectable_value(
+                &mut args.selected_profile,
+                curveargs::SelectedProfile::Arbitrary,
+                "Arbitrary",
+            );
         });
 
     ui.add_space(8.0);
@@ -685,6 +690,59 @@ pub fn extrusion_ui(ui: &mut egui::Ui, args: &mut curveargs::ExtrusionArgs) {
                     .on_hover_text("end_angle");
                 ui.label("End Angle");
             });
+        }
+        curveargs::SelectedProfile::Arbitrary => {
+            let btn_size = [20.0, 20.0];
+            ui.add_space(8.0);
+            ui.horizontal(|ui| {
+                if ui.add_sized(btn_size, egui::Button::new("➕")).clicked() {
+                    let new_poly = vec![
+                        glam::DVec2 { x: 0.0, y: 0.0 },
+                        glam::DVec2 { x: 32.0, y: 0.0 },
+                        glam::DVec2 { x: 32.0, y: 32.0 },
+                    ];
+                    args.profile_arbitrary_args.polygons.push(new_poly);
+                };
+                ui.label("Add polygon");
+            });
+
+            let mut polygon_to_delete: Option<usize> = None;
+            for (i, polygon) in args.profile_arbitrary_args.polygons.iter_mut().enumerate() {
+                ui.add_space(8.0);
+                ui.horizontal(|ui| {
+                    if ui.add_sized(btn_size, egui::Button::new("➕")).clicked() {
+                        polygon.push(glam::DVec2::default());
+                    };
+                    ui.label("Add point");
+                });
+                let mut point_to_delete: Option<usize> = None;
+                for (j, point) in polygon.iter_mut().enumerate() {
+                    ui.horizontal(|ui| {
+                        if ui.add_sized(btn_size, egui::Button::new("✖")).clicked() {
+                            point_to_delete = Some(j);
+                        }
+                        ui.add(egui::DragValue::new(&mut point.x).speed(0.1))
+                            .on_hover_text("x");
+                        ui.add(egui::DragValue::new(&mut point.y).speed(0.1))
+                            .on_hover_text("z");
+                        ui.label(format!("Point {}", j + 1));
+                    });
+                }
+                ui.horizontal(|ui| {
+                    if ui.add_sized(btn_size, egui::Button::new("✖")).clicked() {
+                        polygon_to_delete = Some(i);
+                    }
+                    ui.label(format!("Remove polygon {}", i + 1));
+                });
+                if let Some(point_to_delete) = point_to_delete {
+                    polygon.remove(point_to_delete);
+                }
+            }
+            if let Some(polygon_to_delete) = polygon_to_delete {
+                args.profile_arbitrary_args
+                    .polygons
+                    .remove(polygon_to_delete);
+            }
         }
     }
 

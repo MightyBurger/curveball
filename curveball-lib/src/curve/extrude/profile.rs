@@ -232,3 +232,21 @@ pub enum AnnulusError {
     #[error("n = {n}. Number of points must be no greater than 4096.")]
     TooManyPoints { n: u32 },
 }
+
+// ==================== Arbitrary ====================
+
+pub struct Arbitrary {
+    points: Vec<Vec<DVec2>>,
+}
+
+impl Arbitrary {
+    pub fn new(points: Vec<Vec<DVec2>>) -> Arbitrary {
+        Self { points }
+    }
+}
+
+impl CompoundProfile for Arbitrary {
+    fn compound_profile(&self, _t: f64) -> Vec<Vec<DVec2>> {
+        self.points.clone()
+    }
+}

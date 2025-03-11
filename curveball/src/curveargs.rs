@@ -5,6 +5,7 @@ use bevy::prelude::*;
 use curveball_lib::curve::extrude::ProfileOrientation;
 use curveball_lib::curve::extrude::path::PathResult;
 use curveball_lib::curve::extrude::profile::ProfileResult;
+use glam::DVec2;
 
 use curveball_lib::curve::{
     Curve, CurveResult, bank::Bank, curve_classic::CurveClassic, curve_slope::CurveSlope, extrude,
@@ -342,6 +343,7 @@ pub struct ExtrusionArgs {
     pub profile_circle_args: ProfileCircleArgs,
     pub profile_rectangle_args: ProfileRectangleArgs,
     pub profile_annulus_args: ProfileAnnulusArgs,
+    pub profile_arbitrary_args: ProfileArbitraryArgs,
     pub selected_path: SelectedPath,
     pub path_line_args: PathLineArgs,
     pub path_revolve_args: PathRevolveArgs,
@@ -357,6 +359,7 @@ impl ExtrusionArgs {
             SelectedProfile::Circle => Box::new(self.profile_circle_args.profiles()?),
             SelectedProfile::Rectangle => Box::new(self.profile_rectangle_args.profiles()?),
             SelectedProfile::Annulus => Box::new(self.profile_annulus_args.profiles()?),
+            SelectedProfile::Arbitrary => Box::new(self.profile_arbitrary_args.profiles()),
         };
 
         let path: Box<dyn extrude::path::Path> = match self.selected_path {
@@ -409,6 +412,7 @@ pub enum SelectedProfile {
     Circle,
     Rectangle,
     Annulus,
+    Arbitrary,
 }
 
 impl std::fmt::Display for SelectedProfile {
@@ -417,6 +421,7 @@ impl std::fmt::Display for SelectedProfile {
             Self::Circle => write!(f, "Circle"),
             Self::Rectangle => write!(f, "Rectangle"),
             Self::Annulus => write!(f, "Annulus"),
+            Self::Arbitrary => write!(f, "Arbitrary"),
         }
     }
 }
@@ -511,6 +516,31 @@ impl ProfileAnnulusArgs {
             self.start_angle,
             self.end_angle,
         )?)
+    }
+}
+
+// -------------------------------------------------------- ProfileArbitraryArgs
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct ProfileArbitraryArgs {
+    pub polygons: Vec<Vec<DVec2>>,
+}
+
+impl Default for ProfileArbitraryArgs {
+    fn default() -> Self {
+        Self {
+            polygons: vec![vec![
+                DVec2 { x: 0.0, y: 0.0 },
+                DVec2 { x: 64.0, y: 0.0 },
+                DVec2 { x: 64.0, y: 64.0 },
+            ]],
+        }
+    }
+}
+
+impl ProfileArbitraryArgs {
+    pub fn profiles(&self) -> extrude::profile::Arbitrary {
+        extrude::profile::Arbitrary::new(self.polygons.clone())
     }
 }
 

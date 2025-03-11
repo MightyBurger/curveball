@@ -146,6 +146,10 @@ pub fn ui(
                                     args.extrusion_args.profile_annulus_args =
                                         curveargs::ProfileAnnulusArgs::default()
                                 }
+                                curveargs::SelectedProfile::Arbitrary => {
+                                    args.extrusion_args.profile_arbitrary_args =
+                                        curveargs::ProfileArbitraryArgs::default()
+                                }
                             }
 
                             match args.extrusion_args.selected_path {
