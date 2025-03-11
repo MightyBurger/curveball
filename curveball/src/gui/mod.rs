@@ -135,6 +135,10 @@ pub fn ui(
                                     args.extrusion_args.profile_rectangle_args =
                                         curveargs::ProfileRectangleArgs::default()
                                 }
+                                curveargs::SelectedProfile::Parallelogram => {
+                                    args.extrusion_args.profile_parallelogram_args =
+                                        curveargs::ProfileParallelogramArgs::default()
+                                }
                                 curveargs::SelectedProfile::Annulus => {
                                     args.extrusion_args.profile_annulus_args =
                                         curveargs::ProfileAnnulusArgs::default()

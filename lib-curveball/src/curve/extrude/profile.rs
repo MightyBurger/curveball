@@ -52,6 +52,8 @@ pub enum ProfileError {
     #[error("{0}")]
     RectangleError(#[from] RectangleError),
     #[error("{0}")]
+    ParallelogramError(#[from] ParallelogramError),
+    #[error("{0}")]
     AnnulusError(#[from] AnnulusError),
 }
 
@@ -160,7 +162,7 @@ pub enum CircleSectorError {
 // ==================== Rectangle ====================
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-pub enum RectangleAnchor {
+pub enum Anchor9Point {
     TopLeft,
     TopCenter,
     TopRight,
@@ -176,11 +178,11 @@ pub enum RectangleAnchor {
 pub struct Rectangle {
     width: f64,
     height: f64,
-    anchor: RectangleAnchor,
+    anchor: Anchor9Point,
 }
 
 impl Rectangle {
-    pub fn new(width: f64, height: f64, anchor: RectangleAnchor) -> Result<Self, RectangleError> {
+    pub fn new(width: f64, height: f64, anchor: Anchor9Point) -> Result<Self, RectangleError> {
         Ok(Self {
             width,
             height,
@@ -191,7 +193,7 @@ impl Rectangle {
 
 impl Profile for Rectangle {
     fn profile(&self, _t: f64) -> Vec<DVec2> {
-        use RectangleAnchor as RA;
+        use Anchor9Point as RA;
         let hoffset = match self.anchor {
             RA::TopLeft | RA::CenterLeft | RA::BottomLeft => self.width / 2.0,
             RA::TopCenter | RA::Center | RA::BottomCenter => 0.0,
@@ -226,6 +228,75 @@ impl Profile for Rectangle {
 
 #[derive(Error, Debug)]
 pub enum RectangleError {}
+
+// ==================== Parallelogram ====================
+//
+#[derive(Debug, Clone)]
+pub struct Parallelogram {
+    width: f64,
+    height: f64,
+    offset_x: f64,
+    offset_z: f64,
+    anchor: Anchor9Point,
+}
+
+impl Parallelogram {
+    pub fn new(
+        width: f64,
+        height: f64,
+        offset_x: f64,
+        offset_z: f64,
+        anchor: Anchor9Point,
+    ) -> Result<Self, ParallelogramError> {
+        Ok(Self {
+            width,
+            height,
+            offset_x,
+            offset_z,
+            anchor,
+        })
+    }
+}
+
+impl Profile for Parallelogram {
+    fn profile(&self, _t: f64) -> Vec<DVec2> {
+        use Anchor9Point as RA;
+        let bottomleft = DVec2 { x: 0.0, y: 0.0 };
+        let bottomright = DVec2 {
+            x: self.width,
+            y: self.height,
+        };
+        let topleft = DVec2 {
+            x: self.offset_x,
+            y: self.offset_z,
+        };
+        let topright = DVec2 {
+            x: self.offset_x + self.width,
+            y: self.offset_z + self.height,
+        };
+        let anchorpoint = match self.anchor {
+            RA::BottomLeft => bottomleft,
+            RA::BottomCenter => (bottomleft + bottomright) / 2.0,
+            RA::BottomRight => bottomright,
+            RA::CenterLeft => (bottomleft + topleft) / 2.0,
+            RA::Center => (bottomleft + topright) / 2.0,
+            RA::CenterRight => (bottomright + topright) / 2.0,
+            RA::TopLeft => topleft,
+            RA::TopCenter => (topleft + topright) / 2.0,
+            RA::TopRight => topright,
+        };
+
+        vec![
+            bottomleft - anchorpoint,
+            bottomright - anchorpoint,
+            topleft - anchorpoint,
+            topright - anchorpoint,
+        ]
+    }
+}
+
+#[derive(Error, Debug)]
+pub enum ParallelogramError {}
 
 // ==================== Annulus ====================
 

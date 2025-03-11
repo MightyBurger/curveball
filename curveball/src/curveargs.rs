@@ -302,6 +302,7 @@ pub struct ExtrusionArgs {
     pub profile_circle_args: ProfileCircleArgs,
     pub profile_circle_sector_args: ProfileCircleSectorArgs,
     pub profile_rectangle_args: ProfileRectangleArgs,
+    pub profile_parallelogram_args: ProfileParallelogramArgs,
     pub profile_annulus_args: ProfileAnnulusArgs,
     pub profile_arbitrary_args: ProfileArbitraryArgs,
     pub selected_path: SelectedPath,
@@ -320,6 +321,7 @@ impl ExtrusionArgs {
             SelectedProfile::Circle => Box::new(self.profile_circle_args.profiles()?),
             SelectedProfile::CircleSector => Box::new(self.profile_circle_sector_args.profiles()?),
             SelectedProfile::Rectangle => Box::new(self.profile_rectangle_args.profiles()?),
+            SelectedProfile::Parallelogram => Box::new(self.profile_parallelogram_args.profiles()?),
             SelectedProfile::Annulus => Box::new(self.profile_annulus_args.profiles()?),
             SelectedProfile::Arbitrary => Box::new(self.profile_arbitrary_args.profiles()),
         };
@@ -353,6 +355,7 @@ pub enum SelectedProfile {
     Circle,
     CircleSector,
     Rectangle,
+    Parallelogram,
     Annulus,
     Arbitrary,
 }
@@ -363,6 +366,7 @@ impl std::fmt::Display for SelectedProfile {
             Self::Circle => write!(f, "Circle"),
             Self::CircleSector => write!(f, "Circle Sector"),
             Self::Rectangle => write!(f, "Rectangle"),
+            Self::Parallelogram => write!(f, "Parallelogram"),
             Self::Annulus => write!(f, "Annulus"),
             Self::Arbitrary => write!(f, "Arbitrary"),
         }
@@ -436,7 +440,7 @@ impl ProfileCircleSectorArgs {
 pub struct ProfileRectangleArgs {
     pub width: f64,
     pub height: f64,
-    pub anchor: extrude::profile::RectangleAnchor,
+    pub anchor: extrude::profile::Anchor9Point,
 }
 
 impl Default for ProfileRectangleArgs {
@@ -444,7 +448,7 @@ impl Default for ProfileRectangleArgs {
         Self {
             width: 32.0,
             height: 8.0,
-            anchor: extrude::profile::RectangleAnchor::BottomLeft,
+            anchor: extrude::profile::Anchor9Point::BottomLeft,
         }
     }
 }
@@ -454,6 +458,41 @@ impl ProfileRectangleArgs {
         Ok(extrude::profile::Rectangle::new(
             self.width,
             self.height,
+            self.anchor,
+        )?)
+    }
+}
+
+// -------------------------------------------------------- ProfileParallelogramArgs
+
+#[derive(Debug, Clone, PartialEq, PartialOrd)]
+pub struct ProfileParallelogramArgs {
+    pub width: f64,
+    pub height: f64,
+    pub offset_x: f64,
+    pub offset_z: f64,
+    pub anchor: extrude::profile::Anchor9Point,
+}
+
+impl Default for ProfileParallelogramArgs {
+    fn default() -> Self {
+        Self {
+            width: 64.0,
+            height: 64.0,
+            offset_x: 0.0,
+            offset_z: 8.0,
+            anchor: extrude::profile::Anchor9Point::BottomLeft,
+        }
+    }
+}
+
+impl ProfileParallelogramArgs {
+    pub fn profiles(&self) -> ProfileResult<extrude::profile::Parallelogram> {
+        Ok(extrude::profile::Parallelogram::new(
+            self.width,
+            self.height,
+            self.offset_x,
+            self.offset_z,
             self.anchor,
         )?)
     }
