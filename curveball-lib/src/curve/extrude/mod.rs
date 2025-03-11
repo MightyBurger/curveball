@@ -95,6 +95,12 @@ where
     PRF: Profile,
     PTH: Path,
 {
+    if n < 1 {
+        return Err(ExtrudeError::NotEnoughSegments { n })?;
+    }
+    if n > 4096 {
+        return Err(ExtrudeError::TooManySegments { n })?;
+    }
     // Iterate over every point in the path.
     // Work on windows of two consecutive points along the path at a time.
     start
@@ -147,6 +153,17 @@ where
     CPF: CompoundProfile,
     PTH: Path,
 {
+    let n_compound = compound_profile.compound_profile(0.0).len() * n as usize;
+    if n_compound < 1 {
+        return Err(ExtrudeError::NotEnoughSegments {
+            n: n_compound as u32,
+        })?;
+    }
+    if n_compound > 4096 {
+        return Err(ExtrudeError::TooManySegments {
+            n: n_compound as u32,
+        })?;
+    }
     // Iterate over every point in the path.
     // Work on windows of two consecutive points along the path at a time.
     let brushes: Result<Vec<Vec<_>>, _> = start
@@ -205,6 +222,4 @@ pub enum ExtrudeError {
     NotEnoughSegments { n: u32 },
     #[error("n = {n}. Number of segments must be no greater than 4096.")]
     TooManySegments { n: u32 },
-    #[error("This path does not support FollowPath yet.")]
-    FollowPathNotImplemented,
 }

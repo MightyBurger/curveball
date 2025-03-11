@@ -3,10 +3,11 @@
 
 use std::f64::consts::PI;
 
-use glam::DVec3;
+use glam::{DVec2, DVec3};
 use thiserror::Error;
 
 use super::FrenetFrame;
+use itertools::Itertools;
 
 pub type PathResult<T> = Result<T, PathError>;
 
@@ -29,6 +30,8 @@ impl Path for Box<dyn Path + '_> {
 pub enum PathError {
     #[error("{0}")]
     SinusoidError(#[from] SinusoidError),
+    #[error("{0}")]
+    BezierError(#[from] BezierError),
 }
 
 // Tip: the tangent vector in the frenet frame should always be the derivative of the path function
@@ -179,4 +182,86 @@ impl Path for Sinusoid {
 pub enum SinusoidError {
     #[error("Period of {0} is invalid; must be positive")]
     SinusoidInfiniteFrequency(f64),
+}
+
+#[derive(Debug, Clone)]
+pub struct Bezier {
+    points: Vec<DVec2>,
+}
+
+impl Bezier {
+    pub fn new(points: Vec<DVec2>) -> Result<Self, BezierError> {
+        if points.len() < 2 {
+            return Err(BezierError::NotEnoughPoints(points.len()));
+        }
+        Ok(Self { points })
+    }
+}
+
+impl Path for Bezier {
+    fn point(&self, t: f64) -> DVec3 {
+        let point2d = bezier(&self.points, t);
+        DVec3 {
+            x: point2d.x,
+            y: 0.0,
+            z: point2d.y,
+        }
+    }
+    fn frame(&self, t: f64) -> FrenetFrame {
+        let point2d = bezier_derivative(&self.points, t);
+        let tangent = DVec3 {
+            x: point2d.x,
+            y: 0.0,
+            z: point2d.y,
+        }
+        .normalize_or_zero();
+        let normal = DVec3 {
+            x: 0.0,
+            y: 1.0,
+            z: 0.0,
+        }
+        .normalize_or_zero();
+        let binormal = tangent.cross(normal);
+        FrenetFrame {
+            tangent,
+            normal,
+            binormal,
+        }
+    }
+}
+
+#[derive(Error, Debug)]
+pub enum BezierError {
+    #[error("Bezier curve requires at least two points; {0} provided")]
+    NotEnoughPoints(usize),
+}
+
+fn bezier(points: &Vec<DVec2>, t: f64) -> DVec2 {
+    let result = recursive_bezier(points, t);
+    result[0]
+}
+
+fn recursive_bezier(points: &Vec<DVec2>, t: f64) -> Vec<DVec2> {
+    if points.len() == 1 {
+        vec![points[0]]
+    } else {
+        recursive_bezier(
+            &points
+                .into_iter()
+                .tuple_windows()
+                .map(|(point1, point2)| point1.lerp(*point2, t))
+                .collect(),
+            t,
+        )
+    }
+}
+
+fn bezier_derivative(points: &Vec<DVec2>, t: f64) -> DVec2 {
+    let n = points.len() as f64;
+    let intersparsed_points = points
+        .into_iter()
+        .tuple_windows()
+        .map(|(point1, point2)| n * (point2 - point1))
+        .collect();
+    bezier(&intersparsed_points, t)
 }

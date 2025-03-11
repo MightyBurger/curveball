@@ -17,7 +17,7 @@ use curveball_lib::map::geometry::Brush;
 // All the buttons and sliders (everything in src/gui/mod.rs) adjust the values in this struct.
 // The system in src/brushes.rs monitors for changes in this struct. When it detects one, it calls brushes()
 // to convert these arguments into a curve.
-#[derive(Resource, Debug, Default, Clone, PartialEq, PartialOrd)]
+#[derive(Resource, Debug, Default, Clone, PartialEq)]
 pub struct CurveArgs {
     pub selected_curve: SelectedCurve,
     pub curveclassic_args: CurveClassicArgs,
@@ -383,7 +383,7 @@ impl SerpentineArgs {
 
 // -------------------------------------------------------- ExtrusionArgs
 
-#[derive(Debug, Default, Clone, PartialEq, PartialOrd)]
+#[derive(Debug, Default, Clone, PartialEq)]
 pub struct ExtrusionArgs {
     pub selected_profile: SelectedProfile,
     pub profile_circle_args: ProfileCircleArgs,
@@ -393,6 +393,7 @@ pub struct ExtrusionArgs {
     pub path_line_args: PathLineArgs,
     pub path_revolve_args: PathRevolveArgs,
     pub path_sinusoid_args: PathSinusoidArgs,
+    pub path_bezier_args: PathBezierArgs,
     pub profile_orientation: ProfileOrientation,
 }
 
@@ -408,24 +409,28 @@ impl ExtrusionArgs {
             SelectedPath::Line => Box::new(self.path_line_args.path()),
             SelectedPath::Revolve => Box::new(self.path_revolve_args.path()),
             SelectedPath::Sinusoid => Box::new(self.path_sinusoid_args.path()?),
+            SelectedPath::Bezier => Box::new(self.path_bezier_args.path()?),
         };
 
         let path_n = match self.selected_path {
             SelectedPath::Line => 1,
             SelectedPath::Revolve => self.path_revolve_args.path_n,
             SelectedPath::Sinusoid => self.path_sinusoid_args.path_n,
+            SelectedPath::Bezier => self.path_bezier_args.path_n,
         };
 
         let path_start = match self.selected_path {
             SelectedPath::Line => 0.0,
             SelectedPath::Revolve => self.path_revolve_args.path_start,
             SelectedPath::Sinusoid => self.path_sinusoid_args.path_start,
+            SelectedPath::Bezier => 0.0,
         };
 
         let path_end = match self.selected_path {
             SelectedPath::Line => 1.0,
             SelectedPath::Revolve => self.path_revolve_args.path_end,
             SelectedPath::Sinusoid => self.path_sinusoid_args.path_end,
+            SelectedPath::Bezier => 1.0,
         };
         extrude::extrude_multi(
             path_n,
@@ -557,6 +562,7 @@ pub enum SelectedPath {
     Line,
     Revolve,
     Sinusoid,
+    Bezier,
 }
 
 impl std::fmt::Display for SelectedPath {
@@ -565,6 +571,7 @@ impl std::fmt::Display for SelectedPath {
             Self::Line => write!(f, "Line"),
             Self::Revolve => write!(f, "Revolve"),
             Self::Sinusoid => write!(f, "Sinusoid"),
+            Self::Bezier => write!(f, "Bezier"),
         }
     }
 }
@@ -655,5 +662,32 @@ impl Default for PathSinusoidArgs {
 impl PathSinusoidArgs {
     fn path(&self) -> PathResult<extrude::path::Sinusoid> {
         extrude::path::Sinusoid::new(self.amplitude, self.period, self.phase)
+    }
+}
+
+// -------------------------------------------------------- PathBezierArgs
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct PathBezierArgs {
+    pub path_n: u32,
+    pub points: Vec<glam::DVec2>,
+}
+
+impl Default for PathBezierArgs {
+    fn default() -> Self {
+        Self {
+            path_n: 12,
+            points: vec![
+                glam::DVec2::new(0.0, 0.0),
+                glam::DVec2::new(32.0, 0.0),
+                glam::DVec2::new(64.0, 64.0),
+            ],
+        }
+    }
+}
+
+impl PathBezierArgs {
+    fn path(&self) -> PathResult<extrude::path::Bezier> {
+        Ok(extrude::path::Bezier::new(self.points.clone())?)
     }
 }

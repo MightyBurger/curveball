@@ -746,6 +746,11 @@ pub fn extrusion_ui(ui: &mut egui::Ui, args: &mut curveargs::ExtrusionArgs) {
                 curveargs::SelectedPath::Sinusoid,
                 "Sinusoid",
             );
+            ui.selectable_value(
+                &mut args.selected_path,
+                curveargs::SelectedPath::Bezier,
+                "Bezier",
+            );
         });
 
     ui.add_space(8.0);
@@ -822,6 +827,42 @@ pub fn extrusion_ui(ui: &mut egui::Ui, args: &mut curveargs::ExtrusionArgs) {
                     .on_hover_text("r");
                 ui.label("Phase");
             });
+        }
+        curveargs::SelectedPath::Bezier => {
+            let btn_size = [20.0, 20.0];
+            ui.horizontal(|ui| {
+                ui.add(egui::DragValue::new(&mut args.path_bezier_args.path_n).speed(0.1))
+                    .on_hover_text("path_n");
+                ui.label("Segments");
+            });
+            ui.add_space(8.0);
+            ui.horizontal(|ui| {
+                if ui.add_sized(btn_size, egui::Button::new("➕")).clicked() {
+                    let last_point = args.path_bezier_args.points.last();
+                    let last_point = match last_point {
+                        Some(val) => *val,
+                        None => glam::DVec2::default(),
+                    };
+                    args.path_bezier_args.points.push(last_point);
+                };
+                ui.label("Add point");
+            });
+            let mut point_to_delete: Option<usize> = None;
+            for (i, point) in args.path_bezier_args.points.iter_mut().enumerate() {
+                ui.horizontal(|ui| {
+                    if ui.add_sized(btn_size, egui::Button::new("✖")).clicked() {
+                        point_to_delete = Some(i);
+                    }
+                    ui.add(egui::DragValue::new(&mut point.x).speed(0.1))
+                        .on_hover_text("x");
+                    ui.add(egui::DragValue::new(&mut point.y).speed(0.1))
+                        .on_hover_text("z");
+                    ui.label(format!("Point {}", i + 1));
+                });
+            }
+            if let Some(point_to_delete) = point_to_delete {
+                args.path_bezier_args.points.remove(point_to_delete);
+            }
         }
     }
 
