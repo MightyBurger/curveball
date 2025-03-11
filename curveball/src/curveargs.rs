@@ -300,6 +300,7 @@ impl BankArgs {
 pub struct ExtrusionArgs {
     pub selected_profile: SelectedProfile,
     pub profile_circle_args: ProfileCircleArgs,
+    pub profile_circle_sector_args: ProfileCircleSectorArgs,
     pub profile_rectangle_args: ProfileRectangleArgs,
     pub profile_annulus_args: ProfileAnnulusArgs,
     pub profile_arbitrary_args: ProfileArbitraryArgs,
@@ -317,6 +318,7 @@ impl ExtrusionArgs {
     pub fn brushes(&self) -> CurveResult<Vec<Brush>> {
         let profile: Box<dyn extrude::profile::CompoundProfile> = match self.selected_profile {
             SelectedProfile::Circle => Box::new(self.profile_circle_args.profiles()?),
+            SelectedProfile::CircleSector => Box::new(self.profile_circle_sector_args.profiles()?),
             SelectedProfile::Rectangle => Box::new(self.profile_rectangle_args.profiles()?),
             SelectedProfile::Annulus => Box::new(self.profile_annulus_args.profiles()?),
             SelectedProfile::Arbitrary => Box::new(self.profile_arbitrary_args.profiles()),
@@ -349,6 +351,7 @@ impl ExtrusionArgs {
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Copy)]
 pub enum SelectedProfile {
     Circle,
+    CircleSector,
     Rectangle,
     Annulus,
     Arbitrary,
@@ -358,6 +361,7 @@ impl std::fmt::Display for SelectedProfile {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Circle => write!(f, "Circle"),
+            Self::CircleSector => write!(f, "Circle Sector"),
             Self::Rectangle => write!(f, "Rectangle"),
             Self::Annulus => write!(f, "Annulus"),
             Self::Arbitrary => write!(f, "Arbitrary"),
@@ -391,6 +395,38 @@ impl Default for ProfileCircleArgs {
 impl ProfileCircleArgs {
     pub fn profiles(&self) -> ProfileResult<extrude::profile::Circle> {
         Ok(extrude::profile::Circle::new(self.n, self.radius)?)
+    }
+}
+
+// -------------------------------------------------------- ProfileCircleArgs
+
+#[derive(Debug, Clone, PartialEq, PartialOrd)]
+pub struct ProfileCircleSectorArgs {
+    pub n: u32,
+    pub radius: f64,
+    pub start_angle: f64,
+    pub end_angle: f64,
+}
+
+impl Default for ProfileCircleSectorArgs {
+    fn default() -> Self {
+        Self {
+            n: 12,
+            radius: 16.0,
+            start_angle: 0.0,
+            end_angle: 90.0,
+        }
+    }
+}
+
+impl ProfileCircleSectorArgs {
+    pub fn profiles(&self) -> ProfileResult<extrude::profile::CircleSector> {
+        Ok(extrude::profile::CircleSector::new(
+            self.n,
+            self.radius,
+            self.start_angle,
+            self.end_angle,
+        )?)
     }
 }
 

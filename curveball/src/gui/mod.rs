@@ -127,6 +127,10 @@ pub fn ui(
                                     args.extrusion_args.profile_circle_args =
                                         curveargs::ProfileCircleArgs::default()
                                 }
+                                curveargs::SelectedProfile::CircleSector => {
+                                    args.extrusion_args.profile_circle_sector_args =
+                                        curveargs::ProfileCircleSectorArgs::default()
+                                }
                                 curveargs::SelectedProfile::Rectangle => {
                                     args.extrusion_args.profile_rectangle_args =
                                         curveargs::ProfileRectangleArgs::default()

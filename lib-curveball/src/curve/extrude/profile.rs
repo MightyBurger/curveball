@@ -48,6 +48,8 @@ pub enum ProfileError {
     #[error("{0}")]
     CircleError(#[from] CircleError),
     #[error("{0}")]
+    CircleSectorError(#[from] CircleSectorError),
+    #[error("{0}")]
     RectangleError(#[from] RectangleError),
     #[error("{0}")]
     AnnulusError(#[from] AnnulusError),
@@ -90,6 +92,69 @@ pub enum CircleError {
     NotEnoughPoints { n: u32 },
     #[error("n = {n}. Number of points must be no greater than 4096.")]
     TooManyPoints { n: u32 },
+}
+
+// ==================== Circular Sector ====================
+
+#[derive(Debug, Clone)]
+pub struct CircleSector {
+    n: u32,
+    radius: f64,
+    start_angle_rad: f64,
+    end_angle_rad: f64,
+}
+
+impl CircleSector {
+    pub fn new(
+        n: u32,
+        radius: f64,
+        start_angle: f64,
+        end_angle: f64,
+    ) -> Result<Self, CircleSectorError> {
+        if n < 1 {
+            return Err(CircleSectorError::NotEnoughPoints { n });
+        }
+        if n > 4096 {
+            return Err(CircleSectorError::TooManyPoints { n });
+        }
+        if start_angle >= end_angle {
+            return Err(CircleSectorError::OrderedAngle);
+        }
+        if end_angle - start_angle > 180.0 {
+            return Err(CircleSectorError::Limit180);
+        }
+        Ok(Self {
+            n,
+            radius,
+            start_angle_rad: start_angle * PI / 180.0,
+            end_angle_rad: end_angle * PI / 180.0,
+        })
+    }
+}
+
+impl Profile for CircleSector {
+    fn profile(&self, _t: f64) -> Vec<DVec2> {
+        self.start_angle_rad
+            .lerp_iter_closed(self.end_angle_rad, self.n as usize + 1)
+            .map(|theta| DVec2 {
+                x: self.radius * theta.cos(),
+                y: self.radius * theta.sin(),
+            })
+            .chain([DVec2::ZERO].into_iter())
+            .collect()
+    }
+}
+
+#[derive(Error, Debug)]
+pub enum CircleSectorError {
+    #[error("n = {n}. Number of points must be at least 1.")]
+    NotEnoughPoints { n: u32 },
+    #[error("n = {n}. Number of points must be no greater than 4096.")]
+    TooManyPoints { n: u32 },
+    #[error("End angle must be greater than start angle.")]
+    OrderedAngle,
+    #[error("The difference between the start and end angle must be no greater than 180 degrees.")]
+    Limit180,
 }
 
 // ==================== Rectangle ====================
