@@ -158,6 +158,6 @@ A license change will result in a major version bump.
 
 [crates.io]: https://crates.io/
 [curve.c]: https://github.com/Neverball/neverball/blob/master/contrib/curve.c
-[Curveball on the Web]: https://mightyburger.github.io/curveball-web/
+[Curveball on the Web]: https://curveball.mightyburger.net/
 [Neverball]: https://neverball.org/
 [Trenchbroom]: https://trenchbroom.github.io/
