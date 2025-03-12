@@ -82,10 +82,10 @@ impl Default for CurveClassicArgs {
     fn default() -> Self {
         Self {
             n: 24,
-            ri0: 32.0,
-            ro0: 64.0,
-            ri1: 32.0,
-            ro1: 64.0,
+            ri0: 64.0,
+            ro0: 128.0,
+            ri1: 64.0,
+            ro1: 128.0,
             theta0: 0.0,
             theta1: 90.0,
             t: 8.0,
@@ -142,10 +142,10 @@ impl Default for CurveSlopeArgs {
     fn default() -> Self {
         Self {
             n: 24,
-            ri0: 32.0,
-            ro0: 64.0,
-            ri1: 32.0,
-            ro1: 64.0,
+            ri0: 64.0,
+            ro0: 128.0,
+            ri1: 64.0,
+            ro1: 128.0,
             theta0: 0.0,
             theta1: 180.0,
             en_const_thickness: true,
@@ -154,10 +154,10 @@ impl Default for CurveSlopeArgs {
             height_inner_bot_0: 0.0,
             height_outer_top_0: 0.0,
             height_outer_bot_0: 0.0,
-            height_inner_top_1: 32.0,
-            height_inner_bot_1: 24.0,
-            height_outer_top_1: 32.0,
-            height_outer_bot_1: 24.0,
+            height_inner_top_1: 64.0,
+            height_inner_bot_1: 56.0,
+            height_outer_top_1: 64.0,
+            height_outer_bot_1: 56.0,
             height_link_inner_outer: true,
             hill_inner_top: 0.0,
             hill_inner_bot: 0.0,
@@ -212,7 +212,7 @@ pub struct RaytoArgs {
 impl Default for RaytoArgs {
     fn default() -> Self {
         Self {
-            n: 12,
+            n: 24,
             r0: 32.0,
             r1: 32.0,
             theta0: 0.0,
@@ -341,7 +341,7 @@ impl Default for ProfileCircleArgs {
     fn default() -> Self {
         Self {
             n: 12,
-            radius: 16.0,
+            radius: 32.0,
         }
     }
 }
@@ -366,7 +366,7 @@ impl Default for ProfileCircleSectorArgs {
     fn default() -> Self {
         Self {
             n: 12,
-            radius: 16.0,
+            radius: 32.0,
             start_angle: 0.0,
             end_angle: 90.0,
         }
@@ -396,9 +396,9 @@ pub struct ProfileRectangleArgs {
 impl Default for ProfileRectangleArgs {
     fn default() -> Self {
         Self {
-            width: 32.0,
+            width: 64.0,
             height: 8.0,
-            anchor: extrude::profile::Anchor9Point::BottomLeft,
+            anchor: extrude::profile::Anchor9Point::Center,
         }
     }
 }
@@ -431,7 +431,7 @@ impl Default for ProfileParallelogramArgs {
             height: 64.0,
             offset_x: 0.0,
             offset_z: 8.0,
-            anchor: extrude::profile::Anchor9Point::BottomLeft,
+            anchor: extrude::profile::Anchor9Point::Center,
         }
     }
 }
@@ -463,8 +463,8 @@ impl Default for ProfileAnnulusArgs {
     fn default() -> Self {
         Self {
             n: 12,
-            inner_radius: 12.0,
-            outer_radius: 16.0,
+            inner_radius: 24.0,
+            outer_radius: 32.0,
             start_angle: 0.0,
             end_angle: 360.0,
         }
@@ -551,7 +551,7 @@ pub struct PathLineArgs {
 impl Default for PathLineArgs {
     fn default() -> Self {
         Self {
-            x: 64.0,
+            x: 128.0,
             y: 0.0,
             z: 0.0,
         }
@@ -577,10 +577,10 @@ pub struct PathRevolveArgs {
 impl Default for PathRevolveArgs {
     fn default() -> Self {
         Self {
-            path_n: 12,
+            path_n: 24,
             start_angle: 0.0,
             end_angle: 90.0,
-            radius: 64.0,
+            radius: 128.0,
         }
     }
 }
@@ -606,12 +606,12 @@ pub struct PathSinusoidArgs {
 impl Default for PathSinusoidArgs {
     fn default() -> Self {
         Self {
-            path_n: 12,
+            path_n: 24,
             amplitude: 32.0,
-            period: 128.0,
+            period: 256.0,
             phase: 0.0,
             start: 0.0,
-            end: 128.0,
+            end: 256.0,
         }
     }
 }
@@ -639,11 +639,11 @@ pub struct PathBezierArgs {
 impl Default for PathBezierArgs {
     fn default() -> Self {
         Self {
-            path_n: 12,
+            path_n: 24,
             points: vec![
                 glam::DVec2::new(0.0, 0.0),
-                glam::DVec2::new(32.0, 0.0),
-                glam::DVec2::new(64.0, 64.0),
+                glam::DVec2::new(64.0, 0.0),
+                glam::DVec2::new(128.0, 128.0),
             ],
         }
     }
@@ -669,9 +669,9 @@ impl Default for PathCatenaryArgs {
     fn default() -> Self {
         Self {
             path_n: 12,
-            span: 128.0,
+            span: 256.0,
             height: 0.0,
-            s: 132.0,
+            s: 264.0,
         }
     }
 }
@@ -699,8 +699,8 @@ impl Default for PathSerpentineArgs {
     fn default() -> Self {
         Self {
             path_n: 12,
-            x: 64.0,
-            z: 32.0,
+            x: 128.0,
+            z: 64.0,
         }
     }
 }
