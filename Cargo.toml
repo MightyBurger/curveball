@@ -1,10 +1,12 @@
 [workspace]
 resolver = "2"
+members = ["curveball", "lib-curveball"]
 
-members = [
-    "curveball",
-    "lib-curveball",
-]
+[workspace.package]
+version = "1.0.0"
+edition = "2024"
+license = "Apache-2.0 OR MIT"
+repository = "https://github.com/MightyBurger/curveball"
 
 # Enable a small amount of optimization in the dev profile.
 [profile.dev]

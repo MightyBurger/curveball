@@ -1,7 +1,12 @@
 [package]
 name = "lib-curveball"
-version = "1.0.0"
-edition = "2024"
+version.workspace = true
+license.workspace = true
+edition.workspace = true
+description = "Curve generating utility for Neverball"
+keywords = ["curve", "neverball"]
+categories = ["game-development"]
+repository.workspace = true
 
 [dependencies]
 chull = "0.2.4"
