@@ -167,7 +167,7 @@ pub struct Sinusoid {
 
 impl Sinusoid {
     pub fn new(amplitude: f64, period: f64, phase: f64, start: f64, end: f64) -> PathResult<Self> {
-        if !(period > 0.0) {
+        if period <= 0.0 {
             return Err(SinusoidError::SinusoidInfiniteFrequency(period))?;
         }
         Ok(Self {
@@ -281,13 +281,15 @@ fn bezier(points: &Vec<DVec2>, t: f64) -> DVec2 {
     result[0]
 }
 
+// possible clippy bug?
+#[allow(clippy::ptr_arg)]
 fn recursive_bezier(points: &Vec<DVec2>, t: f64) -> Vec<DVec2> {
     if points.len() == 1 {
         vec![points[0]]
     } else {
         recursive_bezier(
             &points
-                .into_iter()
+                .iter()
                 .tuple_windows()
                 .map(|(point1, point2)| point1.lerp(*point2, t))
                 .collect(),
@@ -296,10 +298,10 @@ fn recursive_bezier(points: &Vec<DVec2>, t: f64) -> Vec<DVec2> {
     }
 }
 
-fn bezier_derivative(points: &Vec<DVec2>, t: f64) -> DVec2 {
+fn bezier_derivative(points: &[DVec2], t: f64) -> DVec2 {
     let n = points.len() as f64;
     let intersparsed_points = points
-        .into_iter()
+        .iter()
         .tuple_windows()
         .map(|(point1, point2)| n * (point2 - point1))
         .collect();

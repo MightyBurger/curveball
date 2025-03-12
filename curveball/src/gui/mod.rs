@@ -32,6 +32,7 @@ pub struct GuiData {
     about_open: bool,
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn ui(
     mut contexts: EguiContexts,
     mut ui_screen_state: ResMut<UiScreenState>,
@@ -458,8 +459,8 @@ pub fn ui(
     if local.about_open {
         let modal = Modal::new(Id::new("About Modal")).show(ctx, |ui| {
             let version = env!("CARGO_PKG_VERSION");
-            ui.heading(format!("Curveball"));
-            ui.label(format!("{version}"));
+            ui.heading("Curveball");
+            ui.label(version);
             ui.add_space(12.0);
             ui.label("Curveball is a curve generator for Neverball levels.");
             ui.add_space(12.0);

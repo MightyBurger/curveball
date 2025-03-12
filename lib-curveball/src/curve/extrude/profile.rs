@@ -148,7 +148,7 @@ impl Profile for CircleSector {
                 x: self.radius * theta.cos(),
                 y: self.radius * theta.sin(),
             })
-            .chain([DVec2::ZERO].into_iter())
+            .chain([DVec2::ZERO])
             .collect()
     }
 }

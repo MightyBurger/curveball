@@ -224,11 +224,8 @@ fn run_camera_controller(
     if mouse_button_input.just_released(controller.settings.mouse_key_navigate) {
         *cursor_grab_state = CursorGrabState::NoGrab;
     }
-    let cursor_grab_change = if *cursor_grab_state == old_grab_state {
-        false
-    } else {
-        true
-    };
+
+    let cursor_grab_change = *cursor_grab_state != old_grab_state;
 
     if let CursorGrabState::OrbitPoint(point) = *cursor_grab_state {
         let dist = (point - transform.translation).length();
@@ -382,10 +379,9 @@ fn run_camera_controller(
                 // Current position in spherical coordinates
                 let [r, mut theta, mut phi]: [f32; 3] =
                     cartesian_to_spherical(transform.translation - point).into();
-                phi = phi
-                    + accumulated_mouse_motion.delta.x
-                        * RADIANS_PER_DOT
-                        * controller.settings.sensitivity;
+                phi += accumulated_mouse_motion.delta.x
+                    * RADIANS_PER_DOT
+                    * controller.settings.sensitivity;
                 theta = (theta
                     - accumulated_mouse_motion.delta.y
                         * RADIANS_PER_DOT
@@ -403,10 +399,9 @@ fn run_camera_controller(
                 // Current position in spherical coordinates
                 let [r, mut theta, mut phi]: [f32; 3] =
                     cartesian_to_spherical(transform.translation - point).into();
-                phi = phi
-                    + accumulated_mouse_motion.delta.x
-                        * RADIANS_PER_DOT
-                        * controller.settings.sensitivity;
+                phi += accumulated_mouse_motion.delta.x
+                    * RADIANS_PER_DOT
+                    * controller.settings.sensitivity;
                 theta = (theta
                     - accumulated_mouse_motion.delta.y
                         * RADIANS_PER_DOT

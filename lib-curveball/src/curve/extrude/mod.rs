@@ -97,10 +97,10 @@ where
     PTH: Path,
 {
     if n < 1 {
-        return Err(ExtrudeError::NotEnoughSegments { n })?;
+        Err(ExtrudeError::NotEnoughSegments { n })?;
     }
     if n > 4096 {
-        return Err(ExtrudeError::TooManySegments { n })?;
+        Err(ExtrudeError::TooManySegments { n })?;
     }
 
     let start = 0.0;
@@ -136,7 +136,7 @@ where
         })
         .tuple_windows()
         .map(|(face1, face2)| {
-            let vertices: Vec<DVec3> = face1.into_iter().chain(face2.into_iter()).collect();
+            let vertices: Vec<DVec3> = face1.into_iter().chain(face2).collect();
             Brush::try_from_vertices(&vertices, MAX_HULL_ITER)
         })
         .map(|brush_result| brush_result.map_err(CurveError::from))
@@ -165,12 +165,12 @@ where
 {
     let n_compound = compound_profile.compound_profile(0.0).len() * n as usize;
     if n_compound < 1 {
-        return Err(ExtrudeError::NotEnoughSegments {
+        Err(ExtrudeError::NotEnoughSegments {
             n: n_compound as u32,
         })?;
     }
     if n_compound > 4096 {
-        return Err(ExtrudeError::TooManySegments {
+        Err(ExtrudeError::TooManySegments {
             n: n_compound as u32,
         })?;
     }
@@ -217,9 +217,9 @@ where
         .map(|(faces1, faces2)| {
             let brushes: Result<Vec<_>, _> = faces1
                 .into_iter()
-                .zip(faces2.into_iter())
+                .zip(faces2)
                 .map(|(face1, face2)| {
-                    let vertices: Vec<DVec3> = face1.into_iter().chain(face2.into_iter()).collect();
+                    let vertices: Vec<DVec3> = face1.into_iter().chain(face2).collect();
                     Brush::try_from_vertices(&vertices, MAX_HULL_ITER)
                 })
                 .collect();

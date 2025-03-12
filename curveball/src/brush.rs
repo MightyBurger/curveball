@@ -41,12 +41,16 @@ pub fn update_mesh(
 ) {
     let mut update_necessary = false;
 
+    // Intentional; only do a more complex check after an easy one.
+    #[allow(clippy::collapsible_if)]
     if curve_select.is_changed() {
         if *previous_curve_select != Some(curve_select.clone()) {
             update_necessary = true;
         }
     }
 
+    // Intentional; only do a more complex check after an easy one.
+    #[allow(clippy::collapsible_if)]
     if meshdisp.is_changed() {
         if *previous_meshdisp != Some(meshdisp.clone()) {
             update_necessary = true;
