@@ -1,6 +1,8 @@
 // Copyright 2025 Jordan Johnson
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
+#![windows_subsystem = "windows"]
+
 use std::time::Duration;
 
 use bevy::{prelude::*, winit::WinitSettings};
