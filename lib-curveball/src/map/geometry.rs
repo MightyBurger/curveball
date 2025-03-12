@@ -1,12 +1,15 @@
 // Copyright 2025 Jordan Johnson
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
+//! Structures defining the geometry of a map.
+
 const TEX_DEFAULT: &str = "mtrl/invisible";
 const ALMOST_EQUAL_DELTA: f64 = 0.000000001;
 use core::fmt;
 use glam::DVec3;
 use std::fmt::{Display, Formatter};
 
+/// A face represented as three points in space.
 #[derive(Debug, Default, Clone, Copy, PartialEq)]
 pub struct SideGeom(pub [DVec3; 3]);
 impl SideGeom {
@@ -43,6 +46,11 @@ impl SideGeom {
 }
 
 // TODO: Add texture offset, scale, rotation
+
+/// A struct defining the texture of a face.
+///
+/// This struct is missing important properties, like the texture offset, scale, and rotation. It
+/// is currently unused.
 #[derive(Debug, Clone, PartialEq)]
 pub struct SideMtrl {
     pub texture: String,
@@ -56,6 +64,7 @@ impl Default for SideMtrl {
     }
 }
 
+/// A face, consisting of the face's geometry and the face's texture.
 #[derive(Debug, Default, Clone, PartialEq)]
 pub struct Side {
     pub geom: SideGeom,
@@ -88,6 +97,8 @@ impl Side {
 }
 
 use chull::ConvexHullWrapper;
+/// A brush, representing a convex polyhedron that can be instantiated in a Neverball level. Curves
+/// consist of multiple Brushes.
 #[derive(Debug, Clone)]
 pub struct Brush {
     vertices: Vec<DVec3>,

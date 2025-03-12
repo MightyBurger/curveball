@@ -1,6 +1,10 @@
 // Copyright 2025 Jordan Johnson
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
+//! A curve that fills in the negative space left by a circular arc.
+//!
+//! Rayto is helpful for creating maps that avoid T-intersections.
+
 use crate::curve::{Curve, CurveResult, MAX_HULL_ITER};
 use crate::map::geometry::Brush;
 use glam::DVec3;

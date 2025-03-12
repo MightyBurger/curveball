@@ -1,6 +1,8 @@
 // Copyright 2025 Jordan Johnson
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
+//! The [Path] trait and a number of structs implementing that trait.
+
 use std::f64::consts::PI;
 
 use glam::{DVec2, DVec3};
@@ -12,8 +14,17 @@ use itertools::Itertools;
 
 pub type PathResult<T> = Result<T, PathError>;
 
+/// A trait representing a path in 3D space.
 pub trait Path {
+    /// Given a parameter `t` that varies between `0.0` and `1.0`, produce a point in 3D space.
     fn point(&self, t: f64) -> DVec3;
+
+    /// Given a parameter `t` that varies between `0.0` and `1.0`, produce a [FrenetFrame]. See
+    /// [FrenetFrame] for more information.
+    ///
+    /// Implementing this function is required, though if you do not plan to use
+    /// `ProfileOrientation::FollowPath`, you may have this function return placeholder vectors
+    /// like [DVec3::default].
     fn frame(&self, t: f64) -> FrenetFrame;
 }
 
@@ -44,6 +55,7 @@ pub enum PathError {
 
 // ==================== Line ====================
 
+/// A line from the origin to another point in 3D space.
 #[derive(Debug, Clone)]
 pub struct Line {
     x: f64,
@@ -89,6 +101,7 @@ impl Path for Line {
 
 // ==================== Revolve ====================
 
+/// A circular path around the vertical axis at the origin.
 #[derive(Debug, Clone)]
 pub struct Revolve {
     radius: f64,
@@ -142,6 +155,7 @@ impl Path for Revolve {
 
 // ==================== Sinusoid ====================
 
+/// A sinusoidal path with a particular phase, amplitude, and period.
 #[derive(Debug, Clone)]
 pub struct Sinusoid {
     amplitude: f64,
@@ -209,6 +223,8 @@ pub enum SinusoidError {
 
 // ==================== Bezier ====================
 
+/// A [Bezier curve](https://en.wikipedia.org/wiki/B%C3%A9zier_curve) in 3D space, defined by a
+/// vector of control points.
 #[derive(Debug, Clone)]
 pub struct Bezier {
     points: Vec<DVec2>,
@@ -292,6 +308,8 @@ fn bezier_derivative(points: &Vec<DVec2>, t: f64) -> DVec2 {
 
 // ==================== Catenary ====================
 
+/// A [Catenary](https://en.wikipedia.org/wiki/Catenary) curve; the shape a cable takes on when
+/// hung between two points.
 #[derive(Debug, Clone)]
 pub struct Catenary {
     a: f64,
@@ -436,6 +454,9 @@ pub enum CatenaryError {
 
 // ==================== Serpentine ====================
 
+/// A curve consisting of two tangent circles.
+///
+/// Named after a [serpentine belt](https://en.wikipedia.org/wiki/Serpentine_belt) in a car.
 #[derive(Debug, Clone)]
 pub struct Serpentine {
     x: f64,

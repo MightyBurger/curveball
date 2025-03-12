@@ -1,6 +1,8 @@
 // Copyright 2025 Jordan Johnson
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
+//! The [Profile] and [CompoundProfile] traits and a number of structs implementing those traits.
+
 use std::f64::consts::PI;
 
 use glam::DVec2;
@@ -10,6 +12,7 @@ use thiserror::Error;
 
 pub type ProfileResult<T> = Result<T, ProfileError>;
 
+/// A trait representing a 2D profile consisting of a single convex polygon.
 pub trait Profile {
     fn profile(&self, t: f64) -> Vec<DVec2>;
 }
@@ -21,7 +24,7 @@ impl Profile for Box<dyn Profile + '_> {
     }
 }
 
-// A profile consisting of multiple convex polygons.
+/// A trait reresenting a 2D profile consisting of multiple convex polygons.
 pub trait CompoundProfile {
     fn compound_profile(&self, t: f64) -> Vec<Vec<DVec2>>;
 }
@@ -59,6 +62,7 @@ pub enum ProfileError {
 
 // ==================== Circle ====================
 
+/// A circle with a specified radius.
 #[derive(Debug, Clone)]
 pub struct Circle {
     n: u32,
@@ -98,6 +102,8 @@ pub enum CircleError {
 
 // ==================== Circular Sector ====================
 
+/// A [circular sector](https://en.wikipedia.org/wiki/Circular_sector) with a specified radius,
+/// start angle, and end angle.
 #[derive(Debug, Clone)]
 pub struct CircleSector {
     n: u32,
@@ -161,6 +167,13 @@ pub enum CircleSectorError {
 
 // ==================== Rectangle ====================
 
+/// An enumeration describing how a profile should be placed
+/// relative to the path it is being extruded along.
+///
+/// For example, a value of `TopLeft` means the top-left corner
+/// of a rectangle would be placed in the profile's origin, and
+/// thus the top-left corner would be touching the path the profile
+/// is being extruded along.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Anchor9Point {
     TopLeft,
@@ -174,6 +187,7 @@ pub enum Anchor9Point {
     BottomRight,
 }
 
+/// A rectangle with a specific width, height, and anchor point.
 #[derive(Debug, Clone)]
 pub struct Rectangle {
     width: f64,
@@ -230,7 +244,8 @@ impl Profile for Rectangle {
 pub enum RectangleError {}
 
 // ==================== Parallelogram ====================
-//
+
+/// A parallelogram.
 #[derive(Debug, Clone)]
 pub struct Parallelogram {
     width: f64,
@@ -300,6 +315,7 @@ pub enum ParallelogramError {}
 
 // ==================== Annulus ====================
 
+/// A sector of an [annular ring](https://en.wikipedia.org/wiki/Annulus_(mathematics)).
 pub struct Annulus {
     n: u32,
     inner_radius: f64,
@@ -371,6 +387,7 @@ pub enum AnnulusError {
 
 // ==================== Arbitrary ====================
 
+/// A profile defined by arbitrary sets of points defining convex polygons.
 pub struct Arbitrary {
     points: Vec<Vec<DVec2>>,
 }

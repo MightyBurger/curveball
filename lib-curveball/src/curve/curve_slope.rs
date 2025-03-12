@@ -1,6 +1,8 @@
 // Copyright 2025 Jordan Johnson
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
+//! A highly configurable circular arc.
+
 use crate::curve::{Curve, CurveResult, MAX_HULL_ITER};
 use crate::map::geometry::Brush;
 use glam::DVec3;

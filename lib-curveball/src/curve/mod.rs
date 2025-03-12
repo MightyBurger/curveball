@@ -1,6 +1,8 @@
 // Copyright 2025 Jordan Johnson
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
+//! A collection of structs and functions that produce a vector of [brushes][Brush].
+
 use crate::map::geometry::Brush;
 use thiserror::Error;
 

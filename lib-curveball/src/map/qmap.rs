@@ -1,12 +1,15 @@
 // Copyright 2025 Jordan Johnson
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
+//! Structs for Quake3 maps.
+
 use crate::map::geometry::Brush;
 use core::fmt;
 use std::fmt::{Display, Formatter};
 
 use std::collections::HashMap;
 
+/// A Quake3 map entity.
 #[derive(Debug, Clone)]
 pub struct QEntity {
     pub parameters: HashMap<String, String>,
@@ -34,6 +37,10 @@ impl QEntity {
     }
 }
 
+/// A Quake3 map.
+///
+/// Importantly, this struct implements `Display`, so one can convert this struct into text to be
+/// written to a `.map` file.
 #[derive(Debug, Clone)]
 pub struct QMap {
     pub entities: Vec<QEntity>,

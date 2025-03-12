@@ -1,6 +1,8 @@
 // Copyright 2025 Jordan Johnson
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
+//! Functions to produce curves by extruding a 2D profile along a path in 3D space.
+
 use crate::curve::extrude::path::Path;
 use crate::curve::{CurveError, CurveResult, MAX_HULL_ITER};
 use crate::map::geometry::Brush;
@@ -63,6 +65,10 @@ impl Default for ProfileOrientation {
     }
 }
 
+/// A [Frenet frame](https://en.wikipedia.org/wiki/Frenet%E2%80%93Serret_formulas) used to describe the orientation of a profile along a path.
+///
+/// The `tangent` vector is always equal to the derivative of the path's parametric function
+/// with respect to time, normalized.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct FrenetFrame {
     pub tangent: DVec3,
@@ -70,7 +76,16 @@ pub struct FrenetFrame {
     pub binormal: DVec3,
 }
 
-// Extrude along a parameterized curve.
+/// Extrude a 2D profile along a 3D path.
+///
+/// `n`: Number of discrete segments to produce
+///
+/// `profile`: A 2D profile
+///
+/// `path`: A path in 3D space
+///
+/// `profile_orientation`: Determines how the profile should be oriented as it extrudes through
+/// space
 pub fn extrude<PRF, PTH>(
     n: u32,
     profile: &PRF,
@@ -128,7 +143,16 @@ where
         .collect()
 }
 
-// Extrude along a parameterized curve with a path with multiple components.
+/// Extrude a compound 2D profile along a 3D path.
+///
+/// `n`: Number of discrete segments to produce
+///
+/// `profile`: A "compound" 2D profile, i.e. one containing multiple polygons
+///
+/// `path`: A path in 3D space
+///
+/// `profile_orientation`: Determines how the profile should be oriented as it extrudes through
+/// space
 pub fn extrude_multi<CPF, PTH>(
     n: u32,
     compound_profile: &CPF,
