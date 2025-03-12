@@ -12,8 +12,10 @@ accepted = [
     "OFL-1.1",
     "LicenseRef-UFL-1.0",
     "BSL-1.0",
+    "NCSA",
+    "Ubuntu-font-1.0"
 ]
 
-ignore-transitive-dependencies = false
+ignore-transitive-dependencies = true
 
 private = { ignore = true }
