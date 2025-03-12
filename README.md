@@ -35,13 +35,19 @@ Curveball supports generating these curves:
 
 Curve Classic contains the same functionality as [curve.c] when `slope` is disabled. It produces circular arcs.
 
+![curve classic](resources/curve_classic.png)
+
 ### Curve Slope
 
 Curve Classic contains the same functionality as [curve.c] when `slope` is enabled, with a little more flexibility.
 
+![curve slope](resources/curve_slope.png)
+
 ### Rayto
 
 An oddity in the set of curves Curveball produces, **Rayto** fills in the "negative space" left by a circular arc. The resulting shape is useful for avoiding [T-intersections](https://icculus.org/neverball/mapping/) when constructing maps.
+
+![rayto](resources/rayto.png)
 
 ### Extrusion
 
@@ -54,6 +60,8 @@ The **Extrusion** tool generates curves in a manner inspired by mechanical CAD s
 - Annulus
 - Any arbitrary set of convex polygons
 
+![profile gallery](resources/profile_gallery.png)
+
 The tool will extrude these 2D profiles along one of the following paths in 3D space:
 
 - Line
@@ -62,6 +70,12 @@ The tool will extrude these 2D profiles along one of the following paths in 3D s
 - Bezier
 - Catenary
 - Serpentine
+
+![path gallery](resources/path_gallery.png)
+
+You can control how the profile is oriented as it is extruded along the path.
+
+![comparison](resources/orientation.png)
 
 ## Installation
 
