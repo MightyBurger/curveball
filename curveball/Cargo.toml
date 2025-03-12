@@ -1,8 +1,7 @@
 [package]
 name = "curveball"
-version = "0.5.0"
+version = "1.0.0"
 edition = "2024"
-publish = false
 
 [dependencies]
 bevy_egui = { version = "0.33.0", default-features = false, features = [ "arboard", "bevy_asset", "bevy_image", "bevy_render", "bytemuck", "default_fonts", "encase", "open_url", "render", "thread_local", "webbrowser", "wgpu-types" ] }
